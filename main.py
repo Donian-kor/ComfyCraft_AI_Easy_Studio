@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
     QTextBrowser, QWidget, QFrame
 )
 from assets.ui.ui_loader import load_ui
+from assets.icons import icon_rc  # noqa: F401  (SVG 아이콘 리소스 등록용 - 직접 사용하진 않지만 import 자체가 필요함)
 BASE_DIR = Path(__file__).resolve().parent
 SRC_DIR = BASE_DIR / "src"
 
