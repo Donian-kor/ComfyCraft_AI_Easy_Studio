@@ -14,11 +14,10 @@ from PySide6.QtWidgets import (
     QPushButton, QSizePolicy, QSpacerItem, QSpinBox, QSplitter,
     QTextBrowser, QWidget, QFrame
 )
-
 from assets.ui.ui_loader import load_ui
-
 BASE_DIR = Path(__file__).resolve().parent
 SRC_DIR = BASE_DIR / "src"
+
 
 # src 패키지를 sys.path 에 추가하여 모듈 import 가능하게 함
 if str(SRC_DIR) not in sys.path:
