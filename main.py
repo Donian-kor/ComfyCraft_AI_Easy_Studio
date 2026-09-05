@@ -944,7 +944,6 @@ class MainController(QObject):
     def close(self):
         if self.close_timer.isActive():
             return
-
         self.window.setEnabled(False)
         if self.worker:
             self.worker.stop()
@@ -953,7 +952,6 @@ class MainController(QObject):
         self.find(QLabel, "progressStatusLabel").setText("종료 중...")
         self.find(QLabel, "progressPercentLabel").setText("")
         self.close_timer.start(300)
-
 
 def main():
     app = QApplication(sys.argv)
@@ -969,7 +967,6 @@ def main():
     window.show()
 
     return app.exec()
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
