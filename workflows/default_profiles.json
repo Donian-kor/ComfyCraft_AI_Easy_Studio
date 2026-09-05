@@ -1,0 +1,62 @@
+{
+  "flux": {
+    "name": "flux",
+    "family": "flux",
+    "aliases": ["flux"],
+    "patterns": ["flux"],
+    "workflow_type": "flux_gguf",
+    "default_clip1": "clip_l.safetensors",
+    "default_clip2": "t5-v1_1-xxl-encoder-Q4_K_M.gguf",
+    "default_vae": "diffusion_pytorch_model.safetensors",
+    "default_steps": 29,
+    "default_cfg": 1,
+    "sampler_name": "euler",
+    "scheduler": "simple",
+    "priority": 10
+  },
+  "zimage": {
+    "name": "zimage",
+    "family": "zimage",
+    "aliases": ["zimage", "zimage-turbo", "zimage_turbo"],
+    "patterns": ["zimage", "z_image", "turbo"],
+    "workflow_type": "zimage",
+    "default_clip1": "Z-Image-Engineer-V6-Q5_K_M.gguf",
+    "default_clip2": "",
+    "default_vae": "ae.safetensors",
+    "default_steps": 8,
+    "default_cfg": 2,
+    "sampler_name": "dpmpp_2m",
+    "scheduler": "karras",
+    "priority": 5
+  },
+  "realvisxl_v5": {
+    "name": "realvisxl_v5",
+    "family": "realvisxl",
+    "aliases": ["realvisxl", "realvisxl_v5", "realvisxl_v5.0", "realvisxl_v5.0_fp16"],
+    "patterns": ["realvisxl"],
+    "workflow_type": "checkpoint",
+    "default_clip1": "",
+    "default_clip2": "",
+    "default_vae": "",
+    "default_steps": 25,
+    "default_cfg": 4.5,
+    "sampler_name": "dpmpp_2m",
+    "scheduler": "karras",
+    "priority": 10
+  },
+  "juggernautxl_ragnarok": {
+    "name": "juggernautxl_ragnarok",
+    "family": "juggernautxl",
+    "aliases": ["juggernautxl", "juggernautxl_ragnarok", "ragnarok"],
+    "patterns": ["juggernautxl", "ragnarok"],
+    "workflow_type": "checkpoint",
+    "default_clip1": "",
+    "default_clip2": "",
+    "default_vae": "",
+    "default_steps": 30,
+    "default_cfg": 5.5,
+    "sampler_name": "dpmpp_2m",
+    "scheduler": "karras",
+    "priority": 10
+  }
+}

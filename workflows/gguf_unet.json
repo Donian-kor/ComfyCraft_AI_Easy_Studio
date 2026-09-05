@@ -1,0 +1,73 @@
+{
+  "1": {
+    "class_type": "__UNET_CLASS__",
+    "inputs": {
+      "unet_name": "__MODEL_NAME__",
+      "weight_dtype": "__WEIGHT_DTYPE__"
+    }
+  },
+  "2": {
+    "class_type": "__CLIP_CLASS__",
+    "inputs": {
+      "clip_name": "__CLIP_NAME__",
+      "type": "__CLIP_TYPE__"
+    }
+  },
+  "3": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "__VAE_NAME__"
+    }
+  },
+  "4": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "__POSITIVE_PROMPT__",
+      "clip": ["2", 0]
+    }
+  },
+  "5": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "__NEGATIVE_PROMPT__",
+      "clip": ["2", 0]
+    }
+  },
+  "6": {
+    "class_type": "EmptyLatentImage",
+    "inputs": {
+      "width": "__WIDTH__",
+      "height": "__HEIGHT__",
+      "batch_size": 1
+    }
+  },
+  "7": {
+    "class_type": "KSampler",
+    "inputs": {
+      "seed": "__SEED__",
+      "steps": "__STEPS__",
+      "cfg": "__CFG__",
+      "sampler_name": "__SAMPLER_NAME__",
+      "scheduler": "__SCHEDULER__",
+      "denoise": "__DENOISE__",
+      "model": ["1", 0],
+      "positive": ["4", 0],
+      "negative": ["5", 0],
+      "latent_image": ["6", 0]
+    }
+  },
+  "8": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["7", 0],
+      "vae": ["3", 0]
+    }
+  },
+  "9": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "filename_prefix": "__FILENAME_PREFIX__",
+      "images": ["8", 0]
+    }
+  }
+}
