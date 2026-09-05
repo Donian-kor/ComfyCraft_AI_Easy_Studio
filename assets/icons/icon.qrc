@@ -1,0 +1,18 @@
+<RCC>
+  <qresource prefix="newPrefix1">
+    <file>facedetailer_check.svg</file>
+    <file>network-base.svg</file>
+    <file>network-failed.svg</file>
+    <file>network-ing.svg</file>
+    <file>network-success.svg</file>
+    <file>off-2.svg</file>
+    <file>on-1.svg</file>
+    <file>paragraph-justified-option-symbol-for-interface-of-five-parallel-horizontal-lines-svgrepo-com.svg</file>
+    <file>play.svg</file>
+    <file>play-svgrepo-com (1).svg</file>
+    <file>play-svgrepo-com.svg</file>
+    <file>sparkel.svg</file>
+    <file>stop-svgrepo-com (1).svg</file>
+    <file>stop-svgrepo-com.svg</file>
+  </qresource>
+</RCC>
