@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="newPrefix1">
+    <file>toggle-off.svg</file>
+    <file>toggle-on.svg</file>
     <file>facedetailer_check.svg</file>
     <file>network-base.svg</file>
     <file>network-failed.svg</file>

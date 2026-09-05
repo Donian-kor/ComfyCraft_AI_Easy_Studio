@@ -1794,16 +1794,51 @@ QComboBox QAbstractItemView::item { padding: 6px 8px; border-radius: 6px; }
 QComboBox QAbstractItemView::item:hover { background-color: #262b3a; }</string>
        </property>
       </widget>
-      <zorder>layoutWidget6</zorder>
+      <zorder>modelPathStatusLabel</zorder>
+      <zorder>browseModelFolderButton</zorder>
+      <zorder>comfyModelLabel</zorder>
+      <zorder>comfyModelCombo</zorder>
       <zorder>comfyAddressLabel</zorder>
       <zorder>comfyPathLabel</zorder>
       <zorder>comfyModelPathEdit</zorder>
-      <zorder>layoutWidget2</zorder>
       <zorder>comfyStatusLabel</zorder>
       <zorder>comfyTitleLabel</zorder>
       <zorder>comfyUrlEdit</zorder>
       <zorder>comfyCheckButton</zorder>
      </widget>
+    </widget>
+    <widget class="QPushButton" name="toggleLogButton">
+     <property name="geometry">
+      <rect>
+       <x>180</x>
+       <y>650</y>
+       <width>101</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton {
+    color: #cdd2e0;
+    border: none;
+    background-color: transparent;
+    border-radius: 8px;
+    font-size: 13px;
+}
+</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="../icons/icon.qrc">
+       <normaloff>:/newPrefix1/toggle-off.svg</normaloff>:/newPrefix1/toggle-off.svg</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>55</width>
+       <height>55</height>
+      </size>
+     </property>
     </widget>
    </widget>
    <widget class="QGroupBox" name="generationPanel">

@@ -1030,6 +1030,10 @@ class Ui_MainWindow(object):
 "QComboBox QAbstractItemView::item { padding: 6px 8px; border-radius: 6px; }\n"
 "QComboBox QAbstractItemView::item:hover { ba"
                         "ckground-color: #262b3a; }")
+        self.modelPathStatusLabel.raise_()
+        self.browseModelFolderButton.raise_()
+        self.comfyModelLabel.raise_()
+        self.comfyModelCombo.raise_()
         self.comfyAddressLabel.raise_()
         self.comfyPathLabel.raise_()
         self.comfyModelPathEdit.raise_()
@@ -1037,6 +1041,21 @@ class Ui_MainWindow(object):
         self.comfyTitleLabel.raise_()
         self.comfyUrlEdit.raise_()
         self.comfyCheckButton.raise_()
+        self.toggleLogButton = QPushButton(self.sidebar_frame)
+        self.toggleLogButton.setObjectName(u"toggleLogButton")
+        self.toggleLogButton.setGeometry(QRect(180, 650, 101, 51))
+        self.toggleLogButton.setStyleSheet(u"QPushButton {\n"
+"    color: #cdd2e0;\n"
+"    border: none;\n"
+"    background-color: transparent;\n"
+"    border-radius: 8px;\n"
+"    font-size: 13px;\n"
+"}\n"
+"")
+        icon5 = QIcon()
+        icon5.addFile(u":/newPrefix1/toggle-off.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        self.toggleLogButton.setIcon(icon5)
+        self.toggleLogButton.setIconSize(QSize(55, 55))
         self.generationPanel = QGroupBox(self.centralWidget)
         self.generationPanel.setObjectName(u"generationPanel")
         self.generationPanel.setGeometry(QRect(1060, 850, 441, 281))
@@ -2005,6 +2024,7 @@ class Ui_MainWindow(object):
         self.modelPathStatusLabel.setText(QCoreApplication.translate("MainWindow", u"\u2713 \ubaa8\ub378 \ud3f4\ub354 \ud655\uc778", None))
         self.browseModelFolderButton.setText(QCoreApplication.translate("MainWindow", u"\ucc3e\uc544\ubcf4\uae30", None))
         self.comfyModelLabel.setText(QCoreApplication.translate("MainWindow", u"\U0001f4e6 \U0000baa8\U0000b378 \U0000c120\U0000d0dd", None))
+        self.toggleLogButton.setText("")
         self.generationPanel.setTitle(QCoreApplication.translate("MainWindow", u"\u2699\ufe0f Generation options", None))
         self.preset_512x512.setText(QCoreApplication.translate("MainWindow", u"512\u00d7512", None))
         self.preset_768x768.setText(QCoreApplication.translate("MainWindow", u"768\u00d7768", None))

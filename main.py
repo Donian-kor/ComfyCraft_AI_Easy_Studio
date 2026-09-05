@@ -7,12 +7,12 @@ from datetime import datetime
 from pathlib import Path
 
 from PySide6.QtCore import QObject, QTimer, Qt, Signal, QRegularExpression, QPropertyAnimation, QEasingCurve, QRect, QEvent
-from PySide6.QtGui import QPixmap, QRegularExpressionValidator
+from PySide6.QtGui import QPixmap, QRegularExpressionValidator, QIcon
 from PySide6.QtWidgets import (
     QApplication, QCheckBox, QComboBox, QDoubleSpinBox, QFileDialog,
     QLabel, QLineEdit, QMessageBox, QPlainTextEdit, QProgressBar,
     QPushButton, QSizePolicy, QSpacerItem, QSpinBox, QSplitter,
-    QTextBrowser, QWidget, QFrame
+    QTextBrowser, QWidget, QFrame, QGroupBox, QStyle
 )
 from assets.ui.ui_loader import load_ui
 from assets.icons import icon_rc  # noqa: F401  (SVG 아이콘 리소스 등록용 - 직접 사용하진 않지만 import 자체가 필요함)
@@ -212,13 +212,29 @@ class MainController(QObject):
         self.find(QLabel, "progressPercentLabel").setText("0%")
         QTimer.singleShot(150, self.refresh_models)
 
-
-
         # 도움말 탭 설정 (추가)
         self._setup_help_tab()
+        
         # 사이드바 애니메이션 설정
         self.setup_sidebar_animation()
         
+        # ===== 로그창 토글 버튼 (아이콘 버전) =====
+        toggle_btn = self.find(QPushButton, "toggleLogButton")
+        if toggle_btn:
+            toggle_btn.clicked.connect(self.toggle_log)
+            self.log_group = self.find(QGroupBox, "logGroupBox")
+            self.log_visible = True   # 처음에는 로그가 보이는 상태
+
+            # ✅ Qt 내장 아이콘 사용하기 (별도 이미지 파일 필요 없음)
+            from PySide6.QtWidgets import QStyle
+            
+            # assets/icons 폴더의 실제 파일명과 정확히 일치해야 합니다!
+            self.icon_collapse = QIcon(str(BASE_DIR / "assets/icons/toggle-off.svg"))
+            self.icon_expand = QIcon(str(BASE_DIR / "assets/icons/toggle-on.svg"))            
+            # 처음에는 로그가 보이므로 '접기' 설정
+            toggle_btn.setIcon(self.icon_collapse)
+            toggle_btn.setText("")  # 혹시 모를 텍스트 제거        
+
     def setup_sidebar_animation(self):
         """사이드바에 마우스 호버 시 확장/축소 애니메이션을 적용합니다."""
         sidebar = self.find(QFrame, "sidebar_frame")
@@ -953,6 +969,20 @@ class MainController(QObject):
         self.find(QLabel, "progressStatusLabel").setText("종료 중...")
         self.find(QLabel, "progressPercentLabel").setText("")
         self.close_timer.start(300)
+        
+    def toggle_log(self):
+        """로그창을 보이거나 숨기는 토글 함수 (아이콘 변경 포함)"""
+        self.log_visible = not self.log_visible
+        self.log_group.setVisible(self.log_visible)
+
+        btn = self.find(QPushButton, "toggleLogButton")
+        if btn:
+            # 로그가 보이면 → 접기 아이콘(▼), 로그가 숨겨져 있으면 → 펼치기 아이콘(▲)
+            if self.log_visible:
+                btn.setIcon(self.icon_collapse)  # ▼
+            else:
+                btn.setIcon(self.icon_expand)    # ▲
+
 
 def main():
     app = QApplication(sys.argv)
