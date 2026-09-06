@@ -121,6 +121,13 @@ class GenerationWorker:
             self.signals.error.emit(str(exc))
             success = False
         finally:
+            # 🌟 생성 종료 시(성공/실패/중단 모두) ComfyUI 큐 정리 및 웹소켓 종료
+            try:
+                if self.comfy_api:
+                    self.comfy_api.clear_queue(timeout=2)
+                    self.emit_log("ComfyUI 큐 정리 완료")
+            except Exception as e:
+                self.emit_log(f"[⚠️ 경고] 큐 정리 실패: {e}")
             try:
                 if self.comfy_ws:
                     self.comfy_ws.close()
@@ -190,9 +197,22 @@ class GenerationWorker:
         if self.stop_requested:
             return False
 
+        # 🌟 [중요] 새 생성 시작 전 ComfyUI 큐/실행 상태 강제 정리 (재실행 400 에러 방지)
+        try:
+            self.comfy_api.interrupt(timeout=2)
+            self.comfy_api.clear_queue(timeout=2)
+            self.comfy_api.free_memory(timeout=3)
+            self.emit_log("사전 큐 정리 완료 (interrupt + clear_queue + free_memory)")
+        except Exception as e:
+            self.emit_log(f"[⚠️ 경고] 사전 큐 정리 중 오류 (무시하고 진행): {e}")
+
+        # 🌟 정리 후 잠시 대기하여 ComfyUI가 내부 상태를 정리할 시간 확보
+        time.sleep(0.5)
+        QApplication.processEvents()
+
         # (이후 ComfyUI 큐 등록 및 웹소켓 통신 코드는 기존과 동일)
         workflow_json_str = json.dumps(workflow, indent=2, ensure_ascii=False)
-        self.emit_log(f"[DEBUG] 워크플로우 JSON:\n{workflow_json_str[:500]}...")
+        self.emit_log(f"[DEBUG] 워크플로우 JSON (전체):\n{workflow_json_str}")
 
         self.signals.status.emit("워크플로우 큐 등록 중...")
         try:
@@ -201,11 +221,15 @@ class GenerationWorker:
         except Exception as e:
             error_detail = ""
             try:
-                if hasattr(response, 'text'):
-                    error_detail = f" / {response.text[:200]}"
+                if hasattr(response, 'text') and response.text:
+                    error_detail = f" / 응답: {response.text[:1000]}"
+                if hasattr(response, 'status_code'):
+                    error_detail = f" / 상태코드: {response.status_code}{error_detail}"
             except:
                 pass
-            self.emit_log(f"[ERROR] ComfyUI 응답 실패: {str(e)}{error_detail}")
+            self.emit_log(f"[ERROR] ComfyUI 프롬프트 등록 실패: {str(e)}{error_detail}")
+            # 🌟 실패 시 워크플로우 JSON도 함께 로그로 남김 (디버깅용)
+            self.emit_log(f"[DEBUG] 실패한 워크플로우:\n{workflow_json_str}")
             raise
 
         prompt_id = response.json().get("prompt_id")
@@ -265,6 +289,12 @@ class GenerationWorker:
                         self.signals.progress.emit(100)
                         self.signals.image.emit(str(result_path))
                         self.emit_log(f"이미지 다운로드 완료: {result_path}")
+                        # 🌟 생성 완료 후 ComfyUI 큐 정리 (재실행 시 400 에러 방지)
+                        try:
+                            self.comfy_api.clear_queue(timeout=2)
+                            self.emit_log("ComfyUI 큐 정리 완료")
+                        except Exception as e:
+                            self.emit_log(f"[⚠️ 경고] 큐 정리 실패: {e}")
                         return True
            
             # 👍 아래와 같이 주석 처리하여 가짜 게이지 상승을 막습니다.
@@ -336,6 +366,9 @@ class GenerationWorker:
             raise RuntimeError("생성 워크플로우가 비어 있습니다.")
 
         issues = []
+        missing_nodes = []
+        comfy_url = self.snapshot.get("comfy_url", "")
+        
         for node_id, node in workflow.items():
             if not isinstance(node, dict):
                 continue
@@ -349,6 +382,14 @@ class GenerationWorker:
                     value = inputs.get(field_name)
                     if isinstance(value, dict):
                         issues.append(f"노드 {node_id}의 {field_name} 값이 dict 형태라 ComfyUI 연결이 아닙니다.")
+
+            # 🌟 각 노드 타입이 ComfyUI에 존재하는지 확인
+            if class_type and comfy_url:
+                if not self._comfyui_node_exists(class_type, comfy_url):
+                    missing_nodes.append(f"{class_type} (노드 ID: {node_id})")
+
+        if missing_nodes:
+            issues.append(f"ComfyUI에 없는 노드 타입: {', '.join(missing_nodes)}. 해당 커스텀 노드가 설치되어 있는지 확인하세요.")
 
         if issues:
             raise RuntimeError("ComfyUI 워크플로우 검증 실패: " + "; ".join(issues))
@@ -569,6 +610,8 @@ class GenerationWorker:
             )
             
             # FaceDetailer 핵심 노드 조립 및 결합
+            # 🌟 ComfyUI Impact Pack FaceDetailer 노드는 많은 필수 입력이 필요합니다.
+            # 에러 메시지에 나온 모든 필수 입력값을 기본값과 함께 제공합니다.
             facedetailer_node_id = str(int(detector_node_id) + 1)
             workflow[facedetailer_node_id] = {
                 "inputs": {
@@ -589,6 +632,21 @@ class GenerationWorker:
                     "noise_mask": True,
                     "force_inpaint": True,
                     "bbox_detector": [detector_node_id, 0],
+                    # 🌟 아래는 ComfyUI Impact Pack FaceDetailer 필수 입력값들 (기본값 제공)
+                    "positive": [positive_source[0], 0] if positive_source and isinstance(positive_source, list) else clip_source,
+                    "negative": [negative_source[0], 0] if (negative_source := ksampler_inputs.get("negative")) and isinstance(negative_source, list) else clip_source,
+                    "bbox_threshold": 0.5,
+                    "bbox_dilation": 10,
+                    "bbox_crop_factor": 1.5,
+                    "sam_detection_hint": "center-1",
+                    "sam_dilation": 0,
+                    "sam_threshold": 0.93,
+                    "sam_bbox_expansion": 0,
+                    "sam_mask_hint_threshold": 0.7,
+                    "sam_mask_hint_use_negative": "False",
+                    "wildcard": "",
+                    "cycle": 1,
+                    "drop_size": 10,
                 },
                 "class_type": "FaceDetailer"
             }

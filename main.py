@@ -193,7 +193,7 @@ class MainController(QObject):
             )
         self.find(QPlainTextEdit, "positivePromptEdit").textChanged.connect(lambda: self.update_counter("positivePromptEdit", "positivePromptCounterLabel"))
         self.find(QPlainTextEdit, "negativePromptEdit").textChanged.connect(lambda: self.update_counter("negativePromptEdit", "negativePromptCounterLabel"))
-        self.find(QPlainTextEdit, "enhancePromptEdit").textChanged.connect(lambda: self.update_counter("enhancePromptEdit", "enhancePromptCounterLabel                                                                                                       "))
+        self.find(QPlainTextEdit, "enhancePromptEdit").textChanged.connect(lambda: self.update_counter("enhancePromptEdit", "enhancePromptCounterLabel"))
         self.update_counter("positivePromptEdit", "positivePromptCounterLabel")
         self.update_counter("negativePromptEdit", "negativePromptCounterLabel")
         self.update_counter("enhancePromptEdit", "enhancePromptCounterLabel")
