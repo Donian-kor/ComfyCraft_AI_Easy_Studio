@@ -596,17 +596,30 @@ class GenerationWorker:
                 "class_type": "UltralyticsDetectorProvider"
             }
             
-            # UI 가변 값 취합
+            # UI 가변 값 취합 (스냅샷에서 가져오기, 기본값 제공)
             facedetailer_denoise = s.get("facedetailer_denoise", 0.4)
             facedetailer_steps = s.get("facedetailer_steps", 20)
             facedetailer_cfg = s.get("facedetailer_cfg", 4.0)
             facedetailer_guide_size = s.get("facedetailer_guide_size", 256)
             facedetailer_max_size = s.get("facedetailer_max_size", 512)
             facedetailer_feather = s.get("facedetailer_feather", 5)
+            # 새로운 FaceDetailer 파라미터들
+            facedetailer_bbox_threshold = s.get("facedetailer_bbox_threshold", 0.5)
+            facedetailer_bbox_dilation = s.get("facedetailer_bbox_dilation", 10)
+            facedetailer_bbox_crop_factor = s.get("facedetailer_bbox_crop_factor", 1.5)
+            facedetailer_sam_detection_hint = s.get("facedetailer_sam_detection_hint", "center-1")
+            facedetailer_sam_dilation = s.get("facedetailer_sam_dilation", 0)
+            facedetailer_sam_threshold = s.get("facedetailer_sam_threshold", 0.93)
+            facedetailer_sam_bbox_expansion = s.get("facedetailer_sam_bbox_expansion", 0)
+            facedetailer_sam_mask_hint_threshold = s.get("facedetailer_sam_mask_hint_threshold", 0.7)
+            facedetailer_sam_mask_hint_use_negative = s.get("facedetailer_sam_mask_hint_use_negative", "False")
+            facedetailer_cycle = s.get("facedetailer_cycle", 1)
+            facedetailer_drop_size = s.get("facedetailer_drop_size", 10)
             
             self.emit_log(
                 f"[AI 안면 정밀 보정] 파이프라인 가동 ── "
-                f"Steps: {facedetailer_steps}, CFG: {facedetailer_cfg}, Denoise: {facedetailer_denoise}"
+                f"Steps: {facedetailer_steps}, CFG: {facedetailer_cfg}, Denoise: {facedetailer_denoise}, "
+                f"BBoxThresh: {facedetailer_bbox_threshold}, SAMHint: {facedetailer_sam_detection_hint}"
             )
             
             # FaceDetailer 핵심 노드 조립 및 결합
@@ -625,28 +638,29 @@ class GenerationWorker:
                     "seed": seed,
                     "steps": facedetailer_steps,
                     "cfg": facedetailer_cfg,
-                    "sampler_name": "dpmpp_2m_sde",        # 안면 질감 묘사 전용 고성능 고화질 샘플러 고정
+                     # 안면 질감 묘사 전용 고성능 고화질 샘플러 고정
+                    "sampler_name": "dpmpp_2m_sde",        
                     "scheduler": "karras",
                     "denoise": facedetailer_denoise,
                     "feather": facedetailer_feather,
                     "noise_mask": True,
                     "force_inpaint": True,
                     "bbox_detector": [detector_node_id, 0],
-                    # 🌟 아래는 ComfyUI Impact Pack FaceDetailer 필수 입력값들 (기본값 제공)
+                    # 🌟 아래는 ComfyUI Impact Pack FaceDetailer 필수 입력값들 (UI 설정값 사용)
                     "positive": [positive_source[0], 0] if positive_source and isinstance(positive_source, list) else clip_source,
                     "negative": [negative_source[0], 0] if (negative_source := ksampler_inputs.get("negative")) and isinstance(negative_source, list) else clip_source,
-                    "bbox_threshold": 0.5,
-                    "bbox_dilation": 10,
-                    "bbox_crop_factor": 1.5,
-                    "sam_detection_hint": "center-1",
-                    "sam_dilation": 0,
-                    "sam_threshold": 0.93,
-                    "sam_bbox_expansion": 0,
-                    "sam_mask_hint_threshold": 0.7,
-                    "sam_mask_hint_use_negative": "False",
+                    "bbox_threshold": facedetailer_bbox_threshold,
+                    "bbox_dilation": facedetailer_bbox_dilation,
+                    "bbox_crop_factor": facedetailer_bbox_crop_factor,
+                    "sam_detection_hint": facedetailer_sam_detection_hint,
+                    "sam_dilation": facedetailer_sam_dilation,
+                    "sam_threshold": facedetailer_sam_threshold,
+                    "sam_bbox_expansion": facedetailer_sam_bbox_expansion,
+                    "sam_mask_hint_threshold": facedetailer_sam_mask_hint_threshold,
+                    "sam_mask_hint_use_negative": facedetailer_sam_mask_hint_use_negative,
                     "wildcard": "",
-                    "cycle": 1,
-                    "drop_size": 10,
+                    "cycle": facedetailer_cycle,
+                    "drop_size": facedetailer_drop_size,
                 },
                 "class_type": "FaceDetailer"
             }

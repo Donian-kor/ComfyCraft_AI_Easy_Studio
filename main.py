@@ -6,13 +6,13 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from PySide6.QtCore import QObject, QTimer, Qt, Signal, QRegularExpression, QPropertyAnimation, QEasingCurve, QRect, QEvent
+from PySide6.QtCore import QObject, QTimer, Qt, Signal, QRegularExpression, QPropertyAnimation, QEasingCurve, QEvent
 from PySide6.QtGui import QPixmap, QRegularExpressionValidator, QIcon
 from PySide6.QtWidgets import (
     QApplication, QCheckBox, QComboBox, QDoubleSpinBox, QFileDialog,
     QLabel, QLineEdit, QMessageBox, QPlainTextEdit, QProgressBar,
-    QPushButton, QSizePolicy, QSpacerItem, QSpinBox, QSplitter,
-    QTextBrowser, QWidget, QFrame, QGroupBox, QStyle
+    QPushButton, QSizePolicy, QSpacerItem, QSpinBox,
+    QTabWidget, QTextBrowser, QWidget, QFrame, QGroupBox, QStyle
 )
 from assets.ui.ui_loader import load_ui
 from assets.icons import icon_rc  # noqa: F401  (SVG 아이콘 리소스 등록용 - 직접 사용하진 않지만 import 자체가 필요함)
@@ -164,6 +164,19 @@ class MainController(QObject):
             denoise_spin.setSingleStep(0.1)
             denoise_spin.setValue(1.0)
 
+        # FaceDetailer ComboBox 초기화
+        sam_hint_combo = self.find(QComboBox, "facedetailerSamDetectionHintComboBox")
+        if sam_hint_combo is not None:
+            sam_hint_combo.clear()
+            sam_hint_combo.addItems(["center-1", "center-2", "center-3", "center-4", "all"])
+            sam_hint_combo.setCurrentText("center-1")
+
+        sam_mask_neg_combo = self.find(QComboBox, "facedetailerSamMaskHintUseNegativeComboBox")
+        if sam_mask_neg_combo is not None:
+            sam_mask_neg_combo.clear()
+            sam_mask_neg_combo.addItems(["False", "Small", "Outter"])
+            sam_mask_neg_combo.setCurrentText("False")
+
         self.find(QPushButton, "generateButton").clicked.connect(self.start_generation)
         self.find(QPushButton, "stopButton").clicked.connect(self.stop_generation)
         self.find(QPushButton, "enhancePromptButton").clicked.connect(self.enhance_prompt_only)
@@ -200,9 +213,7 @@ class MainController(QObject):
 
         self.find(QPushButton, "stopButton").setEnabled(False)
         self.find(QPlainTextEdit, "logTextEdit").setVisible(True)
-        splitter = self.find(QSplitter, "mainSplitter")
-        splitter.setStretchFactor(0, 45)
-        splitter.setStretchFactor(1, 55)
+        # QSplitter를 사용하지 않는 레이아웃 구조이므로, 초기 배치는 레이아웃이 자동 처리
         QTimer.singleShot(0, lambda: self._apply_main_splitter_ratio())
         # progressPercentLabel을 로딩바 정중앙에 배치하도록 설정
         self._setup_progress_label_overlay()
@@ -217,6 +228,36 @@ class MainController(QObject):
         
         # 사이드바 애니메이션 설정
         self.setup_sidebar_animation()
+
+        # 사이드바 버튼 → 해당 탭 전환 (NEW.ui 구조)
+        sidebar_tabs = self.find(QTabWidget, "tabWidget")
+        if sidebar_tabs is not None:
+            tab_map = {
+                "homeButton": 0,       # 홈
+                "comfyButton": 1,      # ComfyUI
+                "lmstudioButton": 2,   # LMStudio
+                "settingsButton": 6,   # Settings
+            }
+            for btn_name, tab_index in tab_map.items():
+                btn = self.find(QPushButton, btn_name)
+                if btn is not None and tab_index < sidebar_tabs.count():
+                    btn.clicked.connect(
+                        lambda checked=False, i=tab_index: sidebar_tabs.setCurrentIndex(i)
+                    )
+
+        # 홈 탭 카드 버튼 → 해당 탭 전환 (NEW.ui 홈 화면)
+        if sidebar_tabs is not None:
+            home_tab_map = {
+                "startButton": 1,        # 새 프로젝트 시작 → ComfyUI
+                "comfyCardButton": 1,    # ComfyUI 카드 → ComfyUI
+                "lmCardButton": 2,       # LMStudio 카드 → LMStudio
+            }
+            for btn_name, tab_index in home_tab_map.items():
+                btn = self.find(QPushButton, btn_name)
+                if btn is not None and tab_index < sidebar_tabs.count():
+                    btn.clicked.connect(
+                        lambda checked=False, i=tab_index: sidebar_tabs.setCurrentIndex(i)
+                    )
         
         # ===== 로그창 토글 버튼 (아이콘 버전) =====
         toggle_btn = self.find(QPushButton, "toggleLogButton")
@@ -236,7 +277,7 @@ class MainController(QObject):
             toggle_btn.setText("")  # 혹시 모를 텍스트 제거        
 
     def setup_sidebar_animation(self):
-        """사이드바에 마우스 호버 시 확장/축소 애니메이션을 적용합니다."""
+        """사이드바에 마우스 호버 시 왼쪽으로 접히는 폭(maximumWidth) 애니메이션을 적용합니다."""
         sidebar = self.find(QFrame, "sidebar_frame")
         if not sidebar:
             return
@@ -245,43 +286,53 @@ class MainController(QObject):
         sidebar.setAttribute(Qt.WA_Hover, True)
         sidebar.installEventFilter(self)
 
-        # 현재(축소된) 크기 저장 (보통 너비 55px)
-        self.collapsed_geometry = sidebar.geometry()
+        # 레이아웃 안에서도 최대 너비(210px)까지 확실히 펼쳐지도록 가로 정책을 Expanding 으로 변경
+        policy = sidebar.sizePolicy()
+        policy.setHorizontalPolicy(QSizePolicy.Policy.Expanding)
+        sidebar.setSizePolicy(policy)
 
-        # 최대 확장 크기 (UI에서 설정한 maximumWidth인 255px 사용)
-        expanded_width = min(255, sidebar.maximumWidth())
-        expanded_rect = QRect(self.collapsed_geometry)
-        expanded_rect.setWidth(expanded_width)
-        self.expanded_geometry = expanded_rect
+        # 접힌 상태 너비(55px), 펼친 상태 너비는 UI의 maximumWidth(210px 근처) 사용
+        self.sidebar_collapsed_width = 55
+        self.sidebar_expanded_width = min(max(55, sidebar.maximumWidth()), 255)
 
-        # 애니메이션 객체 생성
-        self.sidebar_anim = QPropertyAnimation(sidebar, b"geometry")
+        # splitter/레이아웃 안에서는 geometry 대신 maximumWidth 를 애니메이션 (왼쪽으로 접힘)
+        self.sidebar_anim = QPropertyAnimation(sidebar, b"maximumWidth")
         self.sidebar_anim.setDuration(300)  # 0.3초 동안 움직임
         self.sidebar_anim.setEasingCurve(QEasingCurve.InOutQuad)
 
-        # 처음에는 접힌 상태로 강제 설정
-        sidebar.setGeometry(self.collapsed_geometry)
+        # 레이아웃이 임의로 폭을 줄이지 못하도록 최소 너비도 애니메이션 값에 맞춘다
+        # (min == max -> 요청한 폭이 정확히 유지됨)
+        self.sidebar_anim.valueChanged.connect(self._sync_sidebar_min_width)
 
         # 이벤트 필터에서 사용하기 위해 저장
         self.sidebar_frame = sidebar
+
+        # 처음에는 접힌 상태(55px)로 시작
+        sidebar.setMinimumWidth(self.sidebar_collapsed_width)
+        sidebar.setMaximumWidth(self.sidebar_collapsed_width)
+
+    def _sync_sidebar_min_width(self, value):
+        """사이드바 애니메이션 중 최소 너비도 함께 맞춰 레이아웃이 정확한 폭을 유지하게 한다."""
+        if getattr(self, "sidebar_frame", None) is not None:
+            self.sidebar_frame.setMinimumWidth(int(value))
 
     def eventFilter(self, obj, event):
         """마우스가 사이드바에 들어오고 나갈 때 애니메이션을 실행합니다."""
         # 사이드바에서 발생한 이벤트인지 확인
         if hasattr(self, 'sidebar_frame') and obj == self.sidebar_frame:
             if event.type() == QEvent.HoverEnter:
-                # 마우스 올림 → 확장
+                # 마우스 올림 → 펼치기(왼쪽에서 오른쪽으로 확장)
                 self.sidebar_anim.stop()
-                self.sidebar_anim.setStartValue(self.sidebar_frame.geometry())
-                self.sidebar_anim.setEndValue(self.expanded_geometry)
+                self.sidebar_anim.setStartValue(self.sidebar_frame.maximumWidth())
+                self.sidebar_anim.setEndValue(self.sidebar_expanded_width)
                 self.sidebar_anim.start()
                 return True
 
             elif event.type() == QEvent.HoverLeave:
-                # 마우스 내림 → 축소
+                # 마우스 내림 → 접기(오른쪽에서 왼쪽으로 축소, 55px)
                 self.sidebar_anim.stop()
-                self.sidebar_anim.setStartValue(self.sidebar_frame.geometry())
-                self.sidebar_anim.setEndValue(self.collapsed_geometry)
+                self.sidebar_anim.setStartValue(self.sidebar_frame.maximumWidth())
+                self.sidebar_anim.setEndValue(self.sidebar_collapsed_width)
                 self.sidebar_anim.start()
                 return True
 
@@ -601,13 +652,18 @@ class MainController(QObject):
             denoise_spin.setValue(self.config.workflow.denoise)
 
     def _apply_main_splitter_ratio(self):
-        splitter = self.find(QSplitter, "mainSplitter")
-        if splitter is None:
-            return
-        total = max(1, splitter.width())
-        left_width = max(1, int(total * 0.45))
-        right_width = max(1, total - left_width)
-        splitter.setSizes([left_width, right_width])
+        # QSplitter 를 쓰지 않는 레이아웃 구조에서는 사이드바가 최대 너비만큼,
+        # 나머지 콘텐츠가 남은 공간을 차지하도록 한다.
+        try:
+            sidebar = self.find(QFrame, "sidebar_frame")
+            if sidebar is not None:
+                sidebar.setMinimumWidth(55)
+                # 접힘/펼침 상태는 setup_sidebar_animation 이 관리하므로
+                # 여기서는 최대 너비를 펼친 상태(210px)로 열어둔다.
+                sidebar.setMaximumWidth(sidebar.maximumWidth() or 210)
+        except Exception:
+            pass
+        # (이전 QSplitter 비율 코드는 구조 변경으로 제거됨)
 
     def _setup_help_tab(self):
         """도움말 탭의 helpBrowser(main.ui에 정의됨)에 README.md와 INSTALLATION.md 내용을 채운다."""
@@ -742,6 +798,17 @@ class MainController(QObject):
         facedetailer_guide_size = self.find(QSpinBox, "facedetailerGuideSizeSpinBox").value()
         facedetailer_max_size = self.find(QSpinBox, "facedetailerMaxSizeSpinBox").value()
         facedetailer_feather = self.find(QSpinBox, "facedetailerFeatherSpinBox").value()
+        facedetailer_bbox_threshold = self.find(QDoubleSpinBox, "facedetailerBboxThresholdSpinBox").value()
+        facedetailer_bbox_dilation = self.find(QSpinBox, "facedetailerBboxDilationSpinBox").value()
+        facedetailer_bbox_crop_factor = self.find(QDoubleSpinBox, "facedetailerBboxCropFactorSpinBox").value()
+        facedetailer_sam_detection_hint = self.find(QComboBox, "facedetailerSamDetectionHintComboBox").currentText()
+        facedetailer_sam_dilation = self.find(QSpinBox, "facedetailerSamDilationSpinBox").value()
+        facedetailer_sam_threshold = self.find(QDoubleSpinBox, "facedetailerSamThresholdSpinBox").value()
+        facedetailer_sam_bbox_expansion = self.find(QSpinBox, "facedetailerSamBboxExpansionSpinBox").value()
+        facedetailer_sam_mask_hint_threshold = self.find(QDoubleSpinBox, "facedetailerSamMaskHintThresholdSpinBox").value()
+        facedetailer_sam_mask_hint_use_negative = self.find(QComboBox, "facedetailerSamMaskHintUseNegativeComboBox").currentText()
+        facedetailer_cycle = self.find(QSpinBox, "facedetailerCycleSpinBox").value()
+        facedetailer_drop_size = self.find(QSpinBox, "facedetailerDropSizeSpinBox").value()
         
         return {
             "prompt": normalize_prompt(prompt_text),
@@ -767,6 +834,17 @@ class MainController(QObject):
             "facedetailer_guide_size": facedetailer_guide_size,
             "facedetailer_max_size": facedetailer_max_size,
             "facedetailer_feather": facedetailer_feather,
+            "facedetailer_bbox_threshold": facedetailer_bbox_threshold,
+            "facedetailer_bbox_dilation": facedetailer_bbox_dilation,
+            "facedetailer_bbox_crop_factor": facedetailer_bbox_crop_factor,
+            "facedetailer_sam_detection_hint": facedetailer_sam_detection_hint,
+            "facedetailer_sam_dilation": facedetailer_sam_dilation,
+            "facedetailer_sam_threshold": facedetailer_sam_threshold,
+            "facedetailer_sam_bbox_expansion": facedetailer_sam_bbox_expansion,
+            "facedetailer_sam_mask_hint_threshold": facedetailer_sam_mask_hint_threshold,
+            "facedetailer_sam_mask_hint_use_negative": facedetailer_sam_mask_hint_use_negative,
+            "facedetailer_cycle": facedetailer_cycle,
+            "facedetailer_drop_size": facedetailer_drop_size,
         }
 
     def enhance_prompt_only(self):

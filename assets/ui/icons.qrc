@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE RCC>\n<RCC version="1.0">\n  <qresource prefix="/newPrefix1">\n    <file>icons/off-2.svg</file>\n    <file>icons/network-success.svg</file>\n    <file>icons/play.svg</file>\n    <file>icons/stop-svgrepo-com.svg</file>\n    <file>icons/sparkel.svg</file>\n    <file>icons/toggle-off.svg</file>\n  </qresource>\n</RCC>
