@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+from io import TextIOWrapper
 import json
 import pkgutil
 from dataclasses import dataclass, field
@@ -15,23 +16,23 @@ from model_profiles.base import ModelProfile
 class ModelRegistry:
     profiles: List[ModelProfile] = field(default_factory=list)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self._register_builtin_profiles()
         self._register_json_profiles()
 
-    def _register_builtin_profiles(self):
+    def _register_builtin_profiles(self) -> None:
         for module_info in pkgutil.iter_modules(__import__('model_profiles').__path__):
             if module_info.name.startswith("_"):
                 continue
-            module = importlib.import_module(f"model_profiles.{module_info.name}")
+            module: ModuleType = importlib.import_module(f"model_profiles.{module_info.name}")
             for value in vars(module).values():
                 if isinstance(value, type) and issubclass(value, ModelProfile) and value is not ModelProfile:
-                    profile = value()
+                    profile: ModelProfile = value()
                     self.register(profile)
 
-    def _register_json_profiles(self):
-        base_dir = Path(__file__).resolve().parent.parent
-        folders = [
+    def _register_json_profiles(self) -> None:
+        base_dir: Path = Path(__file__).resolve().parent.parent
+        folders: List[Path] = [
             base_dir / "json",
             base_dir / "workflows",
             base_dir / "model_profiles_json",
@@ -88,7 +89,7 @@ class ModelRegistry:
                 except Exception:
                     continue
 
-    def register(self, profile: ModelProfile):
+    def register(self, profile: ModelProfile) -> None:
         if profile not in self.profiles:
             self.profiles.append(profile)
         self.profiles.sort(key=lambda p: p.priority)
@@ -97,14 +98,14 @@ class ModelRegistry:
         if not model_name:
             return self._build_fallback_profile("generic")
 
-        candidates = [p for p in self.profiles if p.matches(model_name)]
+        candidates: List[ModelProfile] = [p for p in self.profiles if p.matches(model_name)]
         if candidates:
             return sorted(candidates, key=lambda p: p.priority)[0]
 
         return self._build_fallback_profile(model_name)
 
     def _build_fallback_profile(self, model_name: str) -> ModelProfile:
-        lowered = (model_name or "").lower()
+        lowered: str = (model_name or "").lower()
 
         if "flux" in lowered:
             profile = ModelProfile(
@@ -162,7 +163,7 @@ class ModelRegistry:
     def infer_from_directory(self, model_names: Iterable[str]) -> List[Tuple[str, ModelProfile]]:
         results: List[Tuple[str, ModelProfile]] = []
         for name in model_names:
-            profile = self.detect(name)
+            profile: ModelProfile = self.detect(name)
             results.append((name, profile))
         return results
 
@@ -176,10 +177,10 @@ class ModelRegistry:
 
         discovered: List[Tuple[str, ModelProfile]] = []
         seen = set()
-        supported_exts = {".safetensors", ".ckpt", ".pt", ".bin", ".gguf", ".sft"}
+        supported_exts: set[str] = {".safetensors", ".ckpt", ".pt", ".bin", ".gguf", ".sft"}
 
         for root in roots:
-            root_path = Path(root).expanduser()
+            root_path: Path = Path(root).expanduser()
             if not root_path.exists():
                 continue
             for path in root_path.rglob("*"):
@@ -187,7 +188,7 @@ class ModelRegistry:
                     continue
                 if path.suffix.lower() not in supported_exts:
                     continue
-                name = path.name
+                name: str = path.name
                 if name in seen:
                     continue
                 seen.add(name)

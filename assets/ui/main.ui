@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
@@ -24,28 +24,7 @@
   <property name="windowTitle">
    <string>ComfyUI + LMStudio Generator v0.3</string>
   </property>
-  <property name="styleSheet">
-   <string notr="true">#centralWidget {
-    background-color: #0e1016;
-    color: #e8eaf0;
-    font-family: &quot;Segoe UI&quot;, &quot;Malgun Gothic&quot;, &quot;Segoe UI Emoji&quot;;
-    font-size: 13px;
-}
-QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4f5f8; }
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button{ background-color: #e8eaf0; }
-QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4f5f8; }
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow{ background-color: #e8eaf0; }
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow{ background-color: #e8eaf0; border-top: 5px solid #9aa2b8; }
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }</string>
-  </property>
   <widget class="QWidget" name="centralWidget">
-   <property name="styleSheet">
-    <string notr="true">background-color: #0e1016;
-color: #e8eaf0;</string>
-   </property>
    <layout class="QHBoxLayout" name="mainLayout">
     <property name="spacing">
      <number>0</number>
@@ -75,15 +54,6 @@ color: #e8eaf0;</string>
         <width>210</width>
         <height>16777215</height>
        </size>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">background-color: #14161f;
-border-right: 1px solid #262b3a;
-QPushButton { text-align: left; padding: 10px 14px; border: none; border-radius: 8px; background-color: transparent; color: #cdd2e0; font-size: 14px; }
-QPushButton:hover { background-color: #1d212c; color: #f4f5f8; }
-QPushButton:pressed { background-color: #221e3d; color: #cdc4ff; }
-QLabel { background-color: transparent; color: #9aa2b8; }
-</string>
       </property>
       <property name="frameShape">
        <enum>QFrame::Shape::NoFrame</enum>
@@ -130,14 +100,8 @@ QLabel { background-color: transparent; color: #9aa2b8; }
        </item>
        <item>
         <widget class="QPushButton" name="pushButton">
-         <property name="styleSheet">
-          <string notr="true">QPushButton {
-    border: none;
-    background-color: transparent;
-}</string>
-         </property>
          <property name="text">
-          <string/>
+          <string />
          </property>
          <property name="icon">
           <iconset>
@@ -221,46 +185,6 @@ QLabel { background-color: transparent; color: #9aa2b8; }
       </property>
       <item>
        <widget class="QTabWidget" name="tabWidget">
-        <property name="styleSheet">
-         <string notr="true">QTabWidget::pane {
-    background-color: transparent;
-    border: none;
-    border-radius: 16px;
-}
-QTabBar {
-    background-color: transparent;
-}
-QTabBar::tab {
-    background-color: #1d212c;
-    color: #9aa2b8;
-    border: 1px solid #262b3a;
-    border-bottom: none;
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-    padding: 10px 24px;
-    margin-right: 4px;
-    font-weight: 500;
-    font-size: 13px;
-}
-QTabBar::tab:hover {
-    background-color: #262b3a;
-    color: #e8eaf0;
-}
-QTabBar::tab:selected {
-    background-color: #171a23;
-    color: #ffffff;
-    border-bottom: 3px solid #7c6cff;
-}
-QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4f5f8; }
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button{ background-color: #e8eaf0; }
-QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4f5f8; }
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow{ background-color: #e8eaf0; }
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow{ background-color: #e8eaf0; border-top: 5px solid #9aa2b8; }
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }</string>
-        </property>
         <property name="currentIndex">
          <number>5</number>
         </property>
@@ -374,7 +298,7 @@ QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }</string>
            </widget>
           </item>
           <item>
-           <widget class="QListWidget" name="recentList"/>
+           <widget class="QListWidget" name="recentList" />
           </item>
           <item>
            <widget class="QFrame" name="systemCard">
@@ -424,26 +348,8 @@ QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }</string>
               <height>301</height>
              </size>
             </property>
-            <property name="styleSheet">
-             <string notr="true">QGroupBox {
-    background-color: #1d212c;
-    border: 1px solid #2a2f3d;
-    border-radius: 16px;
-    margin-top: 8px;
-    padding: 18px 20px 20px 20px;
-}
-QGroupBox::title {
-    subcontrol-origin: margin;
-    left: 16px;
-    padding: 0 8px;
-    background-color: #1d212c;
-    color: #f4f5f8;
-    font-size: 20px;
-    font-weight: 600;
-}</string>
-            </property>
             <property name="title">
-             <string/>
+             <string />
             </property>
             <widget class="QLabel" name="comfyAddressLabel">
              <property name="geometry">
@@ -453,14 +359,6 @@ QGroupBox::title {
                <width>91</width>
                <height>20</height>
               </rect>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background-color: transparent;
-font-size: 12px;
-color: #6b7288;
-font-family: &quot;Cascadia Code&quot;, &quot;Consolas&quot;, monospace;
-    border: none;
-    background-color: transparent;</string>
              </property>
              <property name="text">
               <string>📡 서버 주소</string>
@@ -487,21 +385,6 @@ font-family: &quot;Cascadia Code&quot;, &quot;Consolas&quot;, monospace;
                <height>32</height>
               </size>
              </property>
-             <property name="styleSheet">
-              <string notr="true">QLineEdit {
-    background-color: #12141c;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 10px 16px;
-    font-family: &quot;Cascadia Code&quot;, &quot;Consolas&quot;, monospace;
-    font-size: 14px;
-    color: #cdd2e0;
-    selection-background-color: #7c6cff;
-    selection-color: #ffffff;
-}
-QLineEdit:hover { border-color: #3d4356; }
-QLineEdit:focus { border-color: #7c6cff; background-color: #14161f; }</string>
-             </property>
              <property name="text">
               <string>http://127.0.0.1:8188</string>
              </property>
@@ -514,14 +397,6 @@ QLineEdit:focus { border-color: #7c6cff; background-color: #14161f; }</string>
                <width>91</width>
                <height>20</height>
               </rect>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background-color: transparent;
-font-size: 12px;
-color: #6b7288;
-font-family: &quot;Cascadia Code&quot;, &quot;Consolas&quot;, monospace;
-    border: none;
-    background-color: transparent;</string>
              </property>
              <property name="text">
               <string>📁 모델 폴더</string>
@@ -548,21 +423,6 @@ font-family: &quot;Cascadia Code&quot;, &quot;Consolas&quot;, monospace;
                <height>32</height>
               </size>
              </property>
-             <property name="styleSheet">
-              <string notr="true">QLineEdit {
-    background-color: #12141c;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 10px 16px;
-    font-family: &quot;Cascadia Code&quot;, &quot;Consolas&quot;, monospace;
-    font-size: 14px;
-    color: #cdd2e0;
-    selection-background-color: #7c6cff;
-    selection-color: #ffffff;
-}
-QLineEdit:hover { border-color: #3d4356; }
-QLineEdit:focus { border-color: #7c6cff; background-color: #14161f; }</string>
-             </property>
              <property name="placeholderText">
               <string>ComfyUI 모델 폴더 경로</string>
              </property>
@@ -575,18 +435,6 @@ QLineEdit:focus { border-color: #7c6cff; background-color: #14161f; }</string>
                <width>121</width>
                <height>31</height>
               </rect>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">QLabel {
-    background-color: transparent;
-    border: none;
-    padding: 4px 14px 4px 10px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #e8eaf0;
-}
-QLabel[text*=&quot;연결 성공&quot;] { color: #4ade80; }
-QLabel[text*=&quot;연결 실패&quot;] { color: #fb7185; }</string>
              </property>
              <property name="text">
               <string>📡연결 확인 중...</string>
@@ -607,14 +455,6 @@ QLabel[text*=&quot;연결 실패&quot;] { color: #fb7185; }</string>
                <pointsize>-1</pointsize>
                <bold>true</bold>
               </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background-color: transparent;
-font-size: 16px;
-color: #ffffff;
-font-family: &quot;Cascadia Code&quot;, &quot;Consolas&quot;, monospace;
-    border: none;
-    background-color: transparent;</string>
              </property>
              <property name="text">
               <string>🎨 ComfyUI</string>
@@ -638,20 +478,6 @@ font-family: &quot;Cascadia Code&quot;, &quot;Consolas&quot;, monospace;
                <height>32</height>
               </size>
              </property>
-             <property name="styleSheet">
-              <string notr="true">QPushButton {
-    background-color: #1d212c;
-    color: #cdd2e0;
-    border: 1px solid #2a2f3d;
-    border-radius: 8px;
-    padding: 6px 16px;
-    font-size: 13px;
-    font-weight: 500;
-}
-QPushButton:hover { background-color: #262b3a; border-color: #7c6cff; color: #f4f5f8; }
-QPushButton:pressed { background-color: #14161f; }
-QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: #202430; }</string>
-             </property>
              <property name="text">
               <string>연결 확인</string>
              </property>
@@ -664,14 +490,6 @@ QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: 
                <width>100</width>
                <height>16</height>
               </rect>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background-color: transparent;
-font-size: 12px;
-color: #6b7288;
-font-family: &quot;Cascadia Code&quot;, &quot;Consolas&quot;, monospace;
-    border: none;
-    background-color: transparent;</string>
              </property>
              <property name="text">
               <string>✓ 모델 폴더 확인</string>
@@ -692,20 +510,6 @@ font-family: &quot;Cascadia Code&quot;, &quot;Consolas&quot;, monospace;
                <height>32</height>
               </size>
              </property>
-             <property name="styleSheet">
-              <string notr="true">QPushButton {
-    background-color: #1d212c;
-    color: #cdd2e0;
-    border: 1px solid #2a2f3d;
-    border-radius: 8px;
-    padding: 6px 16px;
-    font-size: 13px;
-    font-weight: 500;
-}
-QPushButton:hover { background-color: #262b3a; border-color: #7c6cff; color: #f4f5f8; }
-QPushButton:pressed { background-color: #14161f; }
-QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: #202430; }</string>
-             </property>
              <property name="text">
               <string>찾아보기</string>
              </property>
@@ -718,14 +522,6 @@ QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: 
                <width>78</width>
                <height>16</height>
               </rect>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background-color: transparent;
-font-size: 12px;
-color: #6b7288;
-font-family: &quot;Cascadia Code&quot;, &quot;Consolas&quot;, monospace;
-    border: none;
-    background-color: transparent;</string>
              </property>
              <property name="text">
               <string>📦 모델 선택</string>
@@ -746,41 +542,7 @@ font-family: &quot;Cascadia Code&quot;, &quot;Consolas&quot;, monospace;
                <height>42</height>
               </size>
              </property>
-             <property name="styleSheet">
-              <string notr="true">QComboBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 8px 14px;
-    min-height: 24px;
-}
-QComboBox:hover { border-color: #3d4356; }
-QComboBox:focus { border-color: #7c6cff; }
-QComboBox::drop-down { border: none; width: 30px; background: transparent; }
-QComboBox::down-arrow {
-    image: none;
-    width: 0;
-    height: 0;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-top: 6px solid #9aa2b8;
-    margin: 0px;
-}
-QComboBox QAbstractItemView {
-    background-color: #1d212c;
-    color: #e8eaf0;
-    border: 1px solid #3d4356;
-    border-radius: 10px;
-    padding: 4px;
-    outline: none;
-    selection-background-color: #2a2440;
-    selection-color: #cdc4ff;
-}
-QComboBox QAbstractItemView::item { padding: 6px 8px; border-radius: 6px; }
-QComboBox QAbstractItemView::item:hover { background-color: #262b3a; }</string>
-             </property>
-            </widget>
+             </widget>
             <zorder>modelPathStatusLabel</zorder>
             <zorder>browseModelFolderButton</zorder>
             <zorder>comfyModelLabel</zorder>
@@ -801,24 +563,6 @@ QComboBox QAbstractItemView::item:hover { background-color: #262b3a; }</string>
               <width>441</width>
               <height>251</height>
              </size>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QGroupBox {
-    background-color: #171a23;
-    border: 1px solid #262b3a;
-    border-radius: 16px;
-    margin-top: 8px;
-    padding: 16px 20px 20px 20px;
-}
-QGroupBox::title {
-    subcontrol-origin: margin;
-    left: 16px;
-    padding: 0 8px;
-    background-color: #171a23;
-    color: #f4f5f8;
-    font-size: 20px;
-    font-weight: 600;
-}</string>
             </property>
             <property name="title">
              <string>⚙️ Generation options</string>
@@ -841,18 +585,6 @@ QGroupBox::title {
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
-                <property name="styleSheet">
-                 <string notr="true">QPushButton {
-    background-color: #1d212c;
-    border: 1px solid #2a2f3d;
-    border-radius: 6px;
-    padding: 4px 10px;
-    font-size: 12px;
-    font-weight: 500;
-    color: #9aa2b8;
-}
-QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4f5f8; }</string>
-                </property>
                 <property name="text">
                  <string>512×512</string>
                 </property>
@@ -865,18 +597,6 @@ QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">QPushButton {
-    background-color: #1d212c;
-    border: 1px solid #2a2f3d;
-    border-radius: 6px;
-    padding: 4px 10px;
-    font-size: 12px;
-    font-weight: 500;
-    color: #9aa2b8;
-}
-QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4f5f8; }</string>
                 </property>
                 <property name="text">
                  <string>768×768</string>
@@ -891,18 +611,6 @@ QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
-                <property name="styleSheet">
-                 <string notr="true">QPushButton {
-    background-color: #1d212c;
-    border: 1px solid #2a2f3d;
-    border-radius: 6px;
-    padding: 4px 10px;
-    font-size: 12px;
-    font-weight: 500;
-    color: #9aa2b8;
-}
-QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4f5f8; }</string>
-                </property>
                 <property name="text">
                  <string>1024×1024</string>
                 </property>
@@ -916,18 +624,6 @@ QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
-                <property name="styleSheet">
-                 <string notr="true">QPushButton {
-    background-color: #1d212c;
-    border: 1px solid #2a2f3d;
-    border-radius: 6px;
-    padding: 4px 10px;
-    font-size: 12px;
-    font-weight: 500;
-    color: #9aa2b8;
-}
-QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4f5f8; }</string>
-                </property>
                 <property name="text">
                  <string>832×1216</string>
                 </property>
@@ -940,18 +636,6 @@ QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">QPushButton {
-    background-color: #1d212c;
-    border: 1px solid #2a2f3d;
-    border-radius: 6px;
-    padding: 4px 10px;
-    font-size: 12px;
-    font-weight: 500;
-    color: #9aa2b8;
-}
-QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4f5f8; }</string>
                 </property>
                 <property name="text">
                  <string>1216×832</string>
@@ -977,10 +661,6 @@ QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4
                <layout class="QVBoxLayout" name="verticalLayout_2">
                 <item>
                  <widget class="QLabel" name="widthLabel">
-                  <property name="styleSheet">
-                   <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                  </property>
                   <property name="text">
                    <string>가로</string>
                   </property>
@@ -1002,36 +682,6 @@ color: #e8eaf0;</string>
                     <width>71</width>
                     <height>40</height>
                    </size>
-                  </property>
-                  <property name="styleSheet">
-                   <string notr="true">QSpinBox, QDoubleSpinBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 6px 10px;
-    min-height: 20px;
-}
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button {
-    width: 16px;
-    border: none;
-    background-color: transparent;
-}
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 5px solid #9aa2b8;
-}
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid #9aa2b8;
-}</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -1056,10 +706,6 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
                <layout class="QVBoxLayout" name="verticalLayout_4">
                 <item>
                  <widget class="QLabel" name="heightLabel">
-                  <property name="styleSheet">
-                   <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                  </property>
                   <property name="text">
                    <string>세로</string>
                   </property>
@@ -1081,36 +727,6 @@ color: #e8eaf0;</string>
                     <width>71</width>
                     <height>40</height>
                    </size>
-                  </property>
-                  <property name="styleSheet">
-                   <string notr="true">QSpinBox, QDoubleSpinBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 6px 10px;
-    min-height: 20px;
-}
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button {
-    width: 16px;
-    border: none;
-    background-color: transparent;
-}
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 5px solid #9aa2b8;
-}
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid #9aa2b8;
-}</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -1135,10 +751,6 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
                <layout class="QVBoxLayout" name="verticalLayout_5">
                 <item>
                  <widget class="QLabel" name="stepsLabel">
-                  <property name="styleSheet">
-                   <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                  </property>
                   <property name="text">
                    <string>Steps</string>
                   </property>
@@ -1160,36 +772,6 @@ color: #e8eaf0;</string>
                     <width>51</width>
                     <height>40</height>
                    </size>
-                  </property>
-                  <property name="styleSheet">
-                   <string notr="true">QSpinBox, QDoubleSpinBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 6px 10px;
-    min-height: 20px;
-}
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button {
-    width: 16px;
-    border: none;
-    background-color: transparent;
-}
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 5px solid #9aa2b8;
-}
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid #9aa2b8;
-}</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -1214,10 +796,6 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
                <layout class="QVBoxLayout" name="verticalLayout_6">
                 <item>
                  <widget class="QLabel" name="cfgLabel">
-                  <property name="styleSheet">
-                   <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                  </property>
                   <property name="text">
                    <string>CFG</string>
                   </property>
@@ -1239,36 +817,6 @@ color: #e8eaf0;</string>
                     <width>51</width>
                     <height>40</height>
                    </size>
-                  </property>
-                  <property name="styleSheet">
-                   <string notr="true">QSpinBox, QDoubleSpinBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 6px 10px;
-    min-height: 20px;
-}
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button {
-    width: 16px;
-    border: none;
-    background-color: transparent;
-}
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 5px solid #9aa2b8;
-}
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid #9aa2b8;
-}</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -1293,10 +841,6 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
                <layout class="QVBoxLayout" name="verticalLayout_7">
                 <item>
                  <widget class="QLabel" name="seedLabel">
-                  <property name="styleSheet">
-                   <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                  </property>
                   <property name="text">
                    <string>Seed</string>
                   </property>
@@ -1318,36 +862,6 @@ color: #e8eaf0;</string>
                     <width>81</width>
                     <height>40</height>
                    </size>
-                  </property>
-                  <property name="styleSheet">
-                   <string notr="true">QSpinBox, QDoubleSpinBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 6px 10px;
-    min-height: 20px;
-}
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button {
-    width: 16px;
-    border: none;
-    background-color: transparent;
-}
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 5px solid #9aa2b8;
-}
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid #9aa2b8;
-}</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -1372,10 +886,6 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
                <layout class="QVBoxLayout" name="verticalLayout_8">
                 <item>
                  <widget class="QLabel" name="denoiseLabel">
-                  <property name="styleSheet">
-                   <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                  </property>
                   <property name="text">
                    <string>Denoise</string>
                   </property>
@@ -1397,36 +907,6 @@ color: #e8eaf0;</string>
                     <width>51</width>
                     <height>40</height>
                    </size>
-                  </property>
-                  <property name="styleSheet">
-                   <string notr="true">QSpinBox, QDoubleSpinBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 6px 10px;
-    min-height: 20px;
-}
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button {
-    width: 16px;
-    border: none;
-    background-color: transparent;
-}
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 5px solid #9aa2b8;
-}
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid #9aa2b8;
-}</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -1466,10 +946,6 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
                <layout class="QVBoxLayout" name="verticalLayout_9">
                 <item>
                  <widget class="QLabel" name="samplerLabel">
-                  <property name="styleSheet">
-                   <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                  </property>
                   <property name="text">
                    <string>Sampler</string>
                   </property>
@@ -1493,43 +969,9 @@ color: #e8eaf0;</string>
                    </size>
                   </property>
                   <property name="toolTip">
-                   <string>SAMPLER_OPTIONS(&quot;dpmpp_2m_sde&quot;, &quot;SDE 기반으로 디테일이 뛰어나며, 부드러운 결과물을 생성합니다.&quot;),(&quot;dpmpp_2m&quot;, &quot;가장 보편적으로 사용되며 속도와 품질의 균형이 훌륭합니다.&quot;),(&quot;euler&quot;, &quot;빠르고 안정적이며 깔끔한 결과물을 원할 때 적합합니다.&quot;),(&quot;euler_ancestral&quot;, &quot;매 스텝마다 노이즈를 추가하여 다양한 변형을 시도합니다.&quot;),(&quot;lcm&quot;, &quot;적은 스텝(4~8)으로도 빠르게 생성할 수 있습니다.&quot;),(&quot;ddim&quot;, &quot;일관성이 높고 안정적인 생성을 보장합니다.&quot;),</string>
+                   <string>SAMPLER_OPTIONS("dpmpp_2m_sde", "SDE 기반으로 디테일이 뛰어나며, 부드러운 결과물을 생성합니다."),("dpmpp_2m", "가장 보편적으로 사용되며 속도와 품질의 균형이 훌륭합니다."),("euler", "빠르고 안정적이며 깔끔한 결과물을 원할 때 적합합니다."),("euler_ancestral", "매 스텝마다 노이즈를 추가하여 다양한 변형을 시도합니다."),("lcm", "적은 스텝(4~8)으로도 빠르게 생성할 수 있습니다."),("ddim", "일관성이 높고 안정적인 생성을 보장합니다."),</string>
                   </property>
-                  <property name="styleSheet">
-                   <string notr="true">QComboBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 8px 14px;
-    min-height: 24px;
-}
-QComboBox:hover { border-color: #3d4356; }
-QComboBox:focus { border-color: #7c6cff; }
-QComboBox::drop-down { border: none; width: 30px; background: transparent; }
-QComboBox::down-arrow {
-    image: none;
-    width: 0;
-    height: 0;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-top: 6px solid #9aa2b8;
-    margin: 0px;
-}
-QComboBox QAbstractItemView {
-    background-color: #1d212c;
-    color: #e8eaf0;
-    border: 1px solid #3d4356;
-    border-radius: 10px;
-    padding: 4px;
-    outline: none;
-    selection-background-color: #2a2440;
-    selection-color: #cdc4ff;
-}
-QComboBox QAbstractItemView::item { padding: 6px 8px; border-radius: 6px; }
-QComboBox QAbstractItemView::item:hover { background-color: #262b3a; }</string>
-                  </property>
-                 </widget>
+                  </widget>
                 </item>
                </layout>
               </item>
@@ -1537,10 +979,6 @@ QComboBox QAbstractItemView::item:hover { background-color: #262b3a; }</string>
                <layout class="QVBoxLayout" name="verticalLayout_10">
                 <item>
                  <widget class="QLabel" name="schedulerLabel">
-                  <property name="styleSheet">
-                   <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                  </property>
                   <property name="text">
                    <string>Scheduler</string>
                   </property>
@@ -1564,43 +1002,9 @@ color: #e8eaf0;</string>
                    </size>
                   </property>
                   <property name="toolTip">
-                   <string>SCHEDULER_OPTIONS (&quot;normal&quot;, &quot;가장 무난하고 기본적인 노이즈 스케줄입니다.&quot;), (&quot;karras&quot;, &quot;고화질 이미지 생성에 강하며 디테일을 살리는 데 효과적입니다.&quot;), (&quot;exponential&quot;, &quot;지수적으로 변화하며 부드러운 감쇠를 제공합니다.&quot;), (&quot;sgm_uniform&quot;, &quot;SGM 노이즈 스케줄을 사용하며 일정한 간격을 가집니다.&quot;), (&quot;simple&quot;, &quot;복잡한 계산 없이 단순한 선형 스케줄입니다.&quot;), (&quot;ddim_uniform&quot;, &quot;DDIM의 균일한 노이즈 스케줄을 따릅니다.&quot;), (&quot;beta&quot;, &quot;베타 분포를 따르는 노이즈 스케줄입니다.&quot;), (&quot;linear_quadratic&quot;, &quot;선형과 이차 함수가 혼합된 독특한 스케줄입니다.&quot;), (&quot;kl_optimal&quot;, &quot;KL 발산을 최적화하여 수렴 속도를 높입니다.&quot;),</string>
+                   <string>SCHEDULER_OPTIONS ("normal", "가장 무난하고 기본적인 노이즈 스케줄입니다."), ("karras", "고화질 이미지 생성에 강하며 디테일을 살리는 데 효과적입니다."), ("exponential", "지수적으로 변화하며 부드러운 감쇠를 제공합니다."), ("sgm_uniform", "SGM 노이즈 스케줄을 사용하며 일정한 간격을 가집니다."), ("simple", "복잡한 계산 없이 단순한 선형 스케줄입니다."), ("ddim_uniform", "DDIM의 균일한 노이즈 스케줄을 따릅니다."), ("beta", "베타 분포를 따르는 노이즈 스케줄입니다."), ("linear_quadratic", "선형과 이차 함수가 혼합된 독특한 스케줄입니다."), ("kl_optimal", "KL 발산을 최적화하여 수렴 속도를 높입니다."),</string>
                   </property>
-                  <property name="styleSheet">
-                   <string notr="true">QComboBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 8px 14px;
-    min-height: 24px;
-}
-QComboBox:hover { border-color: #3d4356; }
-QComboBox:focus { border-color: #7c6cff; }
-QComboBox::drop-down { border: none; width: 30px; background: transparent; }
-QComboBox::down-arrow {
-    image: none;
-    width: 0;
-    height: 0;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-top: 6px solid #9aa2b8;
-    margin: 0px;
-}
-QComboBox QAbstractItemView {
-    background-color: #1d212c;
-    color: #e8eaf0;
-    border: 1px solid #3d4356;
-    border-radius: 10px;
-    padding: 4px;
-    outline: none;
-    selection-background-color: #2a2440;
-    selection-color: #cdc4ff;
-}
-QComboBox QAbstractItemView::item { padding: 6px 8px; border-radius: 6px; }
-QComboBox QAbstractItemView::item:hover { background-color: #262b3a; }</string>
-                  </property>
-                 </widget>
+                  </widget>
                 </item>
                </layout>
               </item>
@@ -1610,24 +1014,6 @@ QComboBox QAbstractItemView::item:hover { background-color: #262b3a; }</string>
           </item>
           <item>
            <widget class="QGroupBox" name="executionPanel">
-            <property name="styleSheet">
-             <string notr="true">QGroupBox {
-    background-color: #171a23;
-    border: 1px solid #262b3a;
-    border-radius: 16px;
-    margin-top: 8px;
-    padding: 16px 20px 20px 20px;
-}
-QGroupBox::title {
-    subcontrol-origin: margin;
-    left: 16px;
-    padding: 0 8px;
-    background-color: #171a23;
-    color: #f4f5f8;
-    font-size: 20px;
-    font-weight: 600;
-}</string>
-            </property>
             <property name="title">
              <string>▶️ Launch</string>
             </property>
@@ -1651,11 +1037,6 @@ QGroupBox::title {
               <layout class="QHBoxLayout" name="progressStatusLayout">
                <item>
                 <widget class="QLabel" name="progressStatusLabel">
-                 <property name="styleSheet">
-                  <string notr="true">background-color: transparent;
-color: #9aa2b8;
-font-size: 12px;</string>
-                 </property>
                  <property name="text">
                   <string>준비 완료</string>
                  </property>
@@ -1676,11 +1057,6 @@ font-size: 12px;</string>
                </item>
                <item>
                 <widget class="QLabel" name="elapsedLabel">
-                 <property name="styleSheet">
-                  <string notr="true">background-color: transparent;
-color: #9aa2b8;
-font-size: 12px;</string>
-                 </property>
                  <property name="text">
                   <string>0초</string>
                  </property>
@@ -1701,18 +1077,6 @@ font-size: 12px;</string>
                    <verstretch>0</verstretch>
                   </sizepolicy>
                  </property>
-                 <property name="styleSheet">
-                  <string notr="true">QProgressBar {
-    background-color: #262b3a;
-    border: none;
-    border-radius: 10px;
-    height: 12px;
-    text-align: center;
-    color: #e8eaf0;
-}
-QProgressBar::chunk { background-color: #7c6cff; border-radius: 10px; }
-QProgressBar[value=&quot;100&quot;]::chunk { background-color: #22c55e; }</string>
-                 </property>
                  <property name="minimum">
                   <number>0</number>
                  </property>
@@ -1729,12 +1093,6 @@ QProgressBar[value=&quot;100&quot;]::chunk { background-color: #22c55e; }</strin
                </item>
                <item>
                 <widget class="QLabel" name="progressPercentLabel">
-                 <property name="styleSheet">
-                  <string notr="true">background-color: transparent;
-font-size: 22px;
-font-weight: 700;
-color: #f4f5f8;</string>
-                 </property>
                  <property name="text">
                   <string>0%</string>
                  </property>
@@ -1754,20 +1112,6 @@ color: #f4f5f8;</string>
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">QPushButton {
-    background-color: #7c6cff;
-    color: #ffffff;
-    border: none;
-    border-radius: 10px;
-    padding: 12px 24px;
-    font-size: 15px;
-    font-weight: 600;
-}
-QPushButton:hover { background-color: #6a58f5; }
-QPushButton:pressed { background-color: #5847d8; }
-QPushButton:disabled { background-color: #322b5c; color: #8a83b8; }</string>
                  </property>
                  <property name="text">
                   <string>이미지 생성 시작</string>
@@ -1795,19 +1139,6 @@ QPushButton:disabled { background-color: #322b5c; color: #8a83b8; }</string>
                    <verstretch>0</verstretch>
                   </sizepolicy>
                  </property>
-                 <property name="styleSheet">
-                  <string notr="true">QPushButton {
-    background-color: #1d212c;
-    color: #fb7185;
-    border: 1px solid #4a2530;
-    border-radius: 8px;
-    padding: 6px 16px;
-    font-size: 13px;
-    font-weight: 500;
-}
-QPushButton:hover { background-color: #2a151a; border-color: #f0455c; }
-QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: #202430; }</string>
-                 </property>
                  <property name="text">
                   <string>정지</string>
                  </property>
@@ -1833,24 +1164,6 @@ QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: 
             <property name="toolTip">
              <string>FaceDetailer는 ComfyUI Impact Pack의 노드로, 생성된 이미지에서 얼굴을 감지하여 별도의 파라미터로얼굴 영역만 재생성하여 디테일을 보정합니다.기존 생성 옵션(CFG, Steps 등)과 별도로 동작하며, 얼굴 영역만 더 섬세하게/강하게 보정할 수 있습니다.필수 조건: ComfyUI에 Impact Pack 설치 필요 (FaceDetailer, UltralyticsDetectorProvider 노드 포함)</string>
             </property>
-            <property name="styleSheet">
-             <string notr="true">QGroupBox {
-    background-color: #1d212c;
-    border: 1px solid #2a2f3d;
-    border-radius: 16px;
-    margin-top: 8px;
-    padding: 18px 20px 20px 20px;
-}
-QGroupBox::title {
-    subcontrol-origin: margin;
-    left: 16px;
-    padding: 0 8px;
-    background-color: #1d212c;
-    color: #f4f5f8;
-    font-size: 20px;
-    font-weight: 600;
-}</string>
-            </property>
             <property name="title">
              <string>👤 FaceDetailer (얼굴 보정)</string>
             </property>
@@ -1866,15 +1179,8 @@ QGroupBox::title {
              <property name="toolTip">
               <string>FaceDetailer 얼굴 보정 기능 켜기/끄기 체크 시: 전체 이미지생성 후 얼굴 영역만 별도로 보정 해제 시: 보정 없이, 일반 이미지생성만 수행 필수: ComfyUI Impact Pack 설치 필요</string>
              </property>
-             <property name="styleSheet">
-              <string notr="true">QCheckBox::indicator { width: 22px; height: 22px; border-radius: 5px; }
-QCheckBox::indicator:unchecked { background-color: #1d212c; border: 2px solid #ffffff; image: none; }
-QCheckBox::indicator:unchecked:hover { background-color: #262b3a; border-color: #565d72; }
-QCheckBox::indicator:checked { background-color: #7c6cff; border: 2px solid #6a58f5; image: url(assets/icons/facedetailer_check.svg); }
-QCheckBox::indicator:checked:hover { background-color: #8f81ff; border-color: #6a58f5; }</string>
-             </property>
              <property name="text">
-              <string/>
+              <string />
              </property>
              <property name="iconSize">
               <size>
@@ -1902,10 +1208,6 @@ QCheckBox::indicator:checked:hover { background-color: #8f81ff; border-color: #6
                     <property name="toolTip">
                      <string>얼굴 재생성 시 원본 유지 강도 (0.0~1.0) 낮을수록 원본 얼굴 형태 유지, 높을수록 프롬프트 반영 강함 기본 0.4: 원본 얼굴 유지하면서 디테일 보강 ※ 전체 생성의 Denoise와 별도 동작</string>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                    </property>
                     <property name="text">
                      <string>Denoise</string>
                     </property>
@@ -1918,36 +1220,6 @@ color: #e8eaf0;</string>
                    <widget class="QDoubleSpinBox" name="facedetailerDenoiseSpinBox">
                     <property name="toolTip">
                      <string>얼굴 재생성 시 원본 유지 강도 (0.0~1.0) 낮을수록 원본 얼굴 형태 유지, 높을수록 프롬프트 반영 강함 기본 0.4: 원본 얼굴 유지하면서 디테일 보강 ※ 전체 생성의 Denoise와 별도 동작</string>
-                    </property>
-                    <property name="styleSheet">
-                     <string notr="true">QSpinBox, QDoubleSpinBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 6px 10px;
-    min-height: 20px;
-}
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button {
-    width: 16px;
-    border: none;
-    background-color: transparent;
-}
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 5px solid #9aa2b8;
-}
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid #9aa2b8;
-}</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -1978,10 +1250,6 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
                     <property name="toolTip">
                      <string>얼굴 재생성 반복 횟수 (1~50) 높을수록 디테일 향상, 생성 시간 증가 기본 20: 적절한 품질/속도 균형 ※ 전체 생성의 Steps와 별도 동작</string>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                    </property>
                     <property name="text">
                      <string>Steps</string>
                     </property>
@@ -1994,36 +1262,6 @@ color: #e8eaf0;</string>
                    <widget class="QSpinBox" name="facedetailerStepsSpinBox">
                     <property name="toolTip">
                      <string>얼굴 재생성 반복 횟수 (1~50) 높을수록 디테일 향상, 생성 시간 증가 기본 20: 적절한 품질/속도 균형 ※ 전체 생성의 Steps와 별도 동작</string>
-                    </property>
-                    <property name="styleSheet">
-                     <string notr="true">QSpinBox, QDoubleSpinBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 6px 10px;
-    min-height: 20px;
-}
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button {
-    width: 16px;
-    border: none;
-    background-color: transparent;
-}
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 5px solid #9aa2b8;
-}
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid #9aa2b8;
-}</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -2051,10 +1289,6 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
                     <property name="toolTip">
                      <string>얼굴 재생성 시 프롬프트 준수도 (0~20) 높을수록 프롬프트 강력 반영, 낮을수록 자유로운 생성 기본 4.0: 자연스러운 얼굴 보정 ※ 전체 생성의 CFG와 별도 동작</string>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                    </property>
                     <property name="text">
                      <string>CFG</string>
                     </property>
@@ -2067,36 +1301,6 @@ color: #e8eaf0;</string>
                    <widget class="QDoubleSpinBox" name="facedetailerCfgSpinBox">
                     <property name="toolTip">
                      <string>얼굴 재생성 시 프롬프트 준수도 (0~20) 높을수록 프롬프트 강력 반영, 낮을수록 자유로운 생성 기본 4.0: 자연스러운 얼굴 보정 ※ 전체 생성의 CFG와 별도 동작</string>
-                    </property>
-                    <property name="styleSheet">
-                     <string notr="true">QSpinBox, QDoubleSpinBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 6px 10px;
-    min-height: 20px;
-}
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button {
-    width: 16px;
-    border: none;
-    background-color: transparent;
-}
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 5px solid #9aa2b8;
-}
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid #9aa2b8;
-}</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -2127,10 +1331,6 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
                     <property name="toolTip">
                      <string>FaceDetailer 전용: 얼굴 크롭을 업스케일할 타겟 해상도 얼굴 영역을 이 크기로 키워서 디테일하게 재생성 후 원본에 합성 기본 256: 256x256으로 업스케일하여 세밀 보정 ※ 전체 이미지 해상도(가로/세로)와 무관</string>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                    </property>
                     <property name="text">
                      <string>Guide Size</string>
                     </property>
@@ -2143,36 +1343,6 @@ color: #e8eaf0;</string>
                    <widget class="QSpinBox" name="facedetailerGuideSizeSpinBox">
                     <property name="toolTip">
                      <string>FaceDetailer 전용: 얼굴 크롭을 업스케일할 타겟 해상도 얼굴 영역을 이 크기로 키워서 디테일하게 재생성 후 원본에 합성 기본 256: 256x256으로 업스케일하여 세밀 보정 ※ 전체 이미지 해상도(가로/세로)와 무관</string>
-                    </property>
-                    <property name="styleSheet">
-                     <string notr="true">QSpinBox, QDoubleSpinBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 6px 10px;
-    min-height: 20px;
-}
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button {
-    width: 16px;
-    border: none;
-    background-color: transparent;
-}
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 5px solid #9aa2b8;
-}
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid #9aa2b8;
-}</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -2200,10 +1370,6 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
                     <property name="toolTip">
                      <string>FaceDetailer 전용: 얼굴 크롭 최대 크기 제한 (VRAM 절약) 너무 큰 얼굴 크롭 방지로 메모리 부족 방지 기본 768: 768px 초과 얼굴은 다운스케일 후 처리 ※ 전체 이미지 해상도와 무관</string>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                    </property>
                     <property name="text">
                      <string>Max Size</string>
                     </property>
@@ -2214,36 +1380,6 @@ color: #e8eaf0;</string>
                   </item>
                   <item>
                    <widget class="QSpinBox" name="facedetailerMaxSizeSpinBox">
-                    <property name="styleSheet">
-                     <string notr="true">QSpinBox, QDoubleSpinBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 6px 10px;
-    min-height: 20px;
-}
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button {
-    width: 16px;
-    border: none;
-    background-color: transparent;
-}
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 5px solid #9aa2b8;
-}
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid #9aa2b8;
-}</string>
-                    </property>
                     <property name="alignment">
                      <set>Qt::AlignmentFlag::AlignCenter</set>
                     </property>
@@ -2270,10 +1406,6 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
                     <property name="toolTip">
                      <string>얼굴 합성 경계선 블러 처리 (0~20) 높을수록 경계 자연스러움, 낮을수록 선명 기본 5: 자연스러운 합성 ※ 얼굴 마스크 경계 부드럽게 처리</string>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                    </property>
                     <property name="text">
                      <string>Feather</string>
                     </property>
@@ -2284,36 +1416,6 @@ color: #e8eaf0;</string>
                   </item>
                   <item>
                    <widget class="QSpinBox" name="facedetailerFeatherSpinBox">
-                    <property name="styleSheet">
-                     <string notr="true">QSpinBox, QDoubleSpinBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 6px 10px;
-    min-height: 20px;
-}
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button {
-    width: 16px;
-    border: none;
-    background-color: transparent;
-}
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 5px solid #9aa2b8;
-}
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid #9aa2b8;
-}</string>
-                    </property>
                     <property name="alignment">
                      <set>Qt::AlignmentFlag::AlignCenter</set>
                     </property>
@@ -2340,10 +1442,6 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
                     <property name="toolTip">
                      <string>얼굴 감지 신뢰도 임계값 (0.0~1.0) 낮을수록 더 많은 얼굴 감지, 높을수록 확실한 얼굴만 감지 기본 0.5</string>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                    </property>
                     <property name="text">
                      <string>BBox Thresh</string>
                     </property>
@@ -2356,36 +1454,6 @@ color: #e8eaf0;</string>
                    <widget class="QDoubleSpinBox" name="facedetailerBboxThresholdSpinBox">
                     <property name="toolTip">
                      <string>얼굴 감지 신뢰도 임계값 (0.0~1.0) 낮을수록 더 많은 얼굴 감지, 높을수록 확실한 얼굴만 감지 기본 0.5</string>
-                    </property>
-                    <property name="styleSheet">
-                     <string notr="true">QSpinBox, QDoubleSpinBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 6px 10px;
-    min-height: 20px;
-}
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button {
-    width: 16px;
-    border: none;
-    background-color: transparent;
-}
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 5px solid #9aa2b8;
-}
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid #9aa2b8;
-}</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -2416,10 +1484,6 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
                     <property name="toolTip">
                      <string>감지된 얼굴 바운딩 박스 확장 픽셀 (0~100) 높을수록 얼굴 주변 영역 포함 기본 10</string>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                    </property>
                     <property name="text">
                      <string>BBox Dilate</string>
                     </property>
@@ -2432,36 +1496,6 @@ color: #e8eaf0;</string>
                    <widget class="QSpinBox" name="facedetailerBboxDilationSpinBox">
                     <property name="toolTip">
                      <string>감지된 얼굴 바운딩 박스 확장 픽셀 (0~100) 높을수록 얼굴 주변 영역 포함 기본 10</string>
-                    </property>
-                    <property name="styleSheet">
-                     <string notr="true">QSpinBox, QDoubleSpinBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 6px 10px;
-    min-height: 20px;
-}
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button {
-    width: 16px;
-    border: none;
-    background-color: transparent;
-}
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 5px solid #9aa2b8;
-}
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid #9aa2b8;
-}</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -2489,10 +1523,6 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
                     <property name="toolTip">
                      <string>얼굴 크롭 영역 비율 (1.0~3.0) 높을수록 더 넓은 얼굴 영역 크롭 기본 1.5</string>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                    </property>
                     <property name="text">
                      <string>Crop Factor</string>
                     </property>
@@ -2505,36 +1535,6 @@ color: #e8eaf0;</string>
                    <widget class="QDoubleSpinBox" name="facedetailerBboxCropFactorSpinBox">
                     <property name="toolTip">
                      <string>얼굴 크롭 영역 비율 (1.0~3.0) 높을수록 더 넓은 얼굴 영역 크롭 기본 1.5</string>
-                    </property>
-                    <property name="styleSheet">
-                     <string notr="true">QSpinBox, QDoubleSpinBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 6px 10px;
-    min-height: 20px;
-}
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button {
-    width: 16px;
-    border: none;
-    background-color: transparent;
-}
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 5px solid #9aa2b8;
-}
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid #9aa2b8;
-}</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -2569,10 +1569,6 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
                     <property name="toolTip">
                      <string>SAM 얼굴 감지 힌트 모드 center-1: 중앙 단일 얼굴 center-2: 중앙 두 얼굴 center-3: 중앙 세 얼굴 center-4: 중앙 네 얼굴 all: 모든 얼굴 기본 center-1</string>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                    </property>
                     <property name="text">
                      <string>SAM Hint</string>
                     </property>
@@ -2592,41 +1588,7 @@ color: #e8eaf0;</string>
                     <property name="toolTip">
                      <string>SAM 얼굴 감지 힌트 모드 center-1: 중앙 단일 얼굴 center-2: 중앙 두 얼굴 center-3: 중앙 세 얼굴 center-4: 중앙 네 얼굴 all: 모든 얼굴 기본 center-1</string>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">QComboBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 8px 14px;
-    min-height: 24px;
-}
-QComboBox:hover { border-color: #3d4356; }
-QComboBox:focus { border-color: #7c6cff; }
-QComboBox::drop-down { border: none; width: 30px; background: transparent; }
-QComboBox::down-arrow {
-    image: none;
-    width: 0;
-    height: 0;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-top: 6px solid #9aa2b8;
-    margin: 0px;
-}
-QComboBox QAbstractItemView {
-    background-color: #1d212c;
-    color: #e8eaf0;
-    border: 1px solid #3d4356;
-    border-radius: 10px;
-    padding: 4px;
-    outline: none;
-    selection-background-color: #2a2440;
-    selection-color: #cdc4ff;
-}
-QComboBox QAbstractItemView::item { padding: 6px 8px; border-radius: 6px; }
-QComboBox QAbstractItemView::item:hover { background-color: #262b3a; }</string>
-                    </property>
-                   </widget>
+                    </widget>
                   </item>
                  </layout>
                 </item>
@@ -2636,10 +1598,6 @@ QComboBox QAbstractItemView::item:hover { background-color: #262b3a; }</string>
                    <widget class="QLabel" name="facedetailerSamDilationLabel">
                     <property name="toolTip">
                      <string>SAM 마스크 확장/축소 픽셀 (0~100) 양수: 마스크 확장, 음수: 마스크 축소 기본 0</string>
-                    </property>
-                    <property name="styleSheet">
-                     <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
                     </property>
                     <property name="text">
                      <string>SAM Dilate</string>
@@ -2653,36 +1611,6 @@ color: #e8eaf0;</string>
                    <widget class="QSpinBox" name="facedetailerSamDilationSpinBox">
                     <property name="toolTip">
                      <string>SAM 마스크 확장/축소 픽셀 (0~100) 양수: 마스크 확장, 음수: 마스크 축소 기본 0</string>
-                    </property>
-                    <property name="styleSheet">
-                     <string notr="true">QSpinBox, QDoubleSpinBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 6px 10px;
-    min-height: 20px;
-}
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button {
-    width: 16px;
-    border: none;
-    background-color: transparent;
-}
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 5px solid #9aa2b8;
-}
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid #9aa2b8;
-}</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -2710,10 +1638,6 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
                     <property name="toolTip">
                      <string>SAM 마스크 신뢰도 임계값 (0.0~1.0) 높을수록 엄격한 마스크 기본 0.93</string>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                    </property>
                     <property name="text">
                      <string>SAM Thresh</string>
                     </property>
@@ -2726,36 +1650,6 @@ color: #e8eaf0;</string>
                    <widget class="QDoubleSpinBox" name="facedetailerSamThresholdSpinBox">
                     <property name="toolTip">
                      <string>SAM 마스크 신뢰도 임계값 (0.0~1.0) 높을수록 엄격한 마스크 기본 0.93</string>
-                    </property>
-                    <property name="styleSheet">
-                     <string notr="true">QSpinBox, QDoubleSpinBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 6px 10px;
-    min-height: 20px;
-}
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button {
-    width: 16px;
-    border: none;
-    background-color: transparent;
-}
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 5px solid #9aa2b8;
-}
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid #9aa2b8;
-}</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -2786,10 +1680,6 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
                     <property name="toolTip">
                      <string>SAM 바운딩 박스 확장 픽셀 (0~100) 기본 0</string>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                    </property>
                     <property name="text">
                      <string>SAM BBox Exp</string>
                     </property>
@@ -2802,36 +1692,6 @@ color: #e8eaf0;</string>
                    <widget class="QSpinBox" name="facedetailerSamBboxExpansionSpinBox">
                     <property name="toolTip">
                      <string>SAM 바운딩 박스 확장 픽셀 (0~100) 기본 0</string>
-                    </property>
-                    <property name="styleSheet">
-                     <string notr="true">QSpinBox, QDoubleSpinBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 6px 10px;
-    min-height: 20px;
-}
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button {
-    width: 16px;
-    border: none;
-    background-color: transparent;
-}
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 5px solid #9aa2b8;
-}
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid #9aa2b8;
-}</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -2859,10 +1719,6 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
                     <property name="toolTip">
                      <string>SAM 마스크 힌트 임계값 (0.0~1.0) 기본 0.7</string>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                    </property>
                     <property name="text">
                      <string>Mask Hint Thresh</string>
                     </property>
@@ -2875,36 +1731,6 @@ color: #e8eaf0;</string>
                    <widget class="QDoubleSpinBox" name="facedetailerSamMaskHintThresholdSpinBox">
                     <property name="toolTip">
                      <string>SAM 마스크 힌트 임계값 (0.0~1.0) 기본 0.7</string>
-                    </property>
-                    <property name="styleSheet">
-                     <string notr="true">QSpinBox, QDoubleSpinBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 6px 10px;
-    min-height: 20px;
-}
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button {
-    width: 16px;
-    border: none;
-    background-color: transparent;
-}
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 5px solid #9aa2b8;
-}
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid #9aa2b8;
-}</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -2935,10 +1761,6 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
                     <property name="toolTip">
                      <string>SAM 마스크 힌트 네거티브 사용 False: 사용 안함, Small: 작은 영역, Outter: 바깥 영역 기본 False</string>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                    </property>
                     <property name="text">
                      <string>Mask Hint Neg</string>
                     </property>
@@ -2958,41 +1780,7 @@ color: #e8eaf0;</string>
                     <property name="toolTip">
                      <string>SAM 마스크 힌트 네거티브 사용 False: 사용 안함, Small: 작은 영역, Outter: 바깥 영역 기본 False</string>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">QComboBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 8px 14px;
-    min-height: 24px;
-}
-QComboBox:hover { border-color: #3d4356; }
-QComboBox:focus { border-color: #7c6cff; }
-QComboBox::drop-down { border: none; width: 30px; background: transparent; }
-QComboBox::down-arrow {
-    image: none;
-    width: 0;
-    height: 0;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-top: 6px solid #9aa2b8;
-    margin: 0px;
-}
-QComboBox QAbstractItemView {
-    background-color: #1d212c;
-    color: #e8eaf0;
-    border: 1px solid #3d4356;
-    border-radius: 10px;
-    padding: 4px;
-    outline: none;
-    selection-background-color: #2a2440;
-    selection-color: #cdc4ff;
-}
-QComboBox QAbstractItemView::item { padding: 6px 8px; border-radius: 6px; }
-QComboBox QAbstractItemView::item:hover { background-color: #262b3a; }</string>
-                    </property>
-                   </widget>
+                    </widget>
                   </item>
                  </layout>
                 </item>
@@ -3002,10 +1790,6 @@ QComboBox QAbstractItemView::item:hover { background-color: #262b3a; }</string>
                    <widget class="QLabel" name="facedetailerCycleLabel">
                     <property name="toolTip">
                      <string>얼굴 보정 반복 횟수 (1~10) 높을수록 더 정교한 보정, 시간 증가 기본 1</string>
-                    </property>
-                    <property name="styleSheet">
-                     <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
                     </property>
                     <property name="text">
                      <string>Cycle</string>
@@ -3019,36 +1803,6 @@ color: #e8eaf0;</string>
                    <widget class="QSpinBox" name="facedetailerCycleSpinBox">
                     <property name="toolTip">
                      <string>얼굴 보정 반복 횟수 (1~10) 높을수록 더 정교한 보정, 시간 증가 기본 1</string>
-                    </property>
-                    <property name="styleSheet">
-                     <string notr="true">QSpinBox, QDoubleSpinBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 6px 10px;
-    min-height: 20px;
-}
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button {
-    width: 16px;
-    border: none;
-    background-color: transparent;
-}
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 5px solid #9aa2b8;
-}
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid #9aa2b8;
-}</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -3076,10 +1830,6 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
                     <property name="toolTip">
                      <string>작은 얼굴 필터링 크기 (0~100) 이 크기 미만 얼굴은 보정 제외 기본 10</string>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                    </property>
                     <property name="text">
                      <string>Drop Size</string>
                     </property>
@@ -3092,36 +1842,6 @@ color: #e8eaf0;</string>
                    <widget class="QSpinBox" name="facedetailerDropSizeSpinBox">
                     <property name="toolTip">
                      <string>작은 얼굴 필터링 크기 (0~100) 이 크기 미만 얼굴은 보정 제외 기본 10</string>
-                    </property>
-                    <property name="styleSheet">
-                     <string notr="true">QSpinBox, QDoubleSpinBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 6px 10px;
-    min-height: 20px;
-}
-QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }
-QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }
-QSpinBox::up-button, QDoubleSpinBox::up-button,
-QSpinBox::down-button, QDoubleSpinBox::down-button {
-    width: 16px;
-    border: none;
-    background-color: transparent;
-}
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 5px solid #9aa2b8;
-}
-QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-    image: none; width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid #9aa2b8;
-}</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -3179,26 +1899,8 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
               <height>201</height>
              </size>
             </property>
-            <property name="styleSheet">
-             <string notr="true">QGroupBox {
-    background-color: #1d212c;
-    border: 1px solid #2a2f3d;
-    border-radius: 16px;
-    margin-top: 8px;
-    padding: 18px 20px 20px 20px;
-}
-QGroupBox::title {
-    subcontrol-origin: margin;
-    left: 16px;
-    padding: 0 8px;
-    background-color: #1d212c;
-    color: #f4f5f8;
-    font-size: 20px;
-    font-weight: 600;
-}</string>
-            </property>
             <property name="title">
-             <string/>
+             <string />
             </property>
             <widget class="QLabel" name="lmAddressLabel">
              <property name="geometry">
@@ -3208,14 +1910,6 @@ QGroupBox::title {
                <width>91</width>
                <height>20</height>
               </rect>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background-color: transparent;
-font-size: 12px;
-color: #6b7288;
-font-family: &quot;Cascadia Code&quot;, &quot;Consolas&quot;, monospace;
-    border: none;
-    background-color: transparent;</string>
              </property>
              <property name="text">
               <string>📡 서버 주소</string>
@@ -3242,21 +1936,6 @@ font-family: &quot;Cascadia Code&quot;, &quot;Consolas&quot;, monospace;
                <height>32</height>
               </size>
              </property>
-             <property name="styleSheet">
-              <string notr="true">QLineEdit {
-    background-color: #12141c;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 10px 16px;
-    font-family: &quot;Cascadia Code&quot;, &quot;Consolas&quot;, monospace;
-    font-size: 14px;
-    color: #cdd2e0;
-    selection-background-color: #7c6cff;
-    selection-color: #ffffff;
-}
-QLineEdit:hover { border-color: #3d4356; }
-QLineEdit:focus { border-color: #7c6cff; background-color: #14161f; }</string>
-             </property>
              <property name="text">
               <string>http://127.0.0.1:1729</string>
              </property>
@@ -3276,14 +1955,6 @@ QLineEdit:focus { border-color: #7c6cff; background-color: #14161f; }</string>
                <pointsize>-1</pointsize>
               </font>
              </property>
-             <property name="styleSheet">
-              <string notr="true">background-color: transparent;
-font-size: 16px;
-color: #ffffff;
-font-family: &quot;Cascadia Code&quot;, &quot;Consolas&quot;, monospace;
-    border: none;
-    background-color: transparent;</string>
-             </property>
              <property name="text">
               <string>🧠 LM Studio</string>
              </property>
@@ -3299,18 +1970,6 @@ font-family: &quot;Cascadia Code&quot;, &quot;Consolas&quot;, monospace;
                <width>121</width>
                <height>31</height>
               </rect>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">QLabel {
-    background-color: transparent;
-    border: none;
-    padding: 4px 14px 4px 10px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #e8eaf0;
-}
-QLabel[text*=&quot;연결 성공&quot;] { color: #4ade80; }
-QLabel[text*=&quot;연결 실패&quot;] { color: #fb7185; }</string>
              </property>
              <property name="text">
               <string>📡연결 확인 중...</string>
@@ -3334,20 +1993,6 @@ QLabel[text*=&quot;연결 실패&quot;] { color: #fb7185; }</string>
                <height>32</height>
               </size>
              </property>
-             <property name="styleSheet">
-              <string notr="true">QPushButton {
-    background-color: #1d212c;
-    color: #cdd2e0;
-    border: 1px solid #2a2f3d;
-    border-radius: 8px;
-    padding: 6px 16px;
-    font-size: 13px;
-    font-weight: 500;
-}
-QPushButton:hover { background-color: #262b3a; border-color: #7c6cff; color: #f4f5f8; }
-QPushButton:pressed { background-color: #14161f; }
-QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: #202430; }</string>
-             </property>
              <property name="text">
               <string>연결 확인</string>
              </property>
@@ -3360,14 +2005,6 @@ QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: 
                <width>78</width>
                <height>16</height>
               </rect>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background-color: transparent;
-font-size: 12px;
-color: #6b7288;
-font-family: &quot;Cascadia Code&quot;, &quot;Consolas&quot;, monospace;
-    border: none;
-    background-color: transparent;</string>
              </property>
              <property name="text">
               <string>📦 모델 선택</string>
@@ -3388,41 +2025,7 @@ font-family: &quot;Cascadia Code&quot;, &quot;Consolas&quot;, monospace;
                <height>42</height>
               </size>
              </property>
-             <property name="styleSheet">
-              <string notr="true">QComboBox {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 8px 14px;
-    min-height: 24px;
-}
-QComboBox:hover { border-color: #3d4356; }
-QComboBox:focus { border-color: #7c6cff; }
-QComboBox::drop-down { border: none; width: 30px; background: transparent; }
-QComboBox::down-arrow {
-    image: none;
-    width: 0;
-    height: 0;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-top: 6px solid #9aa2b8;
-    margin: 0px;
-}
-QComboBox QAbstractItemView {
-    background-color: #1d212c;
-    color: #e8eaf0;
-    border: 1px solid #3d4356;
-    border-radius: 10px;
-    padding: 4px;
-    outline: none;
-    selection-background-color: #2a2440;
-    selection-color: #cdc4ff;
-}
-QComboBox QAbstractItemView::item { padding: 6px 8px; border-radius: 6px; }
-QComboBox QAbstractItemView::item:hover { background-color: #262b3a; }</string>
-             </property>
-            </widget>
+             </widget>
            </widget>
           </item>
           <item>
@@ -3450,24 +2053,6 @@ QComboBox QAbstractItemView::item:hover { background-color: #262b3a; }</string>
           </property>
           <item>
            <widget class="QGroupBox" name="promptPanel">
-            <property name="styleSheet">
-             <string notr="true">QGroupBox {
-    background-color: #171a23;
-    border: 1px solid #262b3a;
-    border-radius: 16px;
-    margin-top: 8px;
-    padding: 16px 20px 20px 20px;
-}
-QGroupBox::title {
-    subcontrol-origin: margin;
-    left: 16px;
-    padding: 0 8px;
-    background-color: #171a23;
-    color: #f4f5f8;
-    font-size: 20px;
-    font-weight: 600;
-}</string>
-            </property>
             <property name="title">
              <string>✍️ Prompt</string>
             </property>
@@ -3494,10 +2079,6 @@ QGroupBox::title {
               <layout class="QHBoxLayout" name="positivePromptHeaderLayout">
                <item>
                 <widget class="QLabel" name="positivePromptLabel">
-                 <property name="styleSheet">
-                  <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                 </property>
                  <property name="text">
                   <string>Positive Prompt</string>
                  </property>
@@ -3518,11 +2099,6 @@ color: #e8eaf0;</string>
                </item>
                <item>
                 <widget class="QLabel" name="positivePromptCounterLabel">
-                 <property name="styleSheet">
-                  <string notr="true">background-color: transparent;
-color: #6b7288;
-font-size: 12px;</string>
-                 </property>
                  <property name="text">
                   <string>0 / 2000</string>
                  </property>
@@ -3535,19 +2111,6 @@ font-size: 12px;</string>
              </item>
              <item row="1" column="0">
               <widget class="QPlainTextEdit" name="positivePromptEdit">
-               <property name="styleSheet">
-                <string notr="true">QPlainTextEdit {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 8px 14px;
-    selection-background-color: #7c6cff;
-    selection-color: #ffffff;
-}
-QPlainTextEdit:hover { border-color: #3d4356; }
-QPlainTextEdit:focus { border-color: #7c6cff; background-color: #14161f; }</string>
-               </property>
                <property name="placeholderText">
                 <string>생성하고 싶은 이미지에 대한 설명을 입력하세요.</string>
                </property>
@@ -3557,10 +2120,6 @@ QPlainTextEdit:focus { border-color: #7c6cff; background-color: #14161f; }</stri
               <layout class="QHBoxLayout" name="negativePromptHeaderLayout">
                <item>
                 <widget class="QLabel" name="negativePromptLabel">
-                 <property name="styleSheet">
-                  <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
-                 </property>
                  <property name="text">
                   <string>Negative Prompt</string>
                  </property>
@@ -3581,11 +2140,6 @@ color: #e8eaf0;</string>
                </item>
                <item>
                 <widget class="QLabel" name="negativePromptCounterLabel">
-                 <property name="styleSheet">
-                  <string notr="true">background-color: transparent;
-color: #6b7288;
-font-size: 12px;</string>
-                 </property>
                  <property name="text">
                   <string>0 / 2000</string>
                  </property>
@@ -3604,19 +2158,6 @@ font-size: 12px;</string>
                  <height>80</height>
                 </size>
                </property>
-               <property name="styleSheet">
-                <string notr="true">QPlainTextEdit {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 8px 14px;
-    selection-background-color: #7c6cff;
-    selection-color: #ffffff;
-}
-QPlainTextEdit:hover { border-color: #3d4356; }
-QPlainTextEdit:focus { border-color: #7c6cff; background-color: #14161f; }</string>
-               </property>
                <property name="placeholderText">
                 <string>생성하지 않을 요소를 입력하세요.</string>
                </property>
@@ -3630,10 +2171,6 @@ QPlainTextEdit:focus { border-color: #7c6cff; background-color: #14161f; }</stri
                   <font>
                    <family>Segoe UI</family>
                   </font>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">background-color: transparent;
-color: #e8eaf0;</string>
                  </property>
                  <property name="text">
                   <string>AI enhancePrompt</string>
@@ -3670,19 +2207,6 @@ color: #e8eaf0;</string>
                  <property name="toolTip">
                   <string>LM Studio를 사용하여 프롬프트를 향상시킵니다</string>
                  </property>
-                 <property name="styleSheet">
-                  <string notr="true">QPushButton {
-    background-color: #38bdf8;
-    color: #0b1220;
-    border: none;
-    border-radius: 6px;
-    padding: 4px 12px;
-    font-weight: bold;
-}
-QPushButton:hover { background-color: #0ea5e9; }
-QPushButton:pressed { background-color: #0284c7; }
-QPushButton:disabled { background-color: #23324a; color: #5c6b85; }</string>
-                 </property>
                  <property name="text">
                   <string>프롬프트 향상</string>
                  </property>
@@ -3694,11 +2218,6 @@ QPushButton:disabled { background-color: #23324a; color: #5c6b85; }</string>
                </item>
                <item>
                 <widget class="QLabel" name="enhancePromptCounterLabel">
-                 <property name="styleSheet">
-                  <string notr="true">background-color: transparent;
-color: #6b7288;
-font-size: 12px;</string>
-                 </property>
                  <property name="text">
                   <string>0 / 2000</string>
                  </property>
@@ -3722,19 +2241,6 @@ font-size: 12px;</string>
                  <width>16777215</width>
                  <height>16777215</height>
                 </size>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">QPlainTextEdit {
-    background-color: #12141c;
-    color: #e8eaf0;
-    border: 1px solid #2a2f3d;
-    border-radius: 10px;
-    padding: 8px 14px;
-    selection-background-color: #7c6cff;
-    selection-color: #ffffff;
-}
-QPlainTextEdit:hover { border-color: #3d4356; }
-QPlainTextEdit:focus { border-color: #7c6cff; background-color: #14161f; }</string>
                </property>
                <property name="placeholderText">
                 <string>프롬프트 향상 버튼을 누르고 잠시 기다리면 ai가 향상된 프롬프트를 입력해줍니다.</string>
@@ -3775,24 +2281,6 @@ QPlainTextEdit:focus { border-color: #7c6cff; background-color: #14161f; }</stri
               <height>0</height>
              </size>
             </property>
-            <property name="styleSheet">
-             <string notr="true">QGroupBox {
-    background-color: #171a23;
-    border: 1px solid #262b3a;
-    border-radius: 16px;
-    margin-top: 8px;
-    padding: 12px;
-}
-QGroupBox::title {
-    subcontrol-origin: margin;
-    left: 16px;
-    padding: 0 8px;
-    background-color: #171a23;
-    color: #f4f5f8;
-    font-size: 20px;
-    font-weight: 600;
-}</string>
-            </property>
             <property name="title">
              <string>🖼️ Image preview</string>
             </property>
@@ -3825,13 +2313,6 @@ QGroupBox::title {
                  <family>Segoe UI</family>
                 </font>
                </property>
-               <property name="styleSheet">
-                <string notr="true">background-color: #0e1016;
-border: 1px solid #262b3a;
-border-radius: 12px;
-color: #565d72;
-padding: 20px;</string>
-               </property>
                <property name="text">
                 <string>🖼️</string>
                </property>
@@ -3853,20 +2334,6 @@ padding: 20px;</string>
                    <height>32</height>
                   </size>
                  </property>
-                 <property name="styleSheet">
-                  <string notr="true">QPushButton {
-    background-color: #1d212c;
-    color: #cdd2e0;
-    border: 1px solid #2a2f3d;
-    border-radius: 8px;
-    padding: 6px 16px;
-    font-size: 13px;
-    font-weight: 500;
-}
-QPushButton:hover { background-color: #262b3a; border-color: #7c6cff; color: #f4f5f8; }
-QPushButton:pressed { background-color: #14161f; }
-QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: #202430; }</string>
-                 </property>
                  <property name="text">
                   <string>📂 Open</string>
                  </property>
@@ -3879,20 +2346,6 @@ QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: 
                    <width>100</width>
                    <height>32</height>
                   </size>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">QPushButton {
-    background-color: #1d212c;
-    color: #cdd2e0;
-    border: 1px solid #2a2f3d;
-    border-radius: 8px;
-    padding: 6px 16px;
-    font-size: 13px;
-    font-weight: 500;
-}
-QPushButton:hover { background-color: #262b3a; border-color: #7c6cff; color: #f4f5f8; }
-QPushButton:pressed { background-color: #14161f; }
-QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: #202430; }</string>
                  </property>
                  <property name="text">
                   <string>💾 Save</string>
@@ -3934,18 +2387,8 @@ QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: 
             </property>
             <item>
              <widget class="QPushButton" name="toggleLogButton">
-              <property name="styleSheet">
-               <string notr="true">QPushButton {
-    color: #cdd2e0;
-    border: none;
-    background-color: transparent;
-    border-radius: 8px;
-    font-size: 13px;
-}
-</string>
-              </property>
               <property name="text">
-               <string/>
+               <string />
               </property>
               <property name="icon">
                <iconset>
@@ -3994,24 +2437,6 @@ QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: 
               <height>16777215</height>
              </size>
             </property>
-            <property name="styleSheet">
-             <string notr="true">QGroupBox {
-    background-color: #171a23;
-    border: 1px solid #262b3a;
-    border-radius: 16px;
-    margin-top: 8px;
-    padding: 16px 20px 20px 20px;
-}
-QGroupBox::title {
-    subcontrol-origin: margin;
-    left: 16px;
-    padding: 0 8px;
-    background-color: #171a23;
-    color: #f4f5f8;
-    font-size: 20px;
-    font-weight: 600;
-}</string>
-            </property>
             <property name="title">
              <string>📋 View live logs</string>
             </property>
@@ -4026,18 +2451,6 @@ QGroupBox::title {
                <width>1121</width>
                <height>551</height>
               </rect>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">QPlainTextEdit {
-    background-color: #0a0b10;
-    color: #a9b0c4;
-    border: 1px solid #1c1f29;
-    border-radius: 12px;
-    padding: 16px 18px;
-    font-family: &quot;Cascadia Code&quot;, &quot;Consolas&quot;, &quot;Monaco&quot;, monospace;
-    font-size: 13px;
-}
-QPlainTextEdit:focus { border-color: #3d4356; background-color: #0a0b10; }</string>
              </property>
              <property name="readOnly">
               <bool>true</bool>
@@ -4067,20 +2480,6 @@ QPlainTextEdit:focus { border-color: #3d4356; background-color: #0a0b10; }</stri
                <height>32</height>
               </size>
              </property>
-             <property name="styleSheet">
-              <string notr="true">QPushButton {
-    background-color: #1d212c;
-    color: #cdd2e0;
-    border: 1px solid #2a2f3d;
-    border-radius: 8px;
-    padding: 6px 16px;
-    font-size: 13px;
-    font-weight: 500;
-}
-QPushButton:hover { background-color: #262b3a; border-color: #7c6cff; color: #f4f5f8; }
-QPushButton:pressed { background-color: #14161f; }
-QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: #202430; }</string>
-             </property>
              <property name="text">
               <string>🗑️ Clear</string>
              </property>
@@ -4107,20 +2506,6 @@ QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: 
                 <height>32</height>
                </size>
               </property>
-              <property name="styleSheet">
-               <string notr="true">QPushButton {
-    background-color: #1d212c;
-    color: #cdd2e0;
-    border: 1px solid #2a2f3d;
-    border-radius: 8px;
-    padding: 6px 16px;
-    font-size: 13px;
-    font-weight: 500;
-}
-QPushButton:hover { background-color: #262b3a; border-color: #7c6cff; color: #f4f5f8; }
-QPushButton:pressed { background-color: #14161f; }
-QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: #202430; }</string>
-              </property>
               <property name="text">
                <string>🔄기본값 복원</string>
               </property>
@@ -4134,20 +2519,6 @@ QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: 
                 <height>32</height>
                </size>
               </property>
-              <property name="styleSheet">
-               <string notr="true">QPushButton {
-    background-color: #1d212c;
-    color: #cdd2e0;
-    border: 1px solid #2a2f3d;
-    border-radius: 8px;
-    padding: 6px 16px;
-    font-size: 13px;
-    font-weight: 500;
-}
-QPushButton:hover { background-color: #262b3a; border-color: #7c6cff; color: #f4f5f8; }
-QPushButton:pressed { background-color: #14161f; }
-QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: #202430; }</string>
-              </property>
               <property name="text">
                <string>📂 설정 불러오기</string>
               </property>
@@ -4160,20 +2531,6 @@ QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: 
                 <width>100</width>
                 <height>32</height>
                </size>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">QPushButton {
-    background-color: #1d212c;
-    color: #cdd2e0;
-    border: 1px solid #2a2f3d;
-    border-radius: 8px;
-    padding: 6px 16px;
-    font-size: 13px;
-    font-weight: 500;
-}
-QPushButton:hover { background-color: #262b3a; border-color: #7c6cff; color: #f4f5f8; }
-QPushButton:pressed { background-color: #14161f; }
-QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: #202430; }</string>
               </property>
               <property name="text">
                <string>💾 설정 저장</string>
@@ -4200,20 +2557,6 @@ QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: 
                 <width>120</width>
                 <height>32</height>
                </size>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">QPushButton {
-    background-color: #1d212c;
-    color: #cdd2e0;
-    border: 1px solid #2a2f3d;
-    border-radius: 8px;
-    padding: 6px 16px;
-    font-size: 18px;
-    font-weight: 500;
-}
-QPushButton:hover { background-color: #262b3a; border-color: #7c6cff; color: #f4f5f8; }
-QPushButton:pressed { background-color: #14161f; }
-QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: #202430; }</string>
               </property>
               <property name="text">
                <string>Exit</string>
@@ -4270,21 +2613,6 @@ QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: 
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="styleSheet">
-             <string notr="true">QTextBrowser {
-    background-color: #171a23;
-    border: 1px solid #262b3a;
-    border-radius: 10px;
-    padding: 16px;
-    font-family: &quot;Segoe UI&quot;, &quot;Malgun Gothic&quot;, sans-serif;
-    font-size: 13px;
-    color: #cdd2e0;
-}
-QTextBrowser QScrollBar:vertical { background-color: #171a23; width: 10px; border-radius: 5px; }
-QTextBrowser QScrollBar::handle:vertical { background-color: #3d4356; border-radius: 5px; min-height: 30px; }
-QTextBrowser QScrollBar::handle:vertical:hover { background-color: #565d72; }
-QTextBrowser QScrollBar::add-line:vertical, QTextBrowser QScrollBar::sub-line:vertical { height: 0px; }</string>
-            </property>
             <property name="openExternalLinks">
              <bool>true</bool>
             </property>
@@ -4312,6 +2640,6 @@ QTextBrowser QScrollBar::add-line:vertical, QTextBrowser QScrollBar::sub-line:ve
    </layout>
   </widget>
  </widget>
- <resources/>
- <connections/>
+ <resources />
+ <connections />
 </ui>

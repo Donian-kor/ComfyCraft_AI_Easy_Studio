@@ -1,1 +1,23 @@
-<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE RCC>\n<RCC version="1.0">\n  <qresource prefix="assets">\n    <file>icons.qrc</file>\n  </qresource>\n</RCC>
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE RCC>
+<RCC version="1.0">
+  <qresource prefix="assets">
+    <file>icons/facedetailer_check.svg</file>
+    <file>icons/image-interface-symbol-with-a-landscape-svgrepo-com.svg</file>
+    <file>icons/network-base.svg</file>
+    <file>icons/network-failed.svg</file>
+    <file>icons/network-ing.svg</file>
+    <file>icons/network-success.svg</file>
+    <file>icons/off-2.svg</file>
+    <file>icons/on-1.svg</file>
+    <file>icons/paragraph-justified-option-symbol-for-interface-of-five-parallel-horizontal-lines-svgrepo-com.svg</file>
+    <file>icons/play.svg</file>
+    <file>icons/play-svgrepo-com (1).svg</file>
+    <file>icons/play-svgrepo-com.svg</file>
+    <file>icons/sparkel.svg</file>
+    <file>icons/stop-svgrepo-com (1).svg</file>
+    <file>icons/stop-svgrepo-com.svg</file>
+    <file>icons/toggle-off.svg</file>
+    <file>icons/toggle-on.svg</file>
+  </qresource>
+</RCC>

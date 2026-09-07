@@ -1,0 +1,376 @@
+/* ComfyUI + LM Studio GUI - 기본 스타일시트 */
+
+/* 전체 애플리케이션 기본 스타일 */
+QMainWindow {
+    background-color: #1e1e2e;
+    color: #cdd6f4;
+}
+
+/* 중앙 위젯 */
+QWidget#centralWidget {
+    background-color: #1e1e2e;
+}
+
+/* 사이드바 */
+QFrame#sidebar_frame {
+    background-color: #181825;
+    border-right: 1px solid #313244;
+}
+
+/* 사이드바 버튼 */
+QFrame#sidebar_frame QPushButton {
+    text-align: left;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 8px;
+    background-color: transparent;
+    color: #cdd6f4;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+QFrame#sidebar_frame QPushButton:hover {
+    background-color: #313244;
+    color: #f5e0dc;
+}
+
+QFrame#sidebar_frame QPushButton:pressed {
+    background-color: #45475a;
+    color: #cba6f7;
+}
+
+/* 사이드바 라벨 */
+QFrame#sidebar_frame QLabel {
+    background-color: transparent;
+    color: #9399b2;
+}
+
+/* 탭 위젯 */
+QTabWidget {
+    background-color: #1e1e2e;
+    border: none;
+}
+
+QTabWidget::pane {
+    border: none;
+    background-color: #1e1e2e;
+}
+
+QTabBar::tab {
+    background-color: #1e1e2e;
+    color: #9399b2;
+    padding: 8px 16px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+QTabBar::tab:hover {
+    color: #cdd6f4;
+    background-color: #252536;
+}
+
+QTabBar::tab:selected {
+    color: #cba6f7;
+    border-bottom: 2px solid #cba6f7;
+    background-color: #1e1e2e;
+}
+
+/* 그룹 박스 */
+QGroupBox {
+    background-color: #252536;
+    border: 1px solid #313244;
+    border-radius: 8px;
+    margin-top: 12px;
+    padding-top: 16px;
+    font-weight: 600;
+    color: #cdd6f4;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 12px;
+    padding: 0 6px;
+    color: #cba6f7;
+}
+
+/* 입력 필드 */
+QLineEdit, QPlainTextEdit, QSpinBox, QDoubleSpinBox, QComboBox {
+    background-color: #1e1e2e;
+    border: 1px solid #313244;
+    border-radius: 6px;
+    padding: 6px 10px;
+    color: #cdd6f4;
+    selection-background-color: #cba6f7;
+    selection-color: #1e1e2e;
+}
+
+QLineEdit:focus, QPlainTextEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QComboBox:focus {
+    border: 1px solid #cba6f7;
+}
+
+QLineEdit:hover, QPlainTextEdit:hover, QSpinBox:hover, QDoubleSpinBox:hover, QComboBox:hover {
+    border: 1px solid #45475a;
+}
+
+/* 콤보박스 드롭다운 */
+QComboBox::drop-down {
+    border: none;
+    width: 24px;
+}
+
+QComboBox::down-arrow {
+    image: none;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #cdd6f4;
+    margin-right: 8px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #252536;
+    border: 1px solid #313244;
+    selection-background-color: #cba6f7;
+    selection-color: #1e1e2e;
+    color: #cdd6f4;
+    outline: none;
+}
+
+/* 스핀박스 버튼 */
+QSpinBox::up-button, QDoubleSpinBox::up-button,
+QSpinBox::down-button, QDoubleSpinBox::down-button {
+    background-color: #313244;
+    border: none;
+    width: 20px;
+    border-radius: 3px;
+}
+
+QSpinBox::up-button:hover, QDoubleSpinBox::up-button:hover,
+QSpinBox::down-button:hover, QDoubleSpinBox::down-button:hover {
+    background-color: #45475a;
+}
+
+QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
+    image: none;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-bottom: 5px solid #cdd6f4;
+}
+
+QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
+    image: none;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid #cdd6f4;
+}
+
+/* 버튼 */
+QPushButton {
+    background-color: #313244;
+    border: 1px solid #45475a;
+    border-radius: 6px;
+    padding: 8px 16px;
+    color: #cdd6f4;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+QPushButton:hover {
+    background-color: #45475a;
+    border: 1px solid #cba6f7;
+    color: #f5e0dc;
+}
+
+QPushButton:pressed {
+    background-color: #585b70;
+    border: 1px solid #b4befe;
+}
+
+QPushButton:disabled {
+    background-color: #1e1e2e;
+    border: 1px solid #313244;
+    color: #6c7086;
+}
+
+/* 주요 액션 버튼 (생성, 저장 등) */
+QPushButton#generateButton, QPushButton#saveConfigButton, QPushButton#saveImageButton {
+    background-color: #cba6f7;
+    border: none;
+    color: #1e1e2e;
+    font-weight: 600;
+}
+
+QPushButton#generateButton:hover, QPushButton#saveConfigButton:hover, QPushButton#saveImageButton:hover {
+    background-color: #d8b4fe;
+    color: #1e1e2e;
+}
+
+QPushButton#generateButton:pressed, QPushButton#saveConfigButton:pressed, QPushButton#saveImageButton:pressed {
+    background-color: #b4a0e8;
+}
+
+/* 위험 버튼 (중지, 종료 등) */
+QPushButton#stopButton, QPushButton#exitButton {
+    background-color: #f38ba8;
+    border: none;
+    color: #1e1e2e;
+    font-weight: 600;
+}
+
+QPushButton#stopButton:hover, QPushButton#exitButton:hover {
+    background-color: #f5c2c7;
+}
+
+QPushButton#stopButton:pressed, QPushButton#exitButton:pressed {
+    background-color: #e87979;
+}
+
+/* 프로그레스 바 */
+QProgressBar {
+    background-color: #1e1e2e;
+    border: 1px solid #313244;
+    border-radius: 6px;
+    text-align: center;
+    color: #cdd6f4;
+    font-weight: 600;
+}
+
+QProgressBar::chunk {
+    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+        stop:0 #cba6f7, stop:1 #b4befe);
+    border-radius: 5px;
+}
+
+/* 라벨 */
+QLabel {
+    color: #cdd6f4;
+}
+
+/* 상태 라벨 */
+QLabel#lmStatusLabel, QLabel#comfyStatusLabel, QLabel#modelPathStatusLabel {
+    font-weight: 500;
+    font-size: 12px;
+}
+
+/* 카운터 라벨 */
+QLabel#positivePromptCounterLabel, QLabel#negativePromptCounterLabel, QLabel#enhancePromptCounterLabel {
+    color: #9399b2;
+    font-size: 11px;
+}
+
+/* 로그 영역 */
+QPlainTextEdit#logTextEdit {
+    background-color: #181825;
+    border: 1px solid #313244;
+    border-radius: 6px;
+    font-family: 'Consolas', 'Monospace';
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+/* 이미지 미리보기 */
+QLabel#previewLabel {
+    background-color: #181825;
+    border: 1px dashed #313244;
+    border-radius: 8px;
+    color: #6c7086;
+}
+
+/* 스크롤바 */
+QScrollBar:vertical {
+    background-color: #1e1e2e;
+    width: 10px;
+    border: none;
+}
+
+QScrollBar::handle:vertical {
+    background-color: #45475a;
+    border-radius: 5px;
+    min-height: 30px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background-color: #585b70;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0;
+}
+
+QScrollBar:horizontal {
+    background-color: #1e1e2e;
+    height: 10px;
+    border: none;
+}
+
+QScrollBar::handle:horizontal {
+    background-color: #45475a;
+    border-radius: 5px;
+    min-width: 30px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background-color: #585b70;
+}
+
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    width: 0;
+}
+
+/* 체크박스 */
+QCheckBox {
+    color: #cdd6f4;
+    spacing: 8px;
+}
+
+QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #45475a;
+    border-radius: 4px;
+    background-color: #1e1e2e;
+}
+
+QCheckBox::indicator:hover {
+    border: 2px solid #cba6f7;
+}
+
+QCheckBox::indicator:checked {
+    background-color: #cba6f7;
+    border: 2px solid #cba6f7;
+    image: url(:/assets/icons/check.svg);
+}
+
+/* 툴팁 */
+QToolTip {
+    background-color: #313244;
+    border: 1px solid #45475a;
+    border-radius: 6px;
+    color: #cdd6f4;
+    padding: 6px 10px;
+    font-size: 12px;
+}
+
+/* 메시지 박스 */
+QMessageBox {
+    background-color: #252536;
+}
+
+QMessageBox QLabel {
+    color: #cdd6f4;
+}
+
+QMessageBox QPushButton {
+    min-width: 80px;
+}
+
+/* 스플리터 */
+QSplitter::handle {
+    background-color: #313244;
+    width: 1px;
+}
+
+QSplitter::handle:hover {
+    background-color: #cba6f7;
+}

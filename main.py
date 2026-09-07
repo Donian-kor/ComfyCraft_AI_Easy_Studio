@@ -6,16 +6,51 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from PySide6.QtCore import QObject, QTimer, Qt, Signal, QRegularExpression, QPropertyAnimation, QEasingCurve, QEvent
-from PySide6.QtGui import QPixmap, QRegularExpressionValidator, QIcon
+from PySide6.QtCore import (
+    QEasingCurve,
+    QEvent,
+    QObject,
+    QPropertyAnimation,
+    QRegularExpression,
+    Qt,
+    QTimer,
+    Signal,
+)
+from PySide6.QtGui import QIcon, QRegularExpressionValidator
 from PySide6.QtWidgets import (
-    QApplication, QCheckBox, QComboBox, QDoubleSpinBox, QFileDialog,
-    QLabel, QLineEdit, QMessageBox, QPlainTextEdit, QProgressBar,
-    QPushButton, QSizePolicy, QSpacerItem, QSpinBox,
-    QTabWidget, QTextBrowser, QWidget, QFrame, QGroupBox, QStyle
+    QApplication,
+    QCheckBox,
+    QComboBox,
+    QDoubleSpinBox,
+    QFileDialog,
+    QFrame,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPlainTextEdit,
+    QProgressBar,
+    QPushButton,
+    QSizePolicy,
+    QSpacerItem,
+    QSpinBox,
+    QTabWidget,
+    QTextBrowser,
+    QVBoxLayout,
+)
+
+from assets.icons import (
+    icon_rc,  # noqa: F401  (SVG 아이콘 리소스 등록용 - 직접 사용하진 않지만 import 자체가 필요함)
+)
+from assets.ui.theme_manager import (
+    AVAILABLE_THEMES,
+    apply_theme,
+    load_theme_choice,
+    save_theme_choice,
 )
 from assets.ui.ui_loader import load_ui
-from assets.icons import icon_rc  # noqa: F401  (SVG 아이콘 리소스 등록용 - 직접 사용하진 않지만 import 자체가 필요함)
+
 BASE_DIR = Path(__file__).resolve().parent
 SRC_DIR = BASE_DIR / "src"
 
@@ -25,49 +60,37 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from src import (
-    ComfyUIApiClient,
-    ComfyUIWebSocketClient,
-    LMStudioApiClient,
-    get_config_manager,
-    get_model_fetcher,
-    get_workflow_manager,
-    get_model_registry,
-    # Section modules
-    ConnectionStatus,
-    resolve_live_url,
-    check_connection_status,
-    check_connection_silent,
-    get_default_comfyui_model_roots,
-    resolve_model_directory,
-    scan_comfyui_model_names,
-    GenerationSettings,
-    build_generation_snapshot,
-    WorkerSignals,
-    GenerationWorker,
-    normalize_prompt,
-    prompt_character_count,
-    build_negative_prompt,
-    load_external_prompts,
     SAMPLER_NAMES,
     SCHEDULER_NAMES,
-    sampler_label_to_value,
-    sampler_value_to_label,
-    enhance_prompt_sync,
-    PromptEnhanceWorker,
-    ResultInfo,
-    build_result_info,
-    ensure_output_directory,
-    show_image,
-    save_image_as,
-    open_output_folder,
-    build_filename_prefix,
-    show_message_box,
-    ExecutionStatus,
-    create_execution_status,
-    update_execution_status,
-    format_elapsed,
-    LoadingAnimation,
+    ComfyUIApiClient,
+    # Section modules
+    ConnectionStatus,
     ElapsedTimer,
+    GenerationWorker,
+    LMStudioApiClient,
+    LoadingAnimation,
+    PromptEnhanceWorker,
+    build_filename_prefix,
+    build_generation_snapshot,
+    build_negative_prompt,
+    check_connection_silent,
+    check_connection_status,
+    create_execution_status,
+    ensure_output_directory,
+    get_config_manager,
+    get_model_fetcher,
+    get_model_registry,
+    get_workflow_manager,
+    load_external_prompts,
+    normalize_prompt,
+    open_output_folder,
+    resolve_live_url,
+    resolve_model_directory,
+    save_image_as,
+    scan_comfyui_model_names,
+    show_image,
+    show_message_box,
+    update_execution_status,
 )
 
 # 추가 모듈 import
@@ -267,14 +290,48 @@ class MainController(QObject):
             self.log_visible = True   # 처음에는 로그가 보이는 상태
 
             # ✅ Qt 내장 아이콘 사용하기 (별도 이미지 파일 필요 없음)
-            from PySide6.QtWidgets import QStyle
-            
             # assets/icons 폴더의 실제 파일명과 정확히 일치해야 합니다!
             self.icon_collapse = QIcon(str(BASE_DIR / "assets/icons/toggle-off.svg"))
             self.icon_expand = QIcon(str(BASE_DIR / "assets/icons/toggle-on.svg"))            
             # 처음에는 로그가 보이므로 '접기' 설정
             toggle_btn.setIcon(self.icon_collapse)
-            toggle_btn.setText("")  # 혹시 모를 텍스트 제거        
+            toggle_btn.setText("")  # 혹시 모를 텍스트 제거
+
+        # ===== 테마 선택기 (설정 탭) =====
+        self._setup_theme_selector()        
+
+    def _setup_theme_selector(self):
+        """설정 탭 맨 위에 테마 선택 콤보박스를 만들어 넣는다."""
+        settings_layout = self.window.findChild(QVBoxLayout, "settingsLayout")
+        if settings_layout is None:
+            print("[테마] 설정 탭 레이아웃을 찾을 수 없어 테마 선택기를 추가하지 못했습니다.")
+            return
+
+        box = QGroupBox("🎨  테마")
+        row = QHBoxLayout(box)
+        row.setContentsMargins(12, 8, 12, 8)
+        row.addWidget(QLabel("테마 선택"))
+        combo = QComboBox()
+        combo.setObjectName("themeComboBox")
+        for key, display_name in AVAILABLE_THEMES.items():
+            combo.addItem(display_name, key)  # 항목 data에 테마 키를 저장
+        combo.setCurrentIndex(max(0, combo.findData(load_theme_choice())))
+        combo.currentIndexChanged.connect(self._on_theme_changed)
+        row.addWidget(combo, 1)
+        settings_layout.insertWidget(0, box)  # 설정 탭 맨 위에 배치
+
+    def _on_theme_changed(self, index: int):
+        """테마 선택이 바뀌면 즉시 적용하고 설정 파일에 저장한다."""
+        combo = self.sender()
+        if combo is None:
+            return
+        key = combo.itemData(index)
+        if not key:
+            return
+        applied = apply_theme(QApplication.instance(), key)
+        if save_theme_choice(applied):
+            display_name = AVAILABLE_THEMES.get(applied, applied)
+            self.append_log(f"테마 변경: {display_name}")
 
     def setup_sidebar_animation(self):
         """사이드바에 마우스 호버 시 왼쪽으로 접히는 폭(maximumWidth) 애니메이션을 적용합니다."""
@@ -283,7 +340,7 @@ class MainController(QObject):
             return
 
         # 마우스 호버 이벤트를 받을 수 있도록 설정
-        sidebar.setAttribute(Qt.WA_Hover, True)
+        sidebar.setAttribute(Qt.WidgetAttribute.WA_Hover, True)
         sidebar.installEventFilter(self)
 
         # 레이아웃 안에서도 최대 너비(210px)까지 확실히 펼쳐지도록 가로 정책을 Expanding 으로 변경
@@ -298,7 +355,7 @@ class MainController(QObject):
         # splitter/레이아웃 안에서는 geometry 대신 maximumWidth 를 애니메이션 (왼쪽으로 접힘)
         self.sidebar_anim = QPropertyAnimation(sidebar, b"maximumWidth")
         self.sidebar_anim.setDuration(300)  # 0.3초 동안 움직임
-        self.sidebar_anim.setEasingCurve(QEasingCurve.InOutQuad)
+        self.sidebar_anim.setEasingCurve(QEasingCurve.Type.InOutQuad)
 
         # 레이아웃이 임의로 폭을 줄이지 못하도록 최소 너비도 애니메이션 값에 맞춘다
         # (min == max -> 요청한 폭이 정확히 유지됨)
@@ -320,7 +377,7 @@ class MainController(QObject):
         """마우스가 사이드바에 들어오고 나갈 때 애니메이션을 실행합니다."""
         # 사이드바에서 발생한 이벤트인지 확인
         if hasattr(self, 'sidebar_frame') and obj == self.sidebar_frame:
-            if event.type() == QEvent.HoverEnter:
+            if event.type() == QEvent.Type.HoverEnter:
                 # 마우스 올림 → 펼치기(왼쪽에서 오른쪽으로 확장)
                 self.sidebar_anim.stop()
                 self.sidebar_anim.setStartValue(self.sidebar_frame.maximumWidth())
@@ -328,7 +385,7 @@ class MainController(QObject):
                 self.sidebar_anim.start()
                 return True
 
-            elif event.type() == QEvent.HoverLeave:
+            elif event.type() == QEvent.Type.HoverLeave:
                 # 마우스 내림 → 접기(오른쪽에서 왼쪽으로 축소, 55px)
                 self.sidebar_anim.stop()
                 self.sidebar_anim.setStartValue(self.sidebar_frame.maximumWidth())
@@ -363,7 +420,7 @@ class MainController(QObject):
 
     def _setup_elapsed_label_alignment(self):
         """elapsedLabel을 우측끝으로 정렬하기 위해 progressInfoLayout에 spacer 추가"""
-        from PySide6.QtWidgets import QLayout
+        from PySide6.QtWidgets import QBoxLayout
         progress_info_layout = None
         # progressInfoLayout 찾기 (resultPanel 하위에서)
         result_panel = self.find(object, "resultPanel")
@@ -380,8 +437,8 @@ class MainController(QObject):
             if hasattr(parent, 'layout') and callable(parent.layout):
                 progress_info_layout = parent.layout()
         
-        # spacer 추가
-        if progress_info_layout is not None:
+        # spacer 추가 (QBoxLayout 이 맞는 경우에만 안전하게 처리)
+        if isinstance(progress_info_layout, QBoxLayout):
             spacer = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
             # elapsedLabel 전에 spacer 삽입 (인덱스를 찾아서)
             elapsed_index = None
@@ -500,11 +557,15 @@ class MainController(QObject):
             ok = False
             try:
                 # 극단적으로 빠른 타임아웃 (0.3초 이내)
-                client = LMStudioApiClient(resolved_url) if which == "lm" else ComfyUIApiClient(resolved_url)
-                response = client.get_models(timeout=0.3) if which == "lm" else client.get_system_stats(timeout=0.3)
+                if which == "lm":
+                    client = LMStudioApiClient(resolved_url)
+                    response = client.get_models(timeout=0.3)
+                else:
+                    client = ComfyUIApiClient(resolved_url)
+                    response = client.get_system_stats(timeout=0.3)
                 # 실제 응답이 있고 상태 코드가 400 미만이어야 성공
                 ok = bool(response is not None and getattr(response, "status_code", 500) < 400)
-            except Exception:
+            except Exception:  # noqa: BLE001  (연결 확인은 어떤 오류든 '연결 실패'로 처리하는 것이 의도)
                 ok = False
 
             status = check_connection_status(which, resolved_url)
@@ -572,11 +633,11 @@ class MainController(QObject):
         # 로드한 모델 프로파일 정보를 로그에 표시
         profile_info = f"모델 프로파일 로드: [{profile.family.upper()}] {profile.name}"
         if profile.workflow_type == "gguf":
-            profile_info += f" (GGUF)"
+            profile_info += " (GGUF)"
         elif profile.workflow_type == "zimage":
-            profile_info += f" (ZImage-GGUF)"
+            profile_info += " (ZImage-GGUF)"
         elif profile.workflow_type == "flux_gguf":
-            profile_info += f" (Flux-GGUF)"
+            profile_info += " (Flux-GGUF)"
         profile_info += f" | Steps: {profile.default_steps}, CFG: {profile.default_cfg}, Sampler: {display}"
         self.append_log(profile_info)
         
@@ -661,7 +722,7 @@ class MainController(QObject):
                 # 접힘/펼침 상태는 setup_sidebar_animation 이 관리하므로
                 # 여기서는 최대 너비를 펼친 상태(210px)로 열어둔다.
                 sidebar.setMaximumWidth(sidebar.maximumWidth() or 210)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110  (화면 배치 실패는 무시하고 계속 진행하는 것이 의도)
             pass
         # (이전 QSplitter 비율 코드는 구조 변경으로 제거됨)
 
@@ -689,7 +750,7 @@ class MainController(QObject):
                         html_parts.append(markdown.markdown(readme_text, extensions=["tables"]))
                     except ImportError:
                         html_parts.append("<pre>" + readme_text + "</pre>")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001  (오류 내용을 도움말 화면에 표시하는 것이 의도)
                 html_parts.append(f"<p style='color:red;'>README.md 읽기 오류: {e}</p>")
         else:
             html_parts.append("<p style='color:red;'>⚠️ README.md 파일을 찾을 수 없습니다.</p>")
@@ -707,7 +768,7 @@ class MainController(QObject):
                         html_parts.append(markdown.markdown(install_text, extensions=["tables"]))
                     except ImportError:
                         html_parts.append("<pre>" + install_text + "</pre>")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001  (오류 내용을 도움말 화면에 표시하는 것이 의도)
                 html_parts.append(f"<p style='color:red;'>INSTALLATION.md 읽기 오류: {e}</p>")
         else:
             html_parts.append("<p style='color:red;'>⚠️ INSTALLATION.md 파일을 찾을 수 없습니다.</p>")
@@ -732,7 +793,6 @@ class MainController(QObject):
              self.config.comfyui_model_paths = []
 
         # Generation options 저장
-        generation = self.config.generation
         self.config.generation.default_width = self.find(QSpinBox, "widthSpinBox").value()
         self.config.generation.default_height = self.find(QSpinBox, "heightSpinBox").value()
         self.config.generation.default_steps = self.find(QSpinBox, "stepsSpinBox").value()
@@ -874,7 +934,6 @@ class MainController(QObject):
         self.find(QLabel, "progressStatusLabel").setText("프롬프트 향상 중...")
 
         ext_prompts = load_external_prompts()
-        use_korean = self.config.prompts.use_korean_prompt
 
         # ComfyUI 모델 타입에 따라 시스템 프롬프트 자동 선택 (generation.py와 동일 로직)
         comfy_model_name = self.find(QComboBox, "comfyModelCombo").currentText()
@@ -929,9 +988,9 @@ class MainController(QObject):
         self.append_log(f"[DEBUG] prompt_edit 찾음: {prompt_edit is not None}")
         if prompt_edit:
             prompt_edit.setPlainText(enhanced_prompt)
-            self.append_log(f"[DEBUG] setPlainText 완료")
+            self.append_log("[DEBUG] setPlainText 완료")
         else:
-            self.append_log(f"[ERROR] enhancePromptEdit을 찾을 수 없음!")
+            self.append_log("[ERROR] enhancePromptEdit을 찾을 수 없음!")
         self.append_log(f"프롬프트 향상 완료: {enhanced_prompt[:100]}...")
         self.find(QLabel, "progressStatusLabel").setText("준비 완료")
 
@@ -1009,7 +1068,7 @@ class MainController(QObject):
 
     def append_log(self, message):
         editor = self.find(QPlainTextEdit, "logTextEdit")
-        editor.appendPlainText(f"[{datetime.now():%H:%M:%S}] {message}")
+        editor.appendPlainText(f"[{datetime.now():%H:%M:%S}] {message}")  # noqa: DTZ005  (로그 표시용 로컬 시간이므로 의도됨)
 
     def clear_logs(self):
         self.find(QPlainTextEdit, "logTextEdit").clear()
@@ -1065,11 +1124,9 @@ class MainController(QObject):
 def main():
     app = QApplication(sys.argv)
 
-    qss_path = BASE_DIR / "assets" / "ui" / "style.qss"
-    if qss_path.exists():
-        app.setStyleSheet(qss_path.read_text(encoding="utf-8"))
-    else:
-        print(f"[QSS] 파일을 찾을 수 없음: {qss_path}")
+    theme_key = load_theme_choice()
+    apply_theme(app, theme_key)
+    print(f"[테마] 적용: {theme_key}")
 
     window = load_ui(UI_FILE)
     MainController(window)

@@ -31,25 +31,8 @@ class Ui_MainWindow(object):
         font = QFont()
         font.setFamilies([u"Segoe UI"])
         MainWindow.setFont(font)
-        MainWindow.setStyleSheet(u"#centralWidget {\n"
-"    background-color: #0e1016;\n"
-"    color: #e8eaf0;\n"
-"    font-family: \"Segoe UI\", \"Malgun Gothic\", \"Segoe UI Emoji\";\n"
-"    font-size: 13px;\n"
-"}\n"
-"QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4f5f8; }\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button{ background-color: #e8eaf0; }\n"
-"QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4f5f8; }\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow{ background-color: #e8eaf0; }\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow{ background-color: #e8eaf0; border-top: 5px solid #9aa2b8; }\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }")
         self.centralWidget = QWidget(MainWindow)
         self.centralWidget.setObjectName(u"centralWidget")
-        self.centralWidget.setStyleSheet(u"background-color: #0e1016;\n"
-"color: #e8eaf0;")
         self.mainLayout = QHBoxLayout(self.centralWidget)
         self.mainLayout.setSpacing(0)
         self.mainLayout.setObjectName(u"mainLayout")
@@ -58,13 +41,6 @@ class Ui_MainWindow(object):
         self.sidebar_frame.setObjectName(u"sidebar_frame")
         self.sidebar_frame.setMinimumSize(QSize(55, 0))
         self.sidebar_frame.setMaximumSize(QSize(210, 16777215))
-        self.sidebar_frame.setStyleSheet(u"background-color: #14161f;\n"
-"border-right: 1px solid #262b3a;\n"
-"QPushButton { text-align: left; padding: 10px 14px; border: none; border-radius: 8px; background-color: transparent; color: #cdd2e0; font-size: 14px; }\n"
-"QPushButton:hover { background-color: #1d212c; color: #f4f5f8; }\n"
-"QPushButton:pressed { background-color: #221e3d; color: #cdc4ff; }\n"
-"QLabel { background-color: transparent; color: #9aa2b8; }\n"
-"")
         self.sidebar_frame.setFrameShape(QFrame.Shape.NoFrame)
         self.sidebarLayout = QVBoxLayout(self.sidebar_frame)
         self.sidebarLayout.setObjectName(u"sidebarLayout")
@@ -85,10 +61,6 @@ class Ui_MainWindow(object):
 
         self.pushButton = QPushButton(self.sidebar_frame)
         self.pushButton.setObjectName(u"pushButton")
-        self.pushButton.setStyleSheet(u"QPushButton {\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}")
         icon = QIcon()
         icon.addFile(u":/newPrefix1/network-success.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.pushButton.setIcon(icon)
@@ -134,45 +106,6 @@ class Ui_MainWindow(object):
         self.contentLayout.setContentsMargins(26, 22, 26, 22)
         self.tabWidget = QTabWidget(self.centralWidget)
         self.tabWidget.setObjectName(u"tabWidget")
-        self.tabWidget.setStyleSheet(u"QTabWidget::pane {\n"
-"    background-color: transparent;\n"
-"    border: none;\n"
-"    border-radius: 16px;\n"
-"}\n"
-"QTabBar {\n"
-"    background-color: transparent;\n"
-"}\n"
-"QTabBar::tab {\n"
-"    background-color: #1d212c;\n"
-"    color: #9aa2b8;\n"
-"    border: 1px solid #262b3a;\n"
-"    border-bottom: none;\n"
-"    border-top-left-radius: 10px;\n"
-"    border-top-right-radius: 10px;\n"
-"    padding: 10px 24px;\n"
-"    margin-right: 4px;\n"
-"    font-weight: 500;\n"
-"    font-size: 13px;\n"
-"}\n"
-"QTabBar::tab:hover {\n"
-"    background-color: #262b3a;\n"
-"    color: #e8eaf0;\n"
-"}\n"
-"QTabBar::tab:selected {\n"
-"    background-color: #171a23;\n"
-"    color: #ffffff;\n"
-"    border-bottom: 3px solid #7c6cff;\n"
-"}\n"
-"QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4f5f8; }\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button{ background-colo"
-                        "r: #e8eaf0; }\n"
-"QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4f5f8; }\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow{ background-color: #e8eaf0; }\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow{ background-color: #e8eaf0; border-top: 5px solid #9aa2b8; }\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }")
         self.homeTab = QWidget()
         self.homeTab.setObjectName(u"homeTab")
         self.homeLayout = QVBoxLayout(self.homeTab)
@@ -294,31 +227,9 @@ class Ui_MainWindow(object):
         self.ComfygroupBox = QGroupBox(self.comfyTab)
         self.ComfygroupBox.setObjectName(u"ComfygroupBox")
         self.ComfygroupBox.setMinimumSize(QSize(351, 301))
-        self.ComfygroupBox.setStyleSheet(u"QGroupBox {\n"
-"    background-color: #1d212c;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 16px;\n"
-"    margin-top: 8px;\n"
-"    padding: 18px 20px 20px 20px;\n"
-"}\n"
-"QGroupBox::title {\n"
-"    subcontrol-origin: margin;\n"
-"    left: 16px;\n"
-"    padding: 0 8px;\n"
-"    background-color: #1d212c;\n"
-"    color: #f4f5f8;\n"
-"    font-size: 20px;\n"
-"    font-weight: 600;\n"
-"}")
         self.comfyAddressLabel = QLabel(self.ComfygroupBox)
         self.comfyAddressLabel.setObjectName(u"comfyAddressLabel")
         self.comfyAddressLabel.setGeometry(QRect(10, 54, 91, 20))
-        self.comfyAddressLabel.setStyleSheet(u"background-color: transparent;\n"
-"font-size: 12px;\n"
-"color: #6b7288;\n"
-"font-family: \"Cascadia Code\", \"Consolas\", monospace;\n"
-"    border: none;\n"
-"    background-color: transparent;")
         self.comfyUrlEdit = QLineEdit(self.ComfygroupBox)
         self.comfyUrlEdit.setObjectName(u"comfyUrlEdit")
         self.comfyUrlEdit.setGeometry(QRect(10, 77, 221, 41))
@@ -328,60 +239,18 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.comfyUrlEdit.sizePolicy().hasHeightForWidth())
         self.comfyUrlEdit.setSizePolicy(sizePolicy)
         self.comfyUrlEdit.setMinimumSize(QSize(0, 32))
-        self.comfyUrlEdit.setStyleSheet(u"QLineEdit {\n"
-"    background-color: #12141c;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 10px 16px;\n"
-"    font-family: \"Cascadia Code\", \"Consolas\", monospace;\n"
-"    font-size: 14px;\n"
-"    color: #cdd2e0;\n"
-"    selection-background-color: #7c6cff;\n"
-"    selection-color: #ffffff;\n"
-"}\n"
-"QLineEdit:hover { border-color: #3d4356; }\n"
-"QLineEdit:focus { border-color: #7c6cff; background-color: #14161f; }")
         self.comfyPathLabel = QLabel(self.ComfygroupBox)
         self.comfyPathLabel.setObjectName(u"comfyPathLabel")
         self.comfyPathLabel.setGeometry(QRect(10, 192, 91, 20))
-        self.comfyPathLabel.setStyleSheet(u"background-color: transparent;\n"
-"font-size: 12px;\n"
-"color: #6b7288;\n"
-"font-family: \"Cascadia Code\", \"Consolas\", monospace;\n"
-"    border: none;\n"
-"    background-color: transparent;")
         self.comfyModelPathEdit = QLineEdit(self.ComfygroupBox)
         self.comfyModelPathEdit.setObjectName(u"comfyModelPathEdit")
         self.comfyModelPathEdit.setGeometry(QRect(10, 214, 331, 41))
         sizePolicy.setHeightForWidth(self.comfyModelPathEdit.sizePolicy().hasHeightForWidth())
         self.comfyModelPathEdit.setSizePolicy(sizePolicy)
         self.comfyModelPathEdit.setMinimumSize(QSize(0, 32))
-        self.comfyModelPathEdit.setStyleSheet(u"QLineEdit {\n"
-"    background-color: #12141c;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 10px 16px;\n"
-"    font-family: \"Cascadia Code\", \"Consolas\", monospace;\n"
-"    font-size: 14px;\n"
-"    color: #cdd2e0;\n"
-"    selection-background-color: #7c6cff;\n"
-"    selection-color: #ffffff;\n"
-"}\n"
-"QLineEdit:hover { border-color: #3d4356; }\n"
-"QLineEdit:focus { border-color: #7c6cff; background-color: #14161f; }")
         self.comfyStatusLabel = QLabel(self.ComfygroupBox)
         self.comfyStatusLabel.setObjectName(u"comfyStatusLabel")
         self.comfyStatusLabel.setGeometry(QRect(227, 46, 121, 31))
-        self.comfyStatusLabel.setStyleSheet(u"QLabel {\n"
-"    background-color: transparent;\n"
-"    border: none;\n"
-"    padding: 4px 14px 4px 10px;\n"
-"    font-size: 13px;\n"
-"    font-weight: 500;\n"
-"    color: #e8eaf0;\n"
-"}\n"
-"QLabel[text*=\"\uc5f0\uacb0 \uc131\uacf5\"] { color: #4ade80; }\n"
-"QLabel[text*=\"\uc5f0\uacb0 \uc2e4\ud328\"] { color: #fb7185; }")
         self.comfyTitleLabel = QLabel(self.ComfygroupBox)
         self.comfyTitleLabel.setObjectName(u"comfyTitleLabel")
         self.comfyTitleLabel.setGeometry(QRect(100, 20, 121, 31))
@@ -389,100 +258,25 @@ class Ui_MainWindow(object):
         font1.setFamilies([u"Cascadia Code"])
         font1.setBold(True)
         self.comfyTitleLabel.setFont(font1)
-        self.comfyTitleLabel.setStyleSheet(u"background-color: transparent;\n"
-"font-size: 16px;\n"
-"color: #ffffff;\n"
-"font-family: \"Cascadia Code\", \"Consolas\", monospace;\n"
-"    border: none;\n"
-"    background-color: transparent;")
         self.comfyTitleLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.comfyCheckButton = QPushButton(self.ComfygroupBox)
         self.comfyCheckButton.setObjectName(u"comfyCheckButton")
         self.comfyCheckButton.setGeometry(QRect(240, 78, 101, 41))
         self.comfyCheckButton.setMinimumSize(QSize(80, 32))
-        self.comfyCheckButton.setStyleSheet(u"QPushButton {\n"
-"    background-color: #1d212c;\n"
-"    color: #cdd2e0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 8px;\n"
-"    padding: 6px 16px;\n"
-"    font-size: 13px;\n"
-"    font-weight: 500;\n"
-"}\n"
-"QPushButton:hover { background-color: #262b3a; border-color: #7c6cff; color: #f4f5f8; }\n"
-"QPushButton:pressed { background-color: #14161f; }\n"
-"QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: #202430; }")
         self.modelPathStatusLabel = QLabel(self.ComfygroupBox)
         self.modelPathStatusLabel.setObjectName(u"modelPathStatusLabel")
         self.modelPathStatusLabel.setGeometry(QRect(10, 262, 100, 16))
-        self.modelPathStatusLabel.setStyleSheet(u"background-color: transparent;\n"
-"font-size: 12px;\n"
-"color: #6b7288;\n"
-"font-family: \"Cascadia Code\", \"Consolas\", monospace;\n"
-"    border: none;\n"
-"    background-color: transparent;")
         self.browseModelFolderButton = QPushButton(self.ComfygroupBox)
         self.browseModelFolderButton.setObjectName(u"browseModelFolderButton")
         self.browseModelFolderButton.setGeometry(QRect(253, 262, 86, 32))
         self.browseModelFolderButton.setMinimumSize(QSize(80, 32))
-        self.browseModelFolderButton.setStyleSheet(u"QPushButton {\n"
-"    background-color: #1d212c;\n"
-"    color: #cdd2e0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 8px;\n"
-"    padding: 6px 16px;\n"
-"    font-size: 13px;\n"
-"    font-weight: 500;\n"
-"}\n"
-"QPushButton:hover { background-color: #262b3a; border-color: #7c6cff; color: #f4f5f8; }\n"
-"QPushButton:pressed { background-color: #14161f; }\n"
-"QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: #202430; }")
         self.comfyModelLabel = QLabel(self.ComfygroupBox)
         self.comfyModelLabel.setObjectName(u"comfyModelLabel")
         self.comfyModelLabel.setGeometry(QRect(10, 123, 78, 16))
-        self.comfyModelLabel.setStyleSheet(u"background-color: transparent;\n"
-"font-size: 12px;\n"
-"color: #6b7288;\n"
-"font-family: \"Cascadia Code\", \"Consolas\", monospace;\n"
-"    border: none;\n"
-"    background-color: transparent;")
         self.comfyModelCombo = QComboBox(self.ComfygroupBox)
         self.comfyModelCombo.setObjectName(u"comfyModelCombo")
         self.comfyModelCombo.setGeometry(QRect(10, 150, 104, 42))
         self.comfyModelCombo.setMinimumSize(QSize(0, 42))
-        self.comfyModelCombo.setStyleSheet(u"QComboBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 8px 14px;\n"
-"    min-height: 24px;\n"
-"}\n"
-"QComboBox:hover { border-color: #3d4356; }\n"
-"QComboBox:focus { border-color: #7c6cff; }\n"
-"QComboBox::drop-down { border: none; width: 30px; background: transparent; }\n"
-"QComboBox::down-arrow {\n"
-"    image: none;\n"
-"    width: 0;\n"
-"    height: 0;\n"
-"    border-left: 6px solid transparent;\n"
-"    border-right: 6px solid transparent;\n"
-"    border-top: 6px solid #9aa2b8;\n"
-"    margin: 0px;\n"
-"}\n"
-"QComboBox QAbstractItemView {\n"
-"    background-color: #1d212c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #3d4356;\n"
-"    border-radius: 10px;\n"
-"    padding: 4px;\n"
-"    outline: none;\n"
-"    selection-background-color: #2a2440;\n"
-"    selection-color: #cdc4ff;\n"
-"}\n"
-"QComboBox QAbstractItemView::item { padding: 6px 8px; border-radius: 6px; }\n"
-"QComboBox QAbstractItemView::item:hover { ba"
-                        "ckground-color: #262b3a; }")
         self.modelPathStatusLabel.raise_()
         self.browseModelFolderButton.raise_()
         self.comfyModelLabel.raise_()
@@ -500,22 +294,6 @@ class Ui_MainWindow(object):
         self.generationPanel = QGroupBox(self.comfyTab)
         self.generationPanel.setObjectName(u"generationPanel")
         self.generationPanel.setMinimumSize(QSize(441, 251))
-        self.generationPanel.setStyleSheet(u"QGroupBox {\n"
-"    background-color: #171a23;\n"
-"    border: 1px solid #262b3a;\n"
-"    border-radius: 16px;\n"
-"    margin-top: 8px;\n"
-"    padding: 16px 20px 20px 20px;\n"
-"}\n"
-"QGroupBox::title {\n"
-"    subcontrol-origin: margin;\n"
-"    left: 16px;\n"
-"    padding: 0 8px;\n"
-"    background-color: #171a23;\n"
-"    color: #f4f5f8;\n"
-"    font-size: 20px;\n"
-"    font-weight: 600;\n"
-"}")
         self.layoutWidget = QWidget(self.generationPanel)
         self.layoutWidget.setObjectName(u"layoutWidget")
         self.layoutWidget.setGeometry(QRect(10, 192, 414, 51))
@@ -529,16 +307,6 @@ class Ui_MainWindow(object):
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.preset_512x512.sizePolicy().hasHeightForWidth())
         self.preset_512x512.setSizePolicy(sizePolicy1)
-        self.preset_512x512.setStyleSheet(u"QPushButton {\n"
-"    background-color: #1d212c;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 6px;\n"
-"    padding: 4px 10px;\n"
-"    font-size: 12px;\n"
-"    font-weight: 500;\n"
-"    color: #9aa2b8;\n"
-"}\n"
-"QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4f5f8; }")
 
         self.horizontalLayout_3.addWidget(self.preset_512x512)
 
@@ -546,16 +314,6 @@ class Ui_MainWindow(object):
         self.preset_768x768.setObjectName(u"preset_768x768")
         sizePolicy1.setHeightForWidth(self.preset_768x768.sizePolicy().hasHeightForWidth())
         self.preset_768x768.setSizePolicy(sizePolicy1)
-        self.preset_768x768.setStyleSheet(u"QPushButton {\n"
-"    background-color: #1d212c;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 6px;\n"
-"    padding: 4px 10px;\n"
-"    font-size: 12px;\n"
-"    font-weight: 500;\n"
-"    color: #9aa2b8;\n"
-"}\n"
-"QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4f5f8; }")
 
         self.horizontalLayout_3.addWidget(self.preset_768x768)
 
@@ -563,16 +321,6 @@ class Ui_MainWindow(object):
         self.preset_1024x1024.setObjectName(u"preset_1024x1024")
         sizePolicy1.setHeightForWidth(self.preset_1024x1024.sizePolicy().hasHeightForWidth())
         self.preset_1024x1024.setSizePolicy(sizePolicy1)
-        self.preset_1024x1024.setStyleSheet(u"QPushButton {\n"
-"    background-color: #1d212c;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 6px;\n"
-"    padding: 4px 10px;\n"
-"    font-size: 12px;\n"
-"    font-weight: 500;\n"
-"    color: #9aa2b8;\n"
-"}\n"
-"QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4f5f8; }")
 
         self.horizontalLayout_3.addWidget(self.preset_1024x1024)
 
@@ -580,16 +328,6 @@ class Ui_MainWindow(object):
         self.preset_832x1216.setObjectName(u"preset_832x1216")
         sizePolicy1.setHeightForWidth(self.preset_832x1216.sizePolicy().hasHeightForWidth())
         self.preset_832x1216.setSizePolicy(sizePolicy1)
-        self.preset_832x1216.setStyleSheet(u"QPushButton {\n"
-"    background-color: #1d212c;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 6px;\n"
-"    padding: 4px 10px;\n"
-"    font-size: 12px;\n"
-"    font-weight: 500;\n"
-"    color: #9aa2b8;\n"
-"}\n"
-"QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4f5f8; }")
 
         self.horizontalLayout_3.addWidget(self.preset_832x1216)
 
@@ -600,16 +338,6 @@ class Ui_MainWindow(object):
         sizePolicy2.setVerticalStretch(0)
         sizePolicy2.setHeightForWidth(self.preset_1216x832.sizePolicy().hasHeightForWidth())
         self.preset_1216x832.setSizePolicy(sizePolicy2)
-        self.preset_1216x832.setStyleSheet(u"QPushButton {\n"
-"    background-color: #1d212c;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 6px;\n"
-"    padding: 4px 10px;\n"
-"    font-size: 12px;\n"
-"    font-weight: 500;\n"
-"    color: #9aa2b8;\n"
-"}\n"
-"QPushButton:hover { background-color: #221e3d; border-color: #7c6cff; color: #f4f5f8; }")
 
         self.horizontalLayout_3.addWidget(self.preset_1216x832)
 
@@ -624,8 +352,6 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.widthLabel = QLabel(self.layoutWidget1)
         self.widthLabel.setObjectName(u"widthLabel")
-        self.widthLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.widthLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_2.addWidget(self.widthLabel)
@@ -638,34 +364,6 @@ class Ui_MainWindow(object):
         sizePolicy3.setHeightForWidth(self.widthSpinBox.sizePolicy().hasHeightForWidth())
         self.widthSpinBox.setSizePolicy(sizePolicy3)
         self.widthSpinBox.setMaximumSize(QSize(71, 40))
-        self.widthSpinBox.setStyleSheet(u"QSpinBox, QDoubleSpinBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px 10px;\n"
-"    min-height: 20px;\n"
-"}\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button,\n"
-"QSpinBox::down-button, QDoubleSpinBox::down-button {\n"
-"    width: 16px;\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-bottom: 5px solid #9aa2b8;\n"
-"}\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-top: 5px solid #9aa2b8;\n"
-"}")
         self.widthSpinBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.widthSpinBox.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.widthSpinBox.setMinimum(64)
@@ -681,8 +379,6 @@ class Ui_MainWindow(object):
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.heightLabel = QLabel(self.layoutWidget1)
         self.heightLabel.setObjectName(u"heightLabel")
-        self.heightLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.heightLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_4.addWidget(self.heightLabel)
@@ -692,34 +388,6 @@ class Ui_MainWindow(object):
         sizePolicy3.setHeightForWidth(self.heightSpinBox.sizePolicy().hasHeightForWidth())
         self.heightSpinBox.setSizePolicy(sizePolicy3)
         self.heightSpinBox.setMaximumSize(QSize(71, 40))
-        self.heightSpinBox.setStyleSheet(u"QSpinBox, QDoubleSpinBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px 10px;\n"
-"    min-height: 20px;\n"
-"}\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button,\n"
-"QSpinBox::down-button, QDoubleSpinBox::down-button {\n"
-"    width: 16px;\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-bottom: 5px solid #9aa2b8;\n"
-"}\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-top: 5px solid #9aa2b8;\n"
-"}")
         self.heightSpinBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.heightSpinBox.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.heightSpinBox.setMinimum(64)
@@ -735,8 +403,6 @@ class Ui_MainWindow(object):
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
         self.stepsLabel = QLabel(self.layoutWidget1)
         self.stepsLabel.setObjectName(u"stepsLabel")
-        self.stepsLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.stepsLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_5.addWidget(self.stepsLabel)
@@ -746,34 +412,6 @@ class Ui_MainWindow(object):
         sizePolicy3.setHeightForWidth(self.stepsSpinBox.sizePolicy().hasHeightForWidth())
         self.stepsSpinBox.setSizePolicy(sizePolicy3)
         self.stepsSpinBox.setMaximumSize(QSize(51, 40))
-        self.stepsSpinBox.setStyleSheet(u"QSpinBox, QDoubleSpinBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px 10px;\n"
-"    min-height: 20px;\n"
-"}\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button,\n"
-"QSpinBox::down-button, QDoubleSpinBox::down-button {\n"
-"    width: 16px;\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-bottom: 5px solid #9aa2b8;\n"
-"}\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-top: 5px solid #9aa2b8;\n"
-"}")
         self.stepsSpinBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.stepsSpinBox.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.stepsSpinBox.setMinimum(1)
@@ -789,8 +427,6 @@ class Ui_MainWindow(object):
         self.verticalLayout_6.setObjectName(u"verticalLayout_6")
         self.cfgLabel = QLabel(self.layoutWidget1)
         self.cfgLabel.setObjectName(u"cfgLabel")
-        self.cfgLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.cfgLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_6.addWidget(self.cfgLabel)
@@ -800,34 +436,6 @@ class Ui_MainWindow(object):
         sizePolicy3.setHeightForWidth(self.cfgSpinBox.sizePolicy().hasHeightForWidth())
         self.cfgSpinBox.setSizePolicy(sizePolicy3)
         self.cfgSpinBox.setMaximumSize(QSize(51, 40))
-        self.cfgSpinBox.setStyleSheet(u"QSpinBox, QDoubleSpinBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px 10px;\n"
-"    min-height: 20px;\n"
-"}\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button,\n"
-"QSpinBox::down-button, QDoubleSpinBox::down-button {\n"
-"    width: 16px;\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-bottom: 5px solid #9aa2b8;\n"
-"}\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-top: 5px solid #9aa2b8;\n"
-"}")
         self.cfgSpinBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.cfgSpinBox.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.cfgSpinBox.setMinimum(0.000000000000000)
@@ -843,8 +451,6 @@ class Ui_MainWindow(object):
         self.verticalLayout_7.setObjectName(u"verticalLayout_7")
         self.seedLabel = QLabel(self.layoutWidget1)
         self.seedLabel.setObjectName(u"seedLabel")
-        self.seedLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.seedLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_7.addWidget(self.seedLabel)
@@ -854,34 +460,6 @@ class Ui_MainWindow(object):
         sizePolicy3.setHeightForWidth(self.seedSpinBox.sizePolicy().hasHeightForWidth())
         self.seedSpinBox.setSizePolicy(sizePolicy3)
         self.seedSpinBox.setMaximumSize(QSize(81, 40))
-        self.seedSpinBox.setStyleSheet(u"QSpinBox, QDoubleSpinBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px 10px;\n"
-"    min-height: 20px;\n"
-"}\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button,\n"
-"QSpinBox::down-button, QDoubleSpinBox::down-button {\n"
-"    width: 16px;\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-bottom: 5px solid #9aa2b8;\n"
-"}\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-top: 5px solid #9aa2b8;\n"
-"}")
         self.seedSpinBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.seedSpinBox.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.seedSpinBox.setMinimum(-1)
@@ -897,8 +475,6 @@ class Ui_MainWindow(object):
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
         self.denoiseLabel = QLabel(self.layoutWidget1)
         self.denoiseLabel.setObjectName(u"denoiseLabel")
-        self.denoiseLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.denoiseLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_8.addWidget(self.denoiseLabel)
@@ -908,34 +484,6 @@ class Ui_MainWindow(object):
         sizePolicy3.setHeightForWidth(self.denoiseSpinBox.sizePolicy().hasHeightForWidth())
         self.denoiseSpinBox.setSizePolicy(sizePolicy3)
         self.denoiseSpinBox.setMaximumSize(QSize(51, 40))
-        self.denoiseSpinBox.setStyleSheet(u"QSpinBox, QDoubleSpinBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px 10px;\n"
-"    min-height: 20px;\n"
-"}\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button,\n"
-"QSpinBox::down-button, QDoubleSpinBox::down-button {\n"
-"    width: 16px;\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-bottom: 5px solid #9aa2b8;\n"
-"}\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-top: 5px solid #9aa2b8;\n"
-"}")
         self.denoiseSpinBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.denoiseSpinBox.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.denoiseSpinBox.setMinimum(0.000000000000000)
@@ -958,8 +506,6 @@ class Ui_MainWindow(object):
         self.verticalLayout_9.setObjectName(u"verticalLayout_9")
         self.samplerLabel = QLabel(self.layoutWidget2)
         self.samplerLabel.setObjectName(u"samplerLabel")
-        self.samplerLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.samplerLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_9.addWidget(self.samplerLabel)
@@ -972,39 +518,6 @@ class Ui_MainWindow(object):
         sizePolicy4.setHeightForWidth(self.samplerComboBox.sizePolicy().hasHeightForWidth())
         self.samplerComboBox.setSizePolicy(sizePolicy4)
         self.samplerComboBox.setMaximumSize(QSize(16777215, 16777215))
-        self.samplerComboBox.setStyleSheet(u"QComboBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 8px 14px;\n"
-"    min-height: 24px;\n"
-"}\n"
-"QComboBox:hover { border-color: #3d4356; }\n"
-"QComboBox:focus { border-color: #7c6cff; }\n"
-"QComboBox::drop-down { border: none; width: 30px; background: transparent; }\n"
-"QComboBox::down-arrow {\n"
-"    image: none;\n"
-"    width: 0;\n"
-"    height: 0;\n"
-"    border-left: 6px solid transparent;\n"
-"    border-right: 6px solid transparent;\n"
-"    border-top: 6px solid #9aa2b8;\n"
-"    margin: 0px;\n"
-"}\n"
-"QComboBox QAbstractItemView {\n"
-"    background-color: #1d212c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #3d4356;\n"
-"    border-radius: 10px;\n"
-"    padding: 4px;\n"
-"    outline: none;\n"
-"    selection-background-color: #2a2440;\n"
-"    selection-color: #cdc4ff;\n"
-"}\n"
-"QComboBox QAbstractItemView::item { padding: 6px 8px; border-radius: 6px; }\n"
-"QComboBox QAbstractItemView::item:hover { ba"
-                        "ckground-color: #262b3a; }")
 
         self.verticalLayout_9.addWidget(self.samplerComboBox)
 
@@ -1015,8 +528,6 @@ class Ui_MainWindow(object):
         self.verticalLayout_10.setObjectName(u"verticalLayout_10")
         self.schedulerLabel = QLabel(self.layoutWidget2)
         self.schedulerLabel.setObjectName(u"schedulerLabel")
-        self.schedulerLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.schedulerLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_10.addWidget(self.schedulerLabel)
@@ -1026,39 +537,6 @@ class Ui_MainWindow(object):
         sizePolicy4.setHeightForWidth(self.schedulerComboBox.sizePolicy().hasHeightForWidth())
         self.schedulerComboBox.setSizePolicy(sizePolicy4)
         self.schedulerComboBox.setMaximumSize(QSize(16777215, 16777215))
-        self.schedulerComboBox.setStyleSheet(u"QComboBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 8px 14px;\n"
-"    min-height: 24px;\n"
-"}\n"
-"QComboBox:hover { border-color: #3d4356; }\n"
-"QComboBox:focus { border-color: #7c6cff; }\n"
-"QComboBox::drop-down { border: none; width: 30px; background: transparent; }\n"
-"QComboBox::down-arrow {\n"
-"    image: none;\n"
-"    width: 0;\n"
-"    height: 0;\n"
-"    border-left: 6px solid transparent;\n"
-"    border-right: 6px solid transparent;\n"
-"    border-top: 6px solid #9aa2b8;\n"
-"    margin: 0px;\n"
-"}\n"
-"QComboBox QAbstractItemView {\n"
-"    background-color: #1d212c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #3d4356;\n"
-"    border-radius: 10px;\n"
-"    padding: 4px;\n"
-"    outline: none;\n"
-"    selection-background-color: #2a2440;\n"
-"    selection-color: #cdc4ff;\n"
-"}\n"
-"QComboBox QAbstractItemView::item { padding: 6px 8px; border-radius: 6px; }\n"
-"QComboBox QAbstractItemView::item:hover { ba"
-                        "ckground-color: #262b3a; }")
 
         self.verticalLayout_10.addWidget(self.schedulerComboBox)
 
@@ -1070,22 +548,6 @@ class Ui_MainWindow(object):
 
         self.executionPanel = QGroupBox(self.comfyTab)
         self.executionPanel.setObjectName(u"executionPanel")
-        self.executionPanel.setStyleSheet(u"QGroupBox {\n"
-"    background-color: #171a23;\n"
-"    border: 1px solid #262b3a;\n"
-"    border-radius: 16px;\n"
-"    margin-top: 8px;\n"
-"    padding: 16px 20px 20px 20px;\n"
-"}\n"
-"QGroupBox::title {\n"
-"    subcontrol-origin: margin;\n"
-"    left: 16px;\n"
-"    padding: 0 8px;\n"
-"    background-color: #171a23;\n"
-"    color: #f4f5f8;\n"
-"    font-size: 20px;\n"
-"    font-weight: 600;\n"
-"}")
         self.executionLayout = QVBoxLayout(self.executionPanel)
         self.executionLayout.setSpacing(0)
         self.executionLayout.setObjectName(u"executionLayout")
@@ -1094,9 +556,6 @@ class Ui_MainWindow(object):
         self.progressStatusLayout.setObjectName(u"progressStatusLayout")
         self.progressStatusLabel = QLabel(self.executionPanel)
         self.progressStatusLabel.setObjectName(u"progressStatusLabel")
-        self.progressStatusLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #9aa2b8;\n"
-"font-size: 12px;")
 
         self.progressStatusLayout.addWidget(self.progressStatusLabel)
 
@@ -1106,9 +565,6 @@ class Ui_MainWindow(object):
 
         self.elapsedLabel = QLabel(self.executionPanel)
         self.elapsedLabel.setObjectName(u"elapsedLabel")
-        self.elapsedLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #9aa2b8;\n"
-"font-size: 12px;")
         self.elapsedLabel.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
 
         self.progressStatusLayout.addWidget(self.elapsedLabel)
@@ -1125,16 +581,6 @@ class Ui_MainWindow(object):
         sizePolicy5.setVerticalStretch(0)
         sizePolicy5.setHeightForWidth(self.progressBar.sizePolicy().hasHeightForWidth())
         self.progressBar.setSizePolicy(sizePolicy5)
-        self.progressBar.setStyleSheet(u"QProgressBar {\n"
-"    background-color: #262b3a;\n"
-"    border: none;\n"
-"    border-radius: 10px;\n"
-"    height: 12px;\n"
-"    text-align: center;\n"
-"    color: #e8eaf0;\n"
-"}\n"
-"QProgressBar::chunk { background-color: #7c6cff; border-radius: 10px; }\n"
-"QProgressBar[value=\"100\"]::chunk { background-color: #22c55e; }")
         self.progressBar.setMinimum(0)
         self.progressBar.setMaximum(100)
         self.progressBar.setValue(0)
@@ -1144,10 +590,6 @@ class Ui_MainWindow(object):
 
         self.progressPercentLabel = QLabel(self.executionPanel)
         self.progressPercentLabel.setObjectName(u"progressPercentLabel")
-        self.progressPercentLabel.setStyleSheet(u"background-color: transparent;\n"
-"font-size: 22px;\n"
-"font-weight: 700;\n"
-"color: #f4f5f8;")
         self.progressPercentLabel.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
 
         self.progressBarLayout.addWidget(self.progressPercentLabel)
@@ -1164,18 +606,6 @@ class Ui_MainWindow(object):
         sizePolicy6.setVerticalStretch(0)
         sizePolicy6.setHeightForWidth(self.generateButton.sizePolicy().hasHeightForWidth())
         self.generateButton.setSizePolicy(sizePolicy6)
-        self.generateButton.setStyleSheet(u"QPushButton {\n"
-"    background-color: #7c6cff;\n"
-"    color: #ffffff;\n"
-"    border: none;\n"
-"    border-radius: 10px;\n"
-"    padding: 12px 24px;\n"
-"    font-size: 15px;\n"
-"    font-weight: 600;\n"
-"}\n"
-"QPushButton:hover { background-color: #6a58f5; }\n"
-"QPushButton:pressed { background-color: #5847d8; }\n"
-"QPushButton:disabled { background-color: #322b5c; color: #8a83b8; }")
         icon1 = QIcon()
         icon1.addFile(u":/newPrefix1/play.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.generateButton.setIcon(icon1)
@@ -1189,17 +619,6 @@ class Ui_MainWindow(object):
         self.stopButton.setEnabled(False)
         sizePolicy1.setHeightForWidth(self.stopButton.sizePolicy().hasHeightForWidth())
         self.stopButton.setSizePolicy(sizePolicy1)
-        self.stopButton.setStyleSheet(u"QPushButton {\n"
-"    background-color: #1d212c;\n"
-"    color: #fb7185;\n"
-"    border: 1px solid #4a2530;\n"
-"    border-radius: 8px;\n"
-"    padding: 6px 16px;\n"
-"    font-size: 13px;\n"
-"    font-weight: 500;\n"
-"}\n"
-"QPushButton:hover { background-color: #2a151a; border-color: #f0455c; }\n"
-"QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: #202430; }")
         icon2 = QIcon()
         icon2.addFile(u":/newPrefix1/stop-svgrepo-com.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.stopButton.setIcon(icon2)
@@ -1217,30 +636,9 @@ class Ui_MainWindow(object):
         self.facedetailerGroupBox = QGroupBox(self.comfyTab)
         self.facedetailerGroupBox.setObjectName(u"facedetailerGroupBox")
         self.facedetailerGroupBox.setMinimumSize(QSize(751, 181))
-        self.facedetailerGroupBox.setStyleSheet(u"QGroupBox {\n"
-"    background-color: #1d212c;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 16px;\n"
-"    margin-top: 8px;\n"
-"    padding: 18px 20px 20px 20px;\n"
-"}\n"
-"QGroupBox::title {\n"
-"    subcontrol-origin: margin;\n"
-"    left: 16px;\n"
-"    padding: 0 8px;\n"
-"    background-color: #1d212c;\n"
-"    color: #f4f5f8;\n"
-"    font-size: 20px;\n"
-"    font-weight: 600;\n"
-"}")
         self.facedetailerCheckBox = QCheckBox(self.facedetailerGroupBox)
         self.facedetailerCheckBox.setObjectName(u"facedetailerCheckBox")
         self.facedetailerCheckBox.setGeometry(QRect(190, 0, 31, 26))
-        self.facedetailerCheckBox.setStyleSheet(u"QCheckBox::indicator { width: 22px; height: 22px; border-radius: 5px; }\n"
-"QCheckBox::indicator:unchecked { background-color: #1d212c; border: 2px solid #ffffff; image: none; }\n"
-"QCheckBox::indicator:unchecked:hover { background-color: #262b3a; border-color: #565d72; }\n"
-"QCheckBox::indicator:checked { background-color: #7c6cff; border: 2px solid #6a58f5; image: url(assets/icons/facedetailer_check.svg); }\n"
-"QCheckBox::indicator:checked:hover { background-color: #8f81ff; border-color: #6a58f5; }")
         self.facedetailerCheckBox.setIconSize(QSize(33, 33))
         self.layoutWidget3 = QWidget(self.facedetailerGroupBox)
         self.layoutWidget3.setObjectName(u"layoutWidget3")
@@ -1254,42 +652,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_11.setObjectName(u"verticalLayout_11")
         self.facedetailerDenoiseLabel = QLabel(self.layoutWidget3)
         self.facedetailerDenoiseLabel.setObjectName(u"facedetailerDenoiseLabel")
-        self.facedetailerDenoiseLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.facedetailerDenoiseLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_11.addWidget(self.facedetailerDenoiseLabel)
 
         self.facedetailerDenoiseSpinBox = QDoubleSpinBox(self.layoutWidget3)
         self.facedetailerDenoiseSpinBox.setObjectName(u"facedetailerDenoiseSpinBox")
-        self.facedetailerDenoiseSpinBox.setStyleSheet(u"QSpinBox, QDoubleSpinBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px 10px;\n"
-"    min-height: 20px;\n"
-"}\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button,\n"
-"QSpinBox::down-button, QDoubleSpinBox::down-button {\n"
-"    width: 16px;\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-bottom: 5px solid #9aa2b8;\n"
-"}\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-top: 5px solid #9aa2b8;\n"
-"}")
         self.facedetailerDenoiseSpinBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.facedetailerDenoiseSpinBox.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.facedetailerDenoiseSpinBox.setMinimum(0.000000000000000)
@@ -1306,42 +674,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_12.setObjectName(u"verticalLayout_12")
         self.facedetailerStepsLabel = QLabel(self.layoutWidget3)
         self.facedetailerStepsLabel.setObjectName(u"facedetailerStepsLabel")
-        self.facedetailerStepsLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.facedetailerStepsLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_12.addWidget(self.facedetailerStepsLabel)
 
         self.facedetailerStepsSpinBox = QSpinBox(self.layoutWidget3)
         self.facedetailerStepsSpinBox.setObjectName(u"facedetailerStepsSpinBox")
-        self.facedetailerStepsSpinBox.setStyleSheet(u"QSpinBox, QDoubleSpinBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px 10px;\n"
-"    min-height: 20px;\n"
-"}\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button,\n"
-"QSpinBox::down-button, QDoubleSpinBox::down-button {\n"
-"    width: 16px;\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-bottom: 5px solid #9aa2b8;\n"
-"}\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-top: 5px solid #9aa2b8;\n"
-"}")
         self.facedetailerStepsSpinBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.facedetailerStepsSpinBox.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.facedetailerStepsSpinBox.setMinimum(1)
@@ -1357,42 +695,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_13.setObjectName(u"verticalLayout_13")
         self.facedetailerCfgLabel = QLabel(self.layoutWidget3)
         self.facedetailerCfgLabel.setObjectName(u"facedetailerCfgLabel")
-        self.facedetailerCfgLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.facedetailerCfgLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_13.addWidget(self.facedetailerCfgLabel)
 
         self.facedetailerCfgSpinBox = QDoubleSpinBox(self.layoutWidget3)
         self.facedetailerCfgSpinBox.setObjectName(u"facedetailerCfgSpinBox")
-        self.facedetailerCfgSpinBox.setStyleSheet(u"QSpinBox, QDoubleSpinBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px 10px;\n"
-"    min-height: 20px;\n"
-"}\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button,\n"
-"QSpinBox::down-button, QDoubleSpinBox::down-button {\n"
-"    width: 16px;\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-bottom: 5px solid #9aa2b8;\n"
-"}\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-top: 5px solid #9aa2b8;\n"
-"}")
         self.facedetailerCfgSpinBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.facedetailerCfgSpinBox.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.facedetailerCfgSpinBox.setMinimum(0.000000000000000)
@@ -1409,42 +717,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_14.setObjectName(u"verticalLayout_14")
         self.facedetailerGuideSizeLabel = QLabel(self.layoutWidget3)
         self.facedetailerGuideSizeLabel.setObjectName(u"facedetailerGuideSizeLabel")
-        self.facedetailerGuideSizeLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.facedetailerGuideSizeLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_14.addWidget(self.facedetailerGuideSizeLabel)
 
         self.facedetailerGuideSizeSpinBox = QSpinBox(self.layoutWidget3)
         self.facedetailerGuideSizeSpinBox.setObjectName(u"facedetailerGuideSizeSpinBox")
-        self.facedetailerGuideSizeSpinBox.setStyleSheet(u"QSpinBox, QDoubleSpinBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px 10px;\n"
-"    min-height: 20px;\n"
-"}\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button,\n"
-"QSpinBox::down-button, QDoubleSpinBox::down-button {\n"
-"    width: 16px;\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-bottom: 5px solid #9aa2b8;\n"
-"}\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-top: 5px solid #9aa2b8;\n"
-"}")
         self.facedetailerGuideSizeSpinBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.facedetailerGuideSizeSpinBox.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.facedetailerGuideSizeSpinBox.setMinimum(64)
@@ -1460,42 +738,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_15.setObjectName(u"verticalLayout_15")
         self.facedetailerMaxSizeLabel = QLabel(self.layoutWidget3)
         self.facedetailerMaxSizeLabel.setObjectName(u"facedetailerMaxSizeLabel")
-        self.facedetailerMaxSizeLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.facedetailerMaxSizeLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_15.addWidget(self.facedetailerMaxSizeLabel)
 
         self.facedetailerMaxSizeSpinBox = QSpinBox(self.layoutWidget3)
         self.facedetailerMaxSizeSpinBox.setObjectName(u"facedetailerMaxSizeSpinBox")
-        self.facedetailerMaxSizeSpinBox.setStyleSheet(u"QSpinBox, QDoubleSpinBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px 10px;\n"
-"    min-height: 20px;\n"
-"}\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button,\n"
-"QSpinBox::down-button, QDoubleSpinBox::down-button {\n"
-"    width: 16px;\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-bottom: 5px solid #9aa2b8;\n"
-"}\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-top: 5px solid #9aa2b8;\n"
-"}")
         self.facedetailerMaxSizeSpinBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.facedetailerMaxSizeSpinBox.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.facedetailerMaxSizeSpinBox.setMinimum(128)
@@ -1511,42 +759,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_16.setObjectName(u"verticalLayout_16")
         self.facedetailerFeatherLabel = QLabel(self.layoutWidget3)
         self.facedetailerFeatherLabel.setObjectName(u"facedetailerFeatherLabel")
-        self.facedetailerFeatherLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.facedetailerFeatherLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_16.addWidget(self.facedetailerFeatherLabel)
 
         self.facedetailerFeatherSpinBox = QSpinBox(self.layoutWidget3)
         self.facedetailerFeatherSpinBox.setObjectName(u"facedetailerFeatherSpinBox")
-        self.facedetailerFeatherSpinBox.setStyleSheet(u"QSpinBox, QDoubleSpinBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px 10px;\n"
-"    min-height: 20px;\n"
-"}\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button,\n"
-"QSpinBox::down-button, QDoubleSpinBox::down-button {\n"
-"    width: 16px;\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-bottom: 5px solid #9aa2b8;\n"
-"}\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-top: 5px solid #9aa2b8;\n"
-"}")
         self.facedetailerFeatherSpinBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.facedetailerFeatherSpinBox.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.facedetailerFeatherSpinBox.setMinimum(0)
@@ -1562,42 +780,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_17.setObjectName(u"verticalLayout_17")
         self.facedetailerBboxThresholdLabel = QLabel(self.layoutWidget3)
         self.facedetailerBboxThresholdLabel.setObjectName(u"facedetailerBboxThresholdLabel")
-        self.facedetailerBboxThresholdLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.facedetailerBboxThresholdLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_17.addWidget(self.facedetailerBboxThresholdLabel)
 
         self.facedetailerBboxThresholdSpinBox = QDoubleSpinBox(self.layoutWidget3)
         self.facedetailerBboxThresholdSpinBox.setObjectName(u"facedetailerBboxThresholdSpinBox")
-        self.facedetailerBboxThresholdSpinBox.setStyleSheet(u"QSpinBox, QDoubleSpinBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px 10px;\n"
-"    min-height: 20px;\n"
-"}\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button,\n"
-"QSpinBox::down-button, QDoubleSpinBox::down-button {\n"
-"    width: 16px;\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-bottom: 5px solid #9aa2b8;\n"
-"}\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-top: 5px solid #9aa2b8;\n"
-"}")
         self.facedetailerBboxThresholdSpinBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.facedetailerBboxThresholdSpinBox.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.facedetailerBboxThresholdSpinBox.setMinimum(0.000000000000000)
@@ -1614,42 +802,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_18.setObjectName(u"verticalLayout_18")
         self.facedetailerBboxDilationLabel = QLabel(self.layoutWidget3)
         self.facedetailerBboxDilationLabel.setObjectName(u"facedetailerBboxDilationLabel")
-        self.facedetailerBboxDilationLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.facedetailerBboxDilationLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_18.addWidget(self.facedetailerBboxDilationLabel)
 
         self.facedetailerBboxDilationSpinBox = QSpinBox(self.layoutWidget3)
         self.facedetailerBboxDilationSpinBox.setObjectName(u"facedetailerBboxDilationSpinBox")
-        self.facedetailerBboxDilationSpinBox.setStyleSheet(u"QSpinBox, QDoubleSpinBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px 10px;\n"
-"    min-height: 20px;\n"
-"}\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button,\n"
-"QSpinBox::down-button, QDoubleSpinBox::down-button {\n"
-"    width: 16px;\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-bottom: 5px solid #9aa2b8;\n"
-"}\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-top: 5px solid #9aa2b8;\n"
-"}")
         self.facedetailerBboxDilationSpinBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.facedetailerBboxDilationSpinBox.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.facedetailerBboxDilationSpinBox.setMinimum(0)
@@ -1665,42 +823,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_19.setObjectName(u"verticalLayout_19")
         self.facedetailerBboxCropFactorLabel = QLabel(self.layoutWidget3)
         self.facedetailerBboxCropFactorLabel.setObjectName(u"facedetailerBboxCropFactorLabel")
-        self.facedetailerBboxCropFactorLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.facedetailerBboxCropFactorLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_19.addWidget(self.facedetailerBboxCropFactorLabel)
 
         self.facedetailerBboxCropFactorSpinBox = QDoubleSpinBox(self.layoutWidget3)
         self.facedetailerBboxCropFactorSpinBox.setObjectName(u"facedetailerBboxCropFactorSpinBox")
-        self.facedetailerBboxCropFactorSpinBox.setStyleSheet(u"QSpinBox, QDoubleSpinBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px 10px;\n"
-"    min-height: 20px;\n"
-"}\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button,\n"
-"QSpinBox::down-button, QDoubleSpinBox::down-button {\n"
-"    width: 16px;\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-bottom: 5px solid #9aa2b8;\n"
-"}\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-top: 5px solid #9aa2b8;\n"
-"}")
         self.facedetailerBboxCropFactorSpinBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.facedetailerBboxCropFactorSpinBox.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.facedetailerBboxCropFactorSpinBox.setMinimum(1.000000000000000)
@@ -1722,8 +850,6 @@ class Ui_MainWindow(object):
         self.verticalLayout_20.setObjectName(u"verticalLayout_20")
         self.facedetailerSamDetectionHintLabel = QLabel(self.layoutWidget3)
         self.facedetailerSamDetectionHintLabel.setObjectName(u"facedetailerSamDetectionHintLabel")
-        self.facedetailerSamDetectionHintLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.facedetailerSamDetectionHintLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_20.addWidget(self.facedetailerSamDetectionHintLabel)
@@ -1731,39 +857,6 @@ class Ui_MainWindow(object):
         self.facedetailerSamDetectionHintComboBox = QComboBox(self.layoutWidget3)
         self.facedetailerSamDetectionHintComboBox.setObjectName(u"facedetailerSamDetectionHintComboBox")
         self.facedetailerSamDetectionHintComboBox.setMinimumSize(QSize(80, 42))
-        self.facedetailerSamDetectionHintComboBox.setStyleSheet(u"QComboBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 8px 14px;\n"
-"    min-height: 24px;\n"
-"}\n"
-"QComboBox:hover { border-color: #3d4356; }\n"
-"QComboBox:focus { border-color: #7c6cff; }\n"
-"QComboBox::drop-down { border: none; width: 30px; background: transparent; }\n"
-"QComboBox::down-arrow {\n"
-"    image: none;\n"
-"    width: 0;\n"
-"    height: 0;\n"
-"    border-left: 6px solid transparent;\n"
-"    border-right: 6px solid transparent;\n"
-"    border-top: 6px solid #9aa2b8;\n"
-"    margin: 0px;\n"
-"}\n"
-"QComboBox QAbstractItemView {\n"
-"    background-color: #1d212c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #3d4356;\n"
-"    border-radius: 10px;\n"
-"    padding: 4px;\n"
-"    outline: none;\n"
-"    selection-background-color: #2a2440;\n"
-"    selection-color: #cdc4ff;\n"
-"}\n"
-"QComboBox QAbstractItemView::item { padding: 6px 8px; border-radius: 6px; }\n"
-"QComboBox QAbstractItemView::item:hover { ba"
-                        "ckground-color: #262b3a; }")
 
         self.verticalLayout_20.addWidget(self.facedetailerSamDetectionHintComboBox)
 
@@ -1774,42 +867,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_21.setObjectName(u"verticalLayout_21")
         self.facedetailerSamDilationLabel = QLabel(self.layoutWidget3)
         self.facedetailerSamDilationLabel.setObjectName(u"facedetailerSamDilationLabel")
-        self.facedetailerSamDilationLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.facedetailerSamDilationLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_21.addWidget(self.facedetailerSamDilationLabel)
 
         self.facedetailerSamDilationSpinBox = QSpinBox(self.layoutWidget3)
         self.facedetailerSamDilationSpinBox.setObjectName(u"facedetailerSamDilationSpinBox")
-        self.facedetailerSamDilationSpinBox.setStyleSheet(u"QSpinBox, QDoubleSpinBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px 10px;\n"
-"    min-height: 20px;\n"
-"}\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button,\n"
-"QSpinBox::down-button, QDoubleSpinBox::down-button {\n"
-"    width: 16px;\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-bottom: 5px solid #9aa2b8;\n"
-"}\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-top: 5px solid #9aa2b8;\n"
-"}")
         self.facedetailerSamDilationSpinBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.facedetailerSamDilationSpinBox.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.facedetailerSamDilationSpinBox.setMinimum(0)
@@ -1825,42 +888,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_22.setObjectName(u"verticalLayout_22")
         self.facedetailerSamThresholdLabel = QLabel(self.layoutWidget3)
         self.facedetailerSamThresholdLabel.setObjectName(u"facedetailerSamThresholdLabel")
-        self.facedetailerSamThresholdLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.facedetailerSamThresholdLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_22.addWidget(self.facedetailerSamThresholdLabel)
 
         self.facedetailerSamThresholdSpinBox = QDoubleSpinBox(self.layoutWidget3)
         self.facedetailerSamThresholdSpinBox.setObjectName(u"facedetailerSamThresholdSpinBox")
-        self.facedetailerSamThresholdSpinBox.setStyleSheet(u"QSpinBox, QDoubleSpinBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px 10px;\n"
-"    min-height: 20px;\n"
-"}\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button,\n"
-"QSpinBox::down-button, QDoubleSpinBox::down-button {\n"
-"    width: 16px;\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-bottom: 5px solid #9aa2b8;\n"
-"}\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-top: 5px solid #9aa2b8;\n"
-"}")
         self.facedetailerSamThresholdSpinBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.facedetailerSamThresholdSpinBox.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.facedetailerSamThresholdSpinBox.setMinimum(0.000000000000000)
@@ -1877,42 +910,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_23.setObjectName(u"verticalLayout_23")
         self.facedetailerSamBboxExpansionLabel = QLabel(self.layoutWidget3)
         self.facedetailerSamBboxExpansionLabel.setObjectName(u"facedetailerSamBboxExpansionLabel")
-        self.facedetailerSamBboxExpansionLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.facedetailerSamBboxExpansionLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_23.addWidget(self.facedetailerSamBboxExpansionLabel)
 
         self.facedetailerSamBboxExpansionSpinBox = QSpinBox(self.layoutWidget3)
         self.facedetailerSamBboxExpansionSpinBox.setObjectName(u"facedetailerSamBboxExpansionSpinBox")
-        self.facedetailerSamBboxExpansionSpinBox.setStyleSheet(u"QSpinBox, QDoubleSpinBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px 10px;\n"
-"    min-height: 20px;\n"
-"}\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button,\n"
-"QSpinBox::down-button, QDoubleSpinBox::down-button {\n"
-"    width: 16px;\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-bottom: 5px solid #9aa2b8;\n"
-"}\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-top: 5px solid #9aa2b8;\n"
-"}")
         self.facedetailerSamBboxExpansionSpinBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.facedetailerSamBboxExpansionSpinBox.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.facedetailerSamBboxExpansionSpinBox.setMinimum(0)
@@ -1928,42 +931,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_24.setObjectName(u"verticalLayout_24")
         self.facedetailerSamMaskHintThresholdLabel = QLabel(self.layoutWidget3)
         self.facedetailerSamMaskHintThresholdLabel.setObjectName(u"facedetailerSamMaskHintThresholdLabel")
-        self.facedetailerSamMaskHintThresholdLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.facedetailerSamMaskHintThresholdLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_24.addWidget(self.facedetailerSamMaskHintThresholdLabel)
 
         self.facedetailerSamMaskHintThresholdSpinBox = QDoubleSpinBox(self.layoutWidget3)
         self.facedetailerSamMaskHintThresholdSpinBox.setObjectName(u"facedetailerSamMaskHintThresholdSpinBox")
-        self.facedetailerSamMaskHintThresholdSpinBox.setStyleSheet(u"QSpinBox, QDoubleSpinBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px 10px;\n"
-"    min-height: 20px;\n"
-"}\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button,\n"
-"QSpinBox::down-button, QDoubleSpinBox::down-button {\n"
-"    width: 16px;\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-bottom: 5px solid #9aa2b8;\n"
-"}\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-top: 5px solid #9aa2b8;\n"
-"}")
         self.facedetailerSamMaskHintThresholdSpinBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.facedetailerSamMaskHintThresholdSpinBox.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.facedetailerSamMaskHintThresholdSpinBox.setMinimum(0.000000000000000)
@@ -1980,8 +953,6 @@ class Ui_MainWindow(object):
         self.verticalLayout_25.setObjectName(u"verticalLayout_25")
         self.facedetailerSamMaskHintUseNegativeLabel = QLabel(self.layoutWidget3)
         self.facedetailerSamMaskHintUseNegativeLabel.setObjectName(u"facedetailerSamMaskHintUseNegativeLabel")
-        self.facedetailerSamMaskHintUseNegativeLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.facedetailerSamMaskHintUseNegativeLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_25.addWidget(self.facedetailerSamMaskHintUseNegativeLabel)
@@ -1989,39 +960,6 @@ class Ui_MainWindow(object):
         self.facedetailerSamMaskHintUseNegativeComboBox = QComboBox(self.layoutWidget3)
         self.facedetailerSamMaskHintUseNegativeComboBox.setObjectName(u"facedetailerSamMaskHintUseNegativeComboBox")
         self.facedetailerSamMaskHintUseNegativeComboBox.setMinimumSize(QSize(80, 42))
-        self.facedetailerSamMaskHintUseNegativeComboBox.setStyleSheet(u"QComboBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 8px 14px;\n"
-"    min-height: 24px;\n"
-"}\n"
-"QComboBox:hover { border-color: #3d4356; }\n"
-"QComboBox:focus { border-color: #7c6cff; }\n"
-"QComboBox::drop-down { border: none; width: 30px; background: transparent; }\n"
-"QComboBox::down-arrow {\n"
-"    image: none;\n"
-"    width: 0;\n"
-"    height: 0;\n"
-"    border-left: 6px solid transparent;\n"
-"    border-right: 6px solid transparent;\n"
-"    border-top: 6px solid #9aa2b8;\n"
-"    margin: 0px;\n"
-"}\n"
-"QComboBox QAbstractItemView {\n"
-"    background-color: #1d212c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #3d4356;\n"
-"    border-radius: 10px;\n"
-"    padding: 4px;\n"
-"    outline: none;\n"
-"    selection-background-color: #2a2440;\n"
-"    selection-color: #cdc4ff;\n"
-"}\n"
-"QComboBox QAbstractItemView::item { padding: 6px 8px; border-radius: 6px; }\n"
-"QComboBox QAbstractItemView::item:hover { ba"
-                        "ckground-color: #262b3a; }")
 
         self.verticalLayout_25.addWidget(self.facedetailerSamMaskHintUseNegativeComboBox)
 
@@ -2032,42 +970,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_26.setObjectName(u"verticalLayout_26")
         self.facedetailerCycleLabel = QLabel(self.layoutWidget3)
         self.facedetailerCycleLabel.setObjectName(u"facedetailerCycleLabel")
-        self.facedetailerCycleLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.facedetailerCycleLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_26.addWidget(self.facedetailerCycleLabel)
 
         self.facedetailerCycleSpinBox = QSpinBox(self.layoutWidget3)
         self.facedetailerCycleSpinBox.setObjectName(u"facedetailerCycleSpinBox")
-        self.facedetailerCycleSpinBox.setStyleSheet(u"QSpinBox, QDoubleSpinBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px 10px;\n"
-"    min-height: 20px;\n"
-"}\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button,\n"
-"QSpinBox::down-button, QDoubleSpinBox::down-button {\n"
-"    width: 16px;\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-bottom: 5px solid #9aa2b8;\n"
-"}\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-top: 5px solid #9aa2b8;\n"
-"}")
         self.facedetailerCycleSpinBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.facedetailerCycleSpinBox.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.facedetailerCycleSpinBox.setMinimum(1)
@@ -2083,42 +991,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_27.setObjectName(u"verticalLayout_27")
         self.facedetailerDropSizeLabel = QLabel(self.layoutWidget3)
         self.facedetailerDropSizeLabel.setObjectName(u"facedetailerDropSizeLabel")
-        self.facedetailerDropSizeLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
         self.facedetailerDropSizeLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_27.addWidget(self.facedetailerDropSizeLabel)
 
         self.facedetailerDropSizeSpinBox = QSpinBox(self.layoutWidget3)
         self.facedetailerDropSizeSpinBox.setObjectName(u"facedetailerDropSizeSpinBox")
-        self.facedetailerDropSizeSpinBox.setStyleSheet(u"QSpinBox, QDoubleSpinBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px 10px;\n"
-"    min-height: 20px;\n"
-"}\n"
-"QSpinBox:hover, QDoubleSpinBox:hover { border-color: #3d4356; }\n"
-"QSpinBox:focus, QDoubleSpinBox:focus { border-color: #7c6cff; }\n"
-"QSpinBox::up-button, QDoubleSpinBox::up-button,\n"
-"QSpinBox::down-button, QDoubleSpinBox::down-button {\n"
-"    width: 16px;\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-bottom: 5px solid #9aa2b8;\n"
-"}\n"
-"QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {\n"
-"    image: none; width: 0; height: 0;\n"
-"    border-left: 4px solid transparent;\n"
-"    border-right: 4px solid transparent;\n"
-"    border-top: 5px solid #9aa2b8;\n"
-"}")
         self.facedetailerDropSizeSpinBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.facedetailerDropSizeSpinBox.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.facedetailerDropSizeSpinBox.setMinimum(0)
@@ -2149,139 +1027,37 @@ class Ui_MainWindow(object):
         self.lmgroupBox = QGroupBox(self.lmstudioTab)
         self.lmgroupBox.setObjectName(u"lmgroupBox")
         self.lmgroupBox.setMinimumSize(QSize(351, 201))
-        self.lmgroupBox.setStyleSheet(u"QGroupBox {\n"
-"    background-color: #1d212c;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 16px;\n"
-"    margin-top: 8px;\n"
-"    padding: 18px 20px 20px 20px;\n"
-"}\n"
-"QGroupBox::title {\n"
-"    subcontrol-origin: margin;\n"
-"    left: 16px;\n"
-"    padding: 0 8px;\n"
-"    background-color: #1d212c;\n"
-"    color: #f4f5f8;\n"
-"    font-size: 20px;\n"
-"    font-weight: 600;\n"
-"}")
         self.lmAddressLabel = QLabel(self.lmgroupBox)
         self.lmAddressLabel.setObjectName(u"lmAddressLabel")
         self.lmAddressLabel.setGeometry(QRect(13, 45, 91, 20))
-        self.lmAddressLabel.setStyleSheet(u"background-color: transparent;\n"
-"font-size: 12px;\n"
-"color: #6b7288;\n"
-"font-family: \"Cascadia Code\", \"Consolas\", monospace;\n"
-"    border: none;\n"
-"    background-color: transparent;")
         self.lmUrlEdit = QLineEdit(self.lmgroupBox)
         self.lmUrlEdit.setObjectName(u"lmUrlEdit")
         self.lmUrlEdit.setGeometry(QRect(13, 70, 221, 41))
         sizePolicy.setHeightForWidth(self.lmUrlEdit.sizePolicy().hasHeightForWidth())
         self.lmUrlEdit.setSizePolicy(sizePolicy)
         self.lmUrlEdit.setMinimumSize(QSize(0, 32))
-        self.lmUrlEdit.setStyleSheet(u"QLineEdit {\n"
-"    background-color: #12141c;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 10px 16px;\n"
-"    font-family: \"Cascadia Code\", \"Consolas\", monospace;\n"
-"    font-size: 14px;\n"
-"    color: #cdd2e0;\n"
-"    selection-background-color: #7c6cff;\n"
-"    selection-color: #ffffff;\n"
-"}\n"
-"QLineEdit:hover { border-color: #3d4356; }\n"
-"QLineEdit:focus { border-color: #7c6cff; background-color: #14161f; }")
         self.lmTitleLabel = QLabel(self.lmgroupBox)
         self.lmTitleLabel.setObjectName(u"lmTitleLabel")
         self.lmTitleLabel.setGeometry(QRect(109, 15, 151, 25))
         font2 = QFont()
         font2.setFamilies([u"Cascadia Code"])
         self.lmTitleLabel.setFont(font2)
-        self.lmTitleLabel.setStyleSheet(u"background-color: transparent;\n"
-"font-size: 16px;\n"
-"color: #ffffff;\n"
-"font-family: \"Cascadia Code\", \"Consolas\", monospace;\n"
-"    border: none;\n"
-"    background-color: transparent;")
         self.lmTitleLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.lmStatusLabel = QLabel(self.lmgroupBox)
         self.lmStatusLabel.setObjectName(u"lmStatusLabel")
         self.lmStatusLabel.setGeometry(QRect(230, 40, 121, 31))
-        self.lmStatusLabel.setStyleSheet(u"QLabel {\n"
-"    background-color: transparent;\n"
-"    border: none;\n"
-"    padding: 4px 14px 4px 10px;\n"
-"    font-size: 13px;\n"
-"    font-weight: 500;\n"
-"    color: #e8eaf0;\n"
-"}\n"
-"QLabel[text*=\"\uc5f0\uacb0 \uc131\uacf5\"] { color: #4ade80; }\n"
-"QLabel[text*=\"\uc5f0\uacb0 \uc2e4\ud328\"] { color: #fb7185; }")
         self.lmStatusLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.lmCheckButton = QPushButton(self.lmgroupBox)
         self.lmCheckButton.setObjectName(u"lmCheckButton")
         self.lmCheckButton.setGeometry(QRect(240, 70, 101, 41))
         self.lmCheckButton.setMinimumSize(QSize(80, 32))
-        self.lmCheckButton.setStyleSheet(u"QPushButton {\n"
-"    background-color: #1d212c;\n"
-"    color: #cdd2e0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 8px;\n"
-"    padding: 6px 16px;\n"
-"    font-size: 13px;\n"
-"    font-weight: 500;\n"
-"}\n"
-"QPushButton:hover { background-color: #262b3a; border-color: #7c6cff; color: #f4f5f8; }\n"
-"QPushButton:pressed { background-color: #14161f; }\n"
-"QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: #202430; }")
         self.lmModelLabel = QLabel(self.lmgroupBox)
         self.lmModelLabel.setObjectName(u"lmModelLabel")
         self.lmModelLabel.setGeometry(QRect(11, 121, 78, 16))
-        self.lmModelLabel.setStyleSheet(u"background-color: transparent;\n"
-"font-size: 12px;\n"
-"color: #6b7288;\n"
-"font-family: \"Cascadia Code\", \"Consolas\", monospace;\n"
-"    border: none;\n"
-"    background-color: transparent;")
         self.lmModelCombo = QComboBox(self.lmgroupBox)
         self.lmModelCombo.setObjectName(u"lmModelCombo")
         self.lmModelCombo.setGeometry(QRect(11, 149, 104, 42))
         self.lmModelCombo.setMinimumSize(QSize(0, 42))
-        self.lmModelCombo.setStyleSheet(u"QComboBox {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 8px 14px;\n"
-"    min-height: 24px;\n"
-"}\n"
-"QComboBox:hover { border-color: #3d4356; }\n"
-"QComboBox:focus { border-color: #7c6cff; }\n"
-"QComboBox::drop-down { border: none; width: 30px; background: transparent; }\n"
-"QComboBox::down-arrow {\n"
-"    image: none;\n"
-"    width: 0;\n"
-"    height: 0;\n"
-"    border-left: 6px solid transparent;\n"
-"    border-right: 6px solid transparent;\n"
-"    border-top: 6px solid #9aa2b8;\n"
-"    margin: 0px;\n"
-"}\n"
-"QComboBox QAbstractItemView {\n"
-"    background-color: #1d212c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #3d4356;\n"
-"    border-radius: 10px;\n"
-"    padding: 4px;\n"
-"    outline: none;\n"
-"    selection-background-color: #2a2440;\n"
-"    selection-color: #cdc4ff;\n"
-"}\n"
-"QComboBox QAbstractItemView::item { padding: 6px 8px; border-radius: 6px; }\n"
-"QComboBox QAbstractItemView::item:hover { ba"
-                        "ckground-color: #262b3a; }")
 
         self.lmstudioTabLayout.addWidget(self.lmgroupBox)
 
@@ -2297,22 +1073,6 @@ class Ui_MainWindow(object):
         self.promptTabLayout.setObjectName(u"promptTabLayout")
         self.promptPanel = QGroupBox(self.promptTab)
         self.promptPanel.setObjectName(u"promptPanel")
-        self.promptPanel.setStyleSheet(u"QGroupBox {\n"
-"    background-color: #171a23;\n"
-"    border: 1px solid #262b3a;\n"
-"    border-radius: 16px;\n"
-"    margin-top: 8px;\n"
-"    padding: 16px 20px 20px 20px;\n"
-"}\n"
-"QGroupBox::title {\n"
-"    subcontrol-origin: margin;\n"
-"    left: 16px;\n"
-"    padding: 0 8px;\n"
-"    background-color: #171a23;\n"
-"    color: #f4f5f8;\n"
-"    font-size: 20px;\n"
-"    font-weight: 600;\n"
-"}")
         self.gridLayout_3 = QGridLayout(self.promptPanel)
         self.gridLayout_3.setObjectName(u"gridLayout_3")
         self.gridLayout_3.setHorizontalSpacing(0)
@@ -2322,8 +1082,6 @@ class Ui_MainWindow(object):
         self.positivePromptHeaderLayout.setObjectName(u"positivePromptHeaderLayout")
         self.positivePromptLabel = QLabel(self.promptPanel)
         self.positivePromptLabel.setObjectName(u"positivePromptLabel")
-        self.positivePromptLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
 
         self.positivePromptHeaderLayout.addWidget(self.positivePromptLabel)
 
@@ -2333,9 +1091,6 @@ class Ui_MainWindow(object):
 
         self.positivePromptCounterLabel = QLabel(self.promptPanel)
         self.positivePromptCounterLabel.setObjectName(u"positivePromptCounterLabel")
-        self.positivePromptCounterLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #6b7288;\n"
-"font-size: 12px;")
         self.positivePromptCounterLabel.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
 
         self.positivePromptHeaderLayout.addWidget(self.positivePromptCounterLabel)
@@ -2345,17 +1100,6 @@ class Ui_MainWindow(object):
 
         self.positivePromptEdit = QPlainTextEdit(self.promptPanel)
         self.positivePromptEdit.setObjectName(u"positivePromptEdit")
-        self.positivePromptEdit.setStyleSheet(u"QPlainTextEdit {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 8px 14px;\n"
-"    selection-background-color: #7c6cff;\n"
-"    selection-color: #ffffff;\n"
-"}\n"
-"QPlainTextEdit:hover { border-color: #3d4356; }\n"
-"QPlainTextEdit:focus { border-color: #7c6cff; background-color: #14161f; }")
 
         self.gridLayout_3.addWidget(self.positivePromptEdit, 1, 0, 1, 1)
 
@@ -2363,8 +1107,6 @@ class Ui_MainWindow(object):
         self.negativePromptHeaderLayout.setObjectName(u"negativePromptHeaderLayout")
         self.negativePromptLabel = QLabel(self.promptPanel)
         self.negativePromptLabel.setObjectName(u"negativePromptLabel")
-        self.negativePromptLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
 
         self.negativePromptHeaderLayout.addWidget(self.negativePromptLabel)
 
@@ -2374,9 +1116,6 @@ class Ui_MainWindow(object):
 
         self.negativePromptCounterLabel = QLabel(self.promptPanel)
         self.negativePromptCounterLabel.setObjectName(u"negativePromptCounterLabel")
-        self.negativePromptCounterLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #6b7288;\n"
-"font-size: 12px;")
         self.negativePromptCounterLabel.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
 
         self.negativePromptHeaderLayout.addWidget(self.negativePromptCounterLabel)
@@ -2387,17 +1126,6 @@ class Ui_MainWindow(object):
         self.negativePromptEdit = QPlainTextEdit(self.promptPanel)
         self.negativePromptEdit.setObjectName(u"negativePromptEdit")
         self.negativePromptEdit.setMaximumSize(QSize(16777215, 80))
-        self.negativePromptEdit.setStyleSheet(u"QPlainTextEdit {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 8px 14px;\n"
-"    selection-background-color: #7c6cff;\n"
-"    selection-color: #ffffff;\n"
-"}\n"
-"QPlainTextEdit:hover { border-color: #3d4356; }\n"
-"QPlainTextEdit:focus { border-color: #7c6cff; background-color: #14161f; }")
 
         self.gridLayout_3.addWidget(self.negativePromptEdit, 3, 0, 1, 1)
 
@@ -2406,8 +1134,6 @@ class Ui_MainWindow(object):
         self.enhancePromptLabel = QLabel(self.promptPanel)
         self.enhancePromptLabel.setObjectName(u"enhancePromptLabel")
         self.enhancePromptLabel.setFont(font)
-        self.enhancePromptLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #e8eaf0;")
 
         self.enhancePromptHeaderLayout.addWidget(self.enhancePromptLabel)
 
@@ -2419,17 +1145,6 @@ class Ui_MainWindow(object):
         self.enhancePromptButton.setObjectName(u"enhancePromptButton")
         self.enhancePromptButton.setMinimumSize(QSize(0, 28))
         self.enhancePromptButton.setMaximumSize(QSize(16777215, 28))
-        self.enhancePromptButton.setStyleSheet(u"QPushButton {\n"
-"    background-color: #38bdf8;\n"
-"    color: #0b1220;\n"
-"    border: none;\n"
-"    border-radius: 6px;\n"
-"    padding: 4px 12px;\n"
-"    font-weight: bold;\n"
-"}\n"
-"QPushButton:hover { background-color: #0ea5e9; }\n"
-"QPushButton:pressed { background-color: #0284c7; }\n"
-"QPushButton:disabled { background-color: #23324a; color: #5c6b85; }")
         icon3 = QIcon()
         icon3.addFile(u":/newPrefix1/sparkel.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.enhancePromptButton.setIcon(icon3)
@@ -2438,9 +1153,6 @@ class Ui_MainWindow(object):
 
         self.enhancePromptCounterLabel = QLabel(self.promptPanel)
         self.enhancePromptCounterLabel.setObjectName(u"enhancePromptCounterLabel")
-        self.enhancePromptCounterLabel.setStyleSheet(u"background-color: transparent;\n"
-"color: #6b7288;\n"
-"font-size: 12px;")
         self.enhancePromptCounterLabel.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
 
         self.enhancePromptHeaderLayout.addWidget(self.enhancePromptCounterLabel)
@@ -2453,17 +1165,6 @@ class Ui_MainWindow(object):
         sizePolicy4.setHeightForWidth(self.enhancePromptEdit.sizePolicy().hasHeightForWidth())
         self.enhancePromptEdit.setSizePolicy(sizePolicy4)
         self.enhancePromptEdit.setMaximumSize(QSize(16777215, 16777215))
-        self.enhancePromptEdit.setStyleSheet(u"QPlainTextEdit {\n"
-"    background-color: #12141c;\n"
-"    color: #e8eaf0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 10px;\n"
-"    padding: 8px 14px;\n"
-"    selection-background-color: #7c6cff;\n"
-"    selection-color: #ffffff;\n"
-"}\n"
-"QPlainTextEdit:hover { border-color: #3d4356; }\n"
-"QPlainTextEdit:focus { border-color: #7c6cff; background-color: #14161f; }")
 
         self.gridLayout_3.addWidget(self.enhancePromptEdit, 5, 0, 1, 1)
 
@@ -2484,22 +1185,6 @@ class Ui_MainWindow(object):
         self.resultPanel = QGroupBox(self.resultTab)
         self.resultPanel.setObjectName(u"resultPanel")
         self.resultPanel.setMinimumSize(QSize(250, 0))
-        self.resultPanel.setStyleSheet(u"QGroupBox {\n"
-"    background-color: #171a23;\n"
-"    border: 1px solid #262b3a;\n"
-"    border-radius: 16px;\n"
-"    margin-top: 8px;\n"
-"    padding: 12px;\n"
-"}\n"
-"QGroupBox::title {\n"
-"    subcontrol-origin: margin;\n"
-"    left: 16px;\n"
-"    padding: 0 8px;\n"
-"    background-color: #171a23;\n"
-"    color: #f4f5f8;\n"
-"    font-size: 20px;\n"
-"    font-weight: 600;\n"
-"}")
         self.gridLayout = QGridLayout(self.resultPanel)
         self.gridLayout.setObjectName(u"gridLayout")
         self.gridLayout.setHorizontalSpacing(0)
@@ -2509,11 +1194,6 @@ class Ui_MainWindow(object):
         self.previewLabel.setObjectName(u"previewLabel")
         self.previewLabel.setMinimumSize(QSize(200, 288))
         self.previewLabel.setFont(font)
-        self.previewLabel.setStyleSheet(u"background-color: #0e1016;\n"
-"border: 1px solid #262b3a;\n"
-"border-radius: 12px;\n"
-"color: #565d72;\n"
-"padding: 20px;")
         self.previewLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.previewLabel.setWordWrap(True)
 
@@ -2524,36 +1204,12 @@ class Ui_MainWindow(object):
         self.openOutputFolderButton = QPushButton(self.resultPanel)
         self.openOutputFolderButton.setObjectName(u"openOutputFolderButton")
         self.openOutputFolderButton.setMinimumSize(QSize(100, 32))
-        self.openOutputFolderButton.setStyleSheet(u"QPushButton {\n"
-"    background-color: #1d212c;\n"
-"    color: #cdd2e0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 8px;\n"
-"    padding: 6px 16px;\n"
-"    font-size: 13px;\n"
-"    font-weight: 500;\n"
-"}\n"
-"QPushButton:hover { background-color: #262b3a; border-color: #7c6cff; color: #f4f5f8; }\n"
-"QPushButton:pressed { background-color: #14161f; }\n"
-"QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: #202430; }")
 
         self.horizontalLayout.addWidget(self.openOutputFolderButton)
 
         self.saveImageButton = QPushButton(self.resultPanel)
         self.saveImageButton.setObjectName(u"saveImageButton")
         self.saveImageButton.setMinimumSize(QSize(100, 32))
-        self.saveImageButton.setStyleSheet(u"QPushButton {\n"
-"    background-color: #1d212c;\n"
-"    color: #cdd2e0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 8px;\n"
-"    padding: 6px 16px;\n"
-"    font-size: 13px;\n"
-"    font-weight: 500;\n"
-"}\n"
-"QPushButton:hover { background-color: #262b3a; border-color: #7c6cff; color: #f4f5f8; }\n"
-"QPushButton:pressed { background-color: #14161f; }\n"
-"QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: #202430; }")
 
         self.horizontalLayout.addWidget(self.saveImageButton)
 
@@ -2579,14 +1235,6 @@ class Ui_MainWindow(object):
         self.logHeaderRow.setObjectName(u"logHeaderRow")
         self.toggleLogButton = QPushButton(self.logTab)
         self.toggleLogButton.setObjectName(u"toggleLogButton")
-        self.toggleLogButton.setStyleSheet(u"QPushButton {\n"
-"    color: #cdd2e0;\n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"    border-radius: 8px;\n"
-"    font-size: 13px;\n"
-"}\n"
-"")
         icon4 = QIcon()
         icon4.addFile(u":/newPrefix1/toggle-off.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.toggleLogButton.setIcon(icon4)
@@ -2607,36 +1255,10 @@ class Ui_MainWindow(object):
         self.logGroupBox.setSizePolicy(sizePolicy6)
         self.logGroupBox.setMinimumSize(QSize(381, 100))
         self.logGroupBox.setMaximumSize(QSize(16777215, 16777215))
-        self.logGroupBox.setStyleSheet(u"QGroupBox {\n"
-"    background-color: #171a23;\n"
-"    border: 1px solid #262b3a;\n"
-"    border-radius: 16px;\n"
-"    margin-top: 8px;\n"
-"    padding: 16px 20px 20px 20px;\n"
-"}\n"
-"QGroupBox::title {\n"
-"    subcontrol-origin: margin;\n"
-"    left: 16px;\n"
-"    padding: 0 8px;\n"
-"    background-color: #171a23;\n"
-"    color: #f4f5f8;\n"
-"    font-size: 20px;\n"
-"    font-weight: 600;\n"
-"}")
         self.logGroupBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.logTextEdit = QPlainTextEdit(self.logGroupBox)
         self.logTextEdit.setObjectName(u"logTextEdit")
         self.logTextEdit.setGeometry(QRect(11, 25, 1121, 551))
-        self.logTextEdit.setStyleSheet(u"QPlainTextEdit {\n"
-"    background-color: #0a0b10;\n"
-"    color: #a9b0c4;\n"
-"    border: 1px solid #1c1f29;\n"
-"    border-radius: 12px;\n"
-"    padding: 16px 18px;\n"
-"    font-family: \"Cascadia Code\", \"Consolas\", \"Monaco\", monospace;\n"
-"    font-size: 13px;\n"
-"}\n"
-"QPlainTextEdit:focus { border-color: #3d4356; background-color: #0a0b10; }")
         self.logTextEdit.setReadOnly(True)
         self.resetButton = QPushButton(self.logGroupBox)
         self.resetButton.setObjectName(u"resetButton")
@@ -2644,18 +1266,6 @@ class Ui_MainWindow(object):
         sizePolicy6.setHeightForWidth(self.resetButton.sizePolicy().hasHeightForWidth())
         self.resetButton.setSizePolicy(sizePolicy6)
         self.resetButton.setMinimumSize(QSize(80, 32))
-        self.resetButton.setStyleSheet(u"QPushButton {\n"
-"    background-color: #1d212c;\n"
-"    color: #cdd2e0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 8px;\n"
-"    padding: 6px 16px;\n"
-"    font-size: 13px;\n"
-"    font-weight: 500;\n"
-"}\n"
-"QPushButton:hover { background-color: #262b3a; border-color: #7c6cff; color: #f4f5f8; }\n"
-"QPushButton:pressed { background-color: #14161f; }\n"
-"QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: #202430; }")
 
         self.logLayout.addWidget(self.logGroupBox)
 
@@ -2670,54 +1280,18 @@ class Ui_MainWindow(object):
         self.restoreDefaultsButton = QPushButton(self.settingsTab)
         self.restoreDefaultsButton.setObjectName(u"restoreDefaultsButton")
         self.restoreDefaultsButton.setMinimumSize(QSize(100, 32))
-        self.restoreDefaultsButton.setStyleSheet(u"QPushButton {\n"
-"    background-color: #1d212c;\n"
-"    color: #cdd2e0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 8px;\n"
-"    padding: 6px 16px;\n"
-"    font-size: 13px;\n"
-"    font-weight: 500;\n"
-"}\n"
-"QPushButton:hover { background-color: #262b3a; border-color: #7c6cff; color: #f4f5f8; }\n"
-"QPushButton:pressed { background-color: #14161f; }\n"
-"QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: #202430; }")
 
         self.actionButtonLayout.addWidget(self.restoreDefaultsButton)
 
         self.loadConfigButton = QPushButton(self.settingsTab)
         self.loadConfigButton.setObjectName(u"loadConfigButton")
         self.loadConfigButton.setMinimumSize(QSize(100, 32))
-        self.loadConfigButton.setStyleSheet(u"QPushButton {\n"
-"    background-color: #1d212c;\n"
-"    color: #cdd2e0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 8px;\n"
-"    padding: 6px 16px;\n"
-"    font-size: 13px;\n"
-"    font-weight: 500;\n"
-"}\n"
-"QPushButton:hover { background-color: #262b3a; border-color: #7c6cff; color: #f4f5f8; }\n"
-"QPushButton:pressed { background-color: #14161f; }\n"
-"QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: #202430; }")
 
         self.actionButtonLayout.addWidget(self.loadConfigButton)
 
         self.saveConfigButton = QPushButton(self.settingsTab)
         self.saveConfigButton.setObjectName(u"saveConfigButton")
         self.saveConfigButton.setMinimumSize(QSize(100, 32))
-        self.saveConfigButton.setStyleSheet(u"QPushButton {\n"
-"    background-color: #1d212c;\n"
-"    color: #cdd2e0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 8px;\n"
-"    padding: 6px 16px;\n"
-"    font-size: 13px;\n"
-"    font-weight: 500;\n"
-"}\n"
-"QPushButton:hover { background-color: #262b3a; border-color: #7c6cff; color: #f4f5f8; }\n"
-"QPushButton:pressed { background-color: #14161f; }\n"
-"QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: #202430; }")
 
         self.actionButtonLayout.addWidget(self.saveConfigButton)
 
@@ -2732,18 +1306,6 @@ class Ui_MainWindow(object):
         sizePolicy6.setHeightForWidth(self.exitButton.sizePolicy().hasHeightForWidth())
         self.exitButton.setSizePolicy(sizePolicy6)
         self.exitButton.setMinimumSize(QSize(120, 32))
-        self.exitButton.setStyleSheet(u"QPushButton {\n"
-"    background-color: #1d212c;\n"
-"    color: #cdd2e0;\n"
-"    border: 1px solid #2a2f3d;\n"
-"    border-radius: 8px;\n"
-"    padding: 6px 16px;\n"
-"    font-size: 18px;\n"
-"    font-weight: 500;\n"
-"}\n"
-"QPushButton:hover { background-color: #262b3a; border-color: #7c6cff; color: #f4f5f8; }\n"
-"QPushButton:pressed { background-color: #14161f; }\n"
-"QPushButton:disabled { background-color: #14161f; color: #565d72; border-color: #202430; }")
         icon5 = QIcon()
         icon5.addFile(u":/newPrefix1/off-2.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.exitButton.setIcon(icon5)
@@ -2771,19 +1333,6 @@ class Ui_MainWindow(object):
         self.helpBrowser.setObjectName(u"helpBrowser")
         sizePolicy6.setHeightForWidth(self.helpBrowser.sizePolicy().hasHeightForWidth())
         self.helpBrowser.setSizePolicy(sizePolicy6)
-        self.helpBrowser.setStyleSheet(u"QTextBrowser {\n"
-"    background-color: #171a23;\n"
-"    border: 1px solid #262b3a;\n"
-"    border-radius: 10px;\n"
-"    padding: 16px;\n"
-"    font-family: \"Segoe UI\", \"Malgun Gothic\", sans-serif;\n"
-"    font-size: 13px;\n"
-"    color: #cdd2e0;\n"
-"}\n"
-"QTextBrowser QScrollBar:vertical { background-color: #171a23; width: 10px; border-radius: 5px; }\n"
-"QTextBrowser QScrollBar::handle:vertical { background-color: #3d4356; border-radius: 5px; min-height: 30px; }\n"
-"QTextBrowser QScrollBar::handle:vertical:hover { background-color: #565d72; }\n"
-"QTextBrowser QScrollBar::add-line:vertical, QTextBrowser QScrollBar::sub-line:vertical { height: 0px; }")
         self.helpBrowser.setOpenExternalLinks(True)
 
         self.helpTabLayout.addWidget(self.helpBrowser)
