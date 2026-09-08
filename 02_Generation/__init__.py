@@ -1,1 +1,0 @@
-"""Generation section package."""

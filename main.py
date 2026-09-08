@@ -43,23 +43,17 @@ from PySide6.QtWidgets import (
 from assets.icons import (
     icon_rc,  # noqa: F401  (SVG 아이콘 리소스 등록용 - 직접 사용하진 않지만 import 자체가 필요함)
 )
-from assets.ui.theme_manager import (
+from app.gui.theme_manager import (
     AVAILABLE_THEMES,
     apply_theme,
     load_theme_choice,
     save_theme_choice,
 )
-from assets.ui.ui_loader import load_ui
+from app.gui.ui_loader import load_ui
 
 BASE_DIR = Path(__file__).resolve().parent
-SRC_DIR = BASE_DIR / "src"
 
-
-# src 패키지를 sys.path 에 추가하여 모듈 import 가능하게 함
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
-
-from src import (
+from app import (
     SAMPLER_NAMES,
     SCHEDULER_NAMES,
     ComfyUIApiClient,
@@ -94,7 +88,7 @@ from src import (
 )
 
 # 추가 모듈 import
-from src.model_status_service import ModelStatusService
+from app.core.model_status_service import ModelStatusService
 
 UI_FILE = BASE_DIR / "assets" / "ui" / "main.ui"
 
