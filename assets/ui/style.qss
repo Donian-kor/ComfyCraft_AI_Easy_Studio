@@ -293,18 +293,18 @@ QPushButton#generateButton:disabled, QPushButton#startButton:disabled, QPushButt
 }
 
 /* ---------- 버튼: 위험 (중지/종료) ---------- */
-QPushButton#stopButton, QPushButton#exitButton {
+QPushButton#exitButton {
     background-color: #C42B1C;
     border: none;
     color: #ffffff;
     font-weight: 600;
 }
 
-QPushButton#stopButton:hover, QPushButton#exitButton:hover {
+QPushButton#exitButton:hover {
     background-color: #D13438;
 }
 
-QPushButton#stopButton:pressed, QPushButton#exitButton:pressed {
+QPushButton#exitButton:pressed {
     background-color: #A62A22;
 }
 

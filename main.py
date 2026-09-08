@@ -106,24 +106,28 @@ class MainController(QObject):
     def __init__(self, window):
         super().__init__()
         self.window = window
-        self.config_manager = get_config_manager(BASE_DIR / "workflows" / "app_config.json")
+        self.config_manager = get_config_manager(
+            BASE_DIR / "workflows" / "app_config.json"
+        )
         self.config = self.config_manager.get()
         self.model_fetcher = get_model_fetcher(self.config_manager)
         self.model_status_service = ModelStatusService(self.model_fetcher)
         self.model_registry = get_model_registry()
         self.workflow_manager = get_workflow_manager(self.config_manager)
-        self.output_dir = ensure_output_directory(str((BASE_DIR / self.config.output.directory).resolve()))
+        self.output_dir = ensure_output_directory(
+            str((BASE_DIR / self.config.output.directory).resolve())
+        )
         self.worker = None
         self.current_image_path = None
         self.generation_started_at = None
         self.execution_status = create_execution_status()
-        
+
         # 진행 상황 애니메이션
         self.loading_animation = LoadingAnimation(
             self.find(QProgressBar, "progressBar"),
-            self.find(QLabel, "progressStatusLabel")
+            self.find(QLabel, "progressStatusLabel"),
         )
-        
+
         # 경과 시간 타이머
         self.elapsed_timer = ElapsedTimer(self.find(QLabel, "elapsedLabel"))
 
@@ -142,9 +146,25 @@ class MainController(QObject):
     def setup(self):
         generation = self.config.generation
         for name, minimum, maximum, value in (
-            ("widthSpinBox", generation.width_min, generation.width_max, generation.default_width),
-            ("heightSpinBox", generation.height_min, generation.height_max, generation.default_height),
-            ("stepsSpinBox", generation.steps_min, generation.steps_max, generation.default_steps)):
+            (
+                "widthSpinBox",
+                generation.width_min,
+                generation.width_max,
+                generation.default_width,
+            ),
+            (
+                "heightSpinBox",
+                generation.height_min,
+                generation.height_max,
+                generation.default_height,
+            ),
+            (
+                "stepsSpinBox",
+                generation.steps_min,
+                generation.steps_max,
+                generation.default_steps,
+            ),
+        ):
             widget = self.find(QSpinBox, name)
             widget.setRange(minimum, maximum)
             widget.setValue(value)
@@ -165,9 +185,13 @@ class MainController(QObject):
         if paths:
             self.find(QLineEdit, "comfyModelPathEdit").setText(str(paths[0]))
             self.update_model_path_status(str(paths[0]))
-        self.find(QPlainTextEdit, "positivePromptEdit").setPlainText("깊은 숲속을 산책중인 현대 한국 여성")
+        self.find(QPlainTextEdit, "positivePromptEdit").setPlainText(
+            "깊은 숲속을 산책중인 현대 한국 여성"
+        )
         ext_prompts = load_external_prompts()
-        self.find(QPlainTextEdit, "negativePromptEdit").setPlainText(ext_prompts.get("negative_default"))
+        self.find(QPlainTextEdit, "negativePromptEdit").setPlainText(
+            ext_prompts.get("negative_default")
+        )
         sampler = self.find(QComboBox, "samplerComboBox")
         sampler.clear()
         sampler.addItems(list(SAMPLER_NAMES))
@@ -191,31 +215,59 @@ class MainController(QObject):
         sam_hint_combo = self.find(QComboBox, "facedetailerSamDetectionHintComboBox")
         if sam_hint_combo is not None:
             sam_hint_combo.clear()
-            sam_hint_combo.addItems(["center-1", "center-2", "center-3", "center-4", "all"])
+            sam_hint_combo.addItems(
+                ["center-1", "center-2", "center-3", "center-4", "all"]
+            )
             sam_hint_combo.setCurrentText("center-1")
 
-        sam_mask_neg_combo = self.find(QComboBox, "facedetailerSamMaskHintUseNegativeComboBox")
+        sam_mask_neg_combo = self.find(
+            QComboBox, "facedetailerSamMaskHintUseNegativeComboBox"
+        )
         if sam_mask_neg_combo is not None:
             sam_mask_neg_combo.clear()
             sam_mask_neg_combo.addItems(["False", "Small", "Outter"])
             sam_mask_neg_combo.setCurrentText("False")
 
-        self.find(QPushButton, "generateButton").clicked.connect(self.start_generation)
-        self.find(QPushButton, "stopButton").clicked.connect(self.stop_generation)
-        self.find(QPushButton, "enhancePromptButton").clicked.connect(self.enhance_prompt_only)
+        # generateButton과 stopButton을 하나의 PlayStopButton으로 통합
+        gen_stop_btn = self.find(QPushButton, "generateButton")
+        if gen_stop_btn is not None:
+            # PlayStopButton이 checkable인지 확인
+            gen_stop_btn.setCheckable(True)
+            gen_stop_btn.setChecked(False)
+            # PlayStopButton의 toggled 시그널에 맞게 연결
+            gen_stop_btn.toggled.connect(self._on_gen_stop_state_changed)
+        self.find(QPushButton, "enhancePromptButton").clicked.connect(
+            self.enhance_prompt_only
+        )
         self.find(QPushButton, "loadConfigButton").clicked.connect(self.load_config)
         self.find(QPushButton, "saveConfigButton").clicked.connect(self.save_config)
-        self.find(QPushButton, "restoreDefaultsButton").clicked.connect(self.restore_defaults)
+        self.find(QPushButton, "restoreDefaultsButton").clicked.connect(
+            self.restore_defaults
+        )
         self.find(QPushButton, "exitButton").clicked.connect(self.close)
         self.find(QPushButton, "resetButton").clicked.connect(self.clear_logs)
-        self.find(QPushButton, "openOutputFolderButton").clicked.connect(self.open_output_folder)
+        self.find(QPushButton, "openOutputFolderButton").clicked.connect(
+            self.open_output_folder
+        )
         self.find(QPushButton, "saveImageButton").clicked.connect(self.save_image_as)
-        self.find(QPushButton, "lmCheckButton").clicked.connect(lambda: self.check_connection("lm"))
-        self.find(QPushButton, "comfyCheckButton").clicked.connect(lambda: self.check_connection("comfy"))
-        self.find(QPushButton, "browseModelFolderButton").clicked.connect(self.browse_model_folder)
-        self.find(QComboBox, "lmModelCombo").currentTextChanged.connect(lambda text: self.log_model_selection("LM Studio", text))
-        self.find(QComboBox, "comfyModelCombo").currentTextChanged.connect(lambda text: self.log_model_selection("ComfyUI", text))
-        self.find(QComboBox, "comfyModelCombo").currentTextChanged.connect(self.apply_model_defaults)
+        self.find(QPushButton, "lmCheckButton").clicked.connect(
+            lambda: self.check_connection("lm")
+        )
+        self.find(QPushButton, "comfyCheckButton").clicked.connect(
+            lambda: self.check_connection("comfy")
+        )
+        self.find(QPushButton, "browseModelFolderButton").clicked.connect(
+            self.browse_model_folder
+        )
+        self.find(QComboBox, "lmModelCombo").currentTextChanged.connect(
+            lambda text: self.log_model_selection("LM Studio", text)
+        )
+        self.find(QComboBox, "comfyModelCombo").currentTextChanged.connect(
+            lambda text: self.log_model_selection("ComfyUI", text)
+        )
+        self.find(QComboBox, "comfyModelCombo").currentTextChanged.connect(
+            self.apply_model_defaults
+        )
         presets = {
             "preset_512x512": (512, 512),
             "preset_768x768": (768, 768),
@@ -225,16 +277,29 @@ class MainController(QObject):
         }
         for button_name, (width, height) in presets.items():
             self.find(QPushButton, button_name).clicked.connect(
-                lambda checked=False, width=width, height=height: self.apply_preset(width, height)
+                lambda checked=False, width=width, height=height: self.apply_preset(
+                    width, height
+                )
             )
-        self.find(QPlainTextEdit, "positivePromptEdit").textChanged.connect(lambda: self.update_counter("positivePromptEdit", "positivePromptCounterLabel"))
-        self.find(QPlainTextEdit, "negativePromptEdit").textChanged.connect(lambda: self.update_counter("negativePromptEdit", "negativePromptCounterLabel"))
-        self.find(QPlainTextEdit, "enhancePromptEdit").textChanged.connect(lambda: self.update_counter("enhancePromptEdit", "enhancePromptCounterLabel"))
+        self.find(QPlainTextEdit, "positivePromptEdit").textChanged.connect(
+            lambda: self.update_counter(
+                "positivePromptEdit", "positivePromptCounterLabel"
+            )
+        )
+        self.find(QPlainTextEdit, "negativePromptEdit").textChanged.connect(
+            lambda: self.update_counter(
+                "negativePromptEdit", "negativePromptCounterLabel"
+            )
+        )
+        self.find(QPlainTextEdit, "enhancePromptEdit").textChanged.connect(
+            lambda: self.update_counter(
+                "enhancePromptEdit", "enhancePromptCounterLabel"
+            )
+        )
         self.update_counter("positivePromptEdit", "positivePromptCounterLabel")
         self.update_counter("negativePromptEdit", "negativePromptCounterLabel")
         self.update_counter("enhancePromptEdit", "enhancePromptCounterLabel")
 
-        self.find(QPushButton, "stopButton").setEnabled(False)
         self.find(QPlainTextEdit, "logTextEdit").setVisible(True)
         # QSplitter를 사용하지 않는 레이아웃 구조이므로, 초기 배치는 레이아웃이 자동 처리
         QTimer.singleShot(0, lambda: self._apply_main_splitter_ratio())
@@ -248,7 +313,7 @@ class MainController(QObject):
 
         # 도움말 탭 설정 (추가)
         self._setup_help_tab()
-        
+
         # 사이드바 애니메이션 설정
         self.setup_sidebar_animation()
 
@@ -256,55 +321,61 @@ class MainController(QObject):
         sidebar_tabs = self.find(QTabWidget, "tabWidget")
         if sidebar_tabs is not None:
             tab_map = {
-                "homeButton": 0,       # 홈
-                "comfyButton": 1,      # ComfyUI
-                "lmstudioButton": 2,   # LMStudio
-                "settingsButton": 6,   # Settings
+                "homeButton": 0,  # 홈
+                "comfyButton": 1,  # ComfyUI
+                "lmstudioButton": 2,  # LMStudio
+                "settingsButton": 6,  # Settings
             }
             for btn_name, tab_index in tab_map.items():
                 btn = self.find(QPushButton, btn_name)
                 if btn is not None and tab_index < sidebar_tabs.count():
                     btn.clicked.connect(
-                        lambda checked=False, i=tab_index: sidebar_tabs.setCurrentIndex(i)
+                        lambda checked=False, i=tab_index: sidebar_tabs.setCurrentIndex(
+                            i
+                        )
                     )
 
         # 홈 탭 카드 버튼 → 해당 탭 전환 (NEW.ui 홈 화면)
         if sidebar_tabs is not None:
             home_tab_map = {
-                "startButton": 1,        # 새 프로젝트 시작 → ComfyUI
-                "comfyCardButton": 1,    # ComfyUI 카드 → ComfyUI
-                "lmCardButton": 2,       # LMStudio 카드 → LMStudio
+                "startButton": 1,  # 새 프로젝트 시작 → ComfyUI
+                "comfyCardButton": 1,  # ComfyUI 카드 → ComfyUI
+                "lmCardButton": 2,  # LMStudio 카드 → LMStudio
             }
             for btn_name, tab_index in home_tab_map.items():
                 btn = self.find(QPushButton, btn_name)
                 if btn is not None and tab_index < sidebar_tabs.count():
                     btn.clicked.connect(
-                        lambda checked=False, i=tab_index: sidebar_tabs.setCurrentIndex(i)
+                        lambda checked=False, i=tab_index: sidebar_tabs.setCurrentIndex(
+                            i
+                        )
                     )
-        
+
         # ===== 로그창 토글 버튼 (아이콘 버전) =====
         toggle_btn = self.find(QPushButton, "toggleLogButton")
         if toggle_btn:
             toggle_btn.clicked.connect(self.toggle_log)
             self.log_group = self.find(QGroupBox, "logGroupBox")
-            self.log_visible = True   # 처음에는 로그가 보이는 상태
+            self.log_visible = True  # 처음에는 로그가 보이는 상태
 
             # ✅ Qt 내장 아이콘 사용하기 (별도 이미지 파일 필요 없음)
             # assets/icons 폴더의 실제 파일명과 정확히 일치해야 합니다!
             self.icon_collapse = QIcon(str(BASE_DIR / "assets/icons/toggle-off.svg"))
-            self.icon_expand = QIcon(str(BASE_DIR / "assets/icons/toggle-on.svg"))            
+            self.icon_expand = QIcon(str(BASE_DIR / "assets/icons/toggle-on.svg"))
             # 처음에는 로그가 보이므로 '접기' 설정
             toggle_btn.setIcon(self.icon_collapse)
             toggle_btn.setText("")  # 혹시 모를 텍스트 제거
 
         # ===== 테마 선택기 (설정 탭) =====
-        self._setup_theme_selector()        
+        self._setup_theme_selector()
 
     def _setup_theme_selector(self):
         """설정 탭 맨 위에 테마 선택 콤보박스를 만들어 넣는다."""
         settings_layout = self.window.findChild(QVBoxLayout, "settingsLayout")
         if settings_layout is None:
-            print("[테마] 설정 탭 레이아웃을 찾을 수 없어 테마 선택기를 추가하지 못했습니다.")
+            print(
+                "[테마] 설정 탭 레이아웃을 찾을 수 없어 테마 선택기를 추가하지 못했습니다."
+            )
             return
 
         box = QGroupBox("🎨  테마")
@@ -323,12 +394,15 @@ class MainController(QObject):
     def _on_theme_changed(self, index: int):
         """테마 선택이 바뀌면 즉시 적용하고 설정 파일에 저장한다."""
         combo = self.sender()
-        if combo is None:
+        if not isinstance(combo, QComboBox):
             return
         key = combo.itemData(index)
         if not key:
             return
-        applied = apply_theme(QApplication.instance(), key)
+        app = QApplication.instance()
+        if not isinstance(app, QApplication):
+            return
+        applied = apply_theme(app, key)
         if save_theme_choice(applied):
             display_name = AVAILABLE_THEMES.get(applied, applied)
             self.append_log(f"테마 변경: {display_name}")
@@ -376,7 +450,7 @@ class MainController(QObject):
     def eventFilter(self, obj, event):
         """마우스가 사이드바에 들어오고 나갈 때 애니메이션을 실행합니다."""
         # 사이드바에서 발생한 이벤트인지 확인
-        if hasattr(self, 'sidebar_frame') and obj == self.sidebar_frame:
+        if hasattr(self, "sidebar_frame") and obj == self.sidebar_frame:
             if event.type() == QEvent.Type.HoverEnter:
                 # 마우스 올림 → 펼치기(왼쪽에서 오른쪽으로 확장)
                 self.sidebar_anim.stop()
@@ -395,6 +469,7 @@ class MainController(QObject):
 
         # 다른 위젯의 이벤트는 원래대로 처리
         return super().eventFilter(obj, event)
+
     def _on_sampler_changed(self, sampler_label: str):
         """ComfyUI KSampler와 호환되는 scheduler 값으로 보정한다."""
         scheduler_combo = self.find(QComboBox, "schedulerComboBox")
@@ -410,41 +485,42 @@ class MainController(QObject):
     def _setup_progress_label_overlay(self):
         """progressPercentLabel을 로딩바 정중앙에 overlay로 배치"""
         label = self.find(QLabel, "progressPercentLabel")
-        label.setStyleSheet(
-            "QLabel { "
-            "background-color: transparent; "
-            "border: none; "
-            "}"
-        )
+        label.setStyleSheet("QLabel { background-color: transparent; border: none; }")
         label.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
 
     def _setup_elapsed_label_alignment(self):
         """elapsedLabel을 우측끝으로 정렬하기 위해 progressInfoLayout에 spacer 추가"""
         from PySide6.QtWidgets import QBoxLayout
+
         progress_info_layout = None
         # progressInfoLayout 찾기 (resultPanel 하위에서)
         result_panel = self.find(object, "resultPanel")
         if result_panel:
             for widget in result_panel.findChildren(object):
-                if hasattr(widget, 'objectName') and widget.objectName() == "progressInfoLayout":
+                if (
+                    hasattr(widget, "objectName")
+                    and widget.objectName() == "progressInfoLayout"
+                ):
                     progress_info_layout = widget
                     break
-        
+
         # progressInfoLayout를 직접 찾는 다른 방법 - parent의 layout 확인
         elapsed_label = self.find(QLabel, "elapsedLabel")
         if elapsed_label and elapsed_label.parent():
             parent = elapsed_label.parent()
-            if hasattr(parent, 'layout') and callable(parent.layout):
+            if hasattr(parent, "layout") and callable(parent.layout):
                 progress_info_layout = parent.layout()
-        
+
         # spacer 추가 (QBoxLayout 이 맞는 경우에만 안전하게 처리)
         if isinstance(progress_info_layout, QBoxLayout):
-            spacer = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+            spacer = QSpacerItem(
+                0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
+            )
             # elapsedLabel 전에 spacer 삽입 (인덱스를 찾아서)
             elapsed_index = None
             for i in range(progress_info_layout.count()):
                 item = progress_info_layout.itemAt(i)
-                if item and hasattr(item, 'widget') and item.widget() == elapsed_label:
+                if item and hasattr(item, "widget") and item.widget() == elapsed_label:
                     elapsed_index = i
                     break
             if elapsed_index is not None and elapsed_index > 0:
@@ -467,15 +543,19 @@ class MainController(QObject):
             self.find(QLineEdit, "lmUrlEdit").setText(resolved_lm_url)
             lm_url = resolved_lm_url
         elif not resolved_lm_url:
-            self.append_log("[WARNING] LM Studio 서버를 찾을 수 없습니다. URL을 확인해주세요.")
+            self.append_log(
+                "[WARNING] LM Studio 서버를 찾을 수 없습니다. URL을 확인해주세요."
+            )
             self.find(QLabel, "lmStatusLabel").setText("🔴서버 없음")
             self.find(QLabel, "lmStatusLabel").setStyleSheet("color:#E45757;")
-        
+
         if resolved_comfy_url and resolved_comfy_url != comfy_url:
             self.find(QLineEdit, "comfyUrlEdit").setText(resolved_comfy_url)
             comfy_url = resolved_comfy_url
         elif not resolved_comfy_url:
-            self.append_log("[WARNING] ComfyUI 서버를 찾을 수 없습니다. URL을 확인해주세요.")
+            self.append_log(
+                "[WARNING] ComfyUI 서버를 찾을 수 없습니다. URL을 확인해주세요."
+            )
             self.find(QLabel, "comfyStatusLabel").setText("🔴서버 없음")
             self.find(QLabel, "comfyStatusLabel").setStyleSheet("color:#E45757;")
 
@@ -483,32 +563,56 @@ class MainController(QObject):
             # URL이 없으면 모델 목록 조회 건너뛰기
             if not lm_url and not comfy_url:
                 self.model_list_ready.emit([], [])
-                self.connection_result_ready.emit("lm", ConnectionStatus(service="LM Studio", url="", ok=False, message="URL 없음"))
-                self.connection_result_ready.emit("comfy", ConnectionStatus(service="ComfyUI", url="", ok=False, message="URL 없음"))
+                self.connection_result_ready.emit(
+                    "lm",
+                    ConnectionStatus(
+                        service="LM Studio", url="", ok=False, message="URL 없음"
+                    ),
+                )
+                self.connection_result_ready.emit(
+                    "comfy",
+                    ConnectionStatus(
+                        service="ComfyUI", url="", ok=False, message="URL 없음"
+                    ),
+                )
                 return
-            
+
             status = self.model_status_service.fetch(lm_url, comfy_url)
             fallback_candidates = self.config_manager.get_model_base_paths()
             fallback_root = resolve_model_directory("", fallback_candidates)
-            fallback_models = scan_comfyui_model_names(fallback_root, fallback_candidates)
+            fallback_models = scan_comfyui_model_names(
+                fallback_root, fallback_candidates
+            )
             if not status.comfy_models or status.comfy_models == ["로드된 모델 없음"]:
                 status.comfy_models = fallback_models or status.comfy_models
             elif not fallback_models:
                 status.comfy_models = status.comfy_models
             elif status.comfy_models != fallback_models:
                 status.comfy_models = fallback_models[:]
-            
+
             # 실제 연결 상태 확인 (API 호출로 정확하게)
             lm_ok = check_connection_silent("lm", lm_url) if lm_url else False
-            comfy_ok = check_connection_silent("comfy", comfy_url) if comfy_url else False
-            
+            comfy_ok = (
+                check_connection_silent("comfy", comfy_url) if comfy_url else False
+            )
+
             self.model_list_ready.emit(status.lm_models, status.comfy_models)
             # 연결 상태도 함께 전달
-            lm_status = ConnectionStatus(service="LM Studio", url=lm_url, ok=lm_ok, message="연결 성공" if lm_ok else "연결 실패")
-            comfy_status = ConnectionStatus(service="ComfyUI", url=comfy_url, ok=comfy_ok, message="연결 성공" if comfy_ok else "연결 실패")
+            lm_status = ConnectionStatus(
+                service="LM Studio",
+                url=lm_url,
+                ok=lm_ok,
+                message="연결 성공" if lm_ok else "연결 실패",
+            )
+            comfy_status = ConnectionStatus(
+                service="ComfyUI",
+                url=comfy_url,
+                ok=comfy_ok,
+                message="연결 성공" if comfy_ok else "연결 실패",
+            )
             self.connection_result_ready.emit("lm", lm_status)
             self.connection_result_ready.emit("comfy", comfy_status)
-        
+
         threading.Thread(target=fetch, daemon=True).start()
 
     def _apply_models_result(self, lm_models, comfy_models):
@@ -517,7 +621,10 @@ class MainController(QObject):
         self.find(QLabel, "progressStatusLabel").setText("준비 완료")
 
     def set_models(self, lm_models, comfy_models):
-        for name, values, selected in (("lmModelCombo", lm_models, self.config.lmstudio.model), ("comfyModelCombo", comfy_models, self.config.comfyui.model)):
+        for name, values, selected in (
+            ("lmModelCombo", lm_models, self.config.lmstudio.model),
+            ("comfyModelCombo", comfy_models, self.config.comfyui.model),
+        ):
             combo = self.find(QComboBox, name)
             combo.blockSignals(True)
             combo.clear()
@@ -539,7 +646,9 @@ class MainController(QObject):
             return
         preview = items[:5]
         suffix = f" 외 {len(items) - 5}개" if len(items) > 5 else ""
-        self.append_log(f"{service_name} 모델 목록 로드: {len(items)}개 [{', '.join(preview)}{suffix}]")
+        self.append_log(
+            f"{service_name} 모델 목록 로드: {len(items)}개 [{', '.join(preview)}{suffix}]"
+        )
 
     def log_model_selection(self, service_name, model_name):
         if not model_name or model_name == "로드된 모델 없음":
@@ -547,10 +656,16 @@ class MainController(QObject):
         self.append_log(f"{service_name} 모델 선택 변경: {model_name}")
 
     def check_connection(self, which):
-        raw_url = self.find(QLineEdit, "lmUrlEdit" if which == "lm" else "comfyUrlEdit").text().strip()
+        raw_url = (
+            self.find(QLineEdit, "lmUrlEdit" if which == "lm" else "comfyUrlEdit")
+            .text()
+            .strip()
+        )
         resolved_url = resolve_live_url(which, raw_url)
         if resolved_url and resolved_url != raw_url:
-            self.find(QLineEdit, "lmUrlEdit" if which == "lm" else "comfyUrlEdit").setText(resolved_url)
+            self.find(
+                QLineEdit, "lmUrlEdit" if which == "lm" else "comfyUrlEdit"
+            ).setText(resolved_url)
         self.update_connection_label(which, None)
 
         def check():
@@ -564,7 +679,9 @@ class MainController(QObject):
                     client = ComfyUIApiClient(resolved_url)
                     response = client.get_system_stats(timeout=0.3)
                 # 실제 응답이 있고 상태 코드가 400 미만이어야 성공
-                ok = bool(response is not None and getattr(response, "status_code", 500) < 400)
+                ok = bool(
+                    response is not None and getattr(response, "status_code", 500) < 400
+                )
             except Exception:  # noqa: BLE001  (연결 확인은 어떤 오류든 '연결 실패'로 처리하는 것이 의도)
                 ok = False
 
@@ -573,6 +690,7 @@ class MainController(QObject):
             status.ok = ok
             status.message = "연결 성공" if status.ok else "연결 실패"
             self.connection_result_ready.emit(which, status)
+
         threading.Thread(target=check, daemon=True).start()
 
     def _apply_connection_result(self, which, status):
@@ -582,7 +700,9 @@ class MainController(QObject):
         if which == "lm":
             self.lm_connected = bool(status.ok)
         self.update_connection_label(which, status.ok)
-        self.append_log(f"{status.service} 상태: {status.message} (실제 주소: {status.url})")
+        self.append_log(
+            f"{status.service} 상태: {status.message} (실제 주소: {status.url})"
+        )
 
     def is_lm_connected(self):
         if self.lm_connected:
@@ -591,7 +711,9 @@ class MainController(QObject):
         return bool(label and "연결 성공" in label.text())
 
     def update_connection_label(self, which, ok):
-        label = self.find(QLabel, "lmStatusLabel" if which == "lm" else "comfyStatusLabel")
+        label = self.find(
+            QLabel, "lmStatusLabel" if which == "lm" else "comfyStatusLabel"
+        )
         if ok is None:
             label.setText("📡 연결 중...")
             label.setStyleSheet("color:#B8C0CC;")
@@ -610,9 +732,21 @@ class MainController(QObject):
 
     def update_model_path_status(self, path):
         path_obj = Path(path).expanduser()
-        valid = path_obj.exists() and any((path_obj / item).is_dir() for item in ("checkpoints", "unet", "diffusion_models", "vae", "clip", "loras"))
+        valid = path_obj.exists() and any(
+            (path_obj / item).is_dir()
+            for item in (
+                "checkpoints",
+                "unet",
+                "diffusion_models",
+                "vae",
+                "clip",
+                "loras",
+            )
+        )
         label = self.find(QLabel, "modelPathStatusLabel")
-        label.setText("✓ ComfyUI 모델 폴더 확인됨" if valid else "✗ 올바른 모델 폴더가 아닙니다")
+        label.setText(
+            "✓ ComfyUI 모델 폴더 확인됨" if valid else "✗ 올바른 모델 폴더가 아닙니다"
+        )
         label.setStyleSheet(f"color:{'#26C66D' if valid else '#E45757'};")
 
     def apply_model_defaults(self, model_name):
@@ -621,15 +755,24 @@ class MainController(QObject):
         profile = self.model_registry.detect(model_name)
         self.find(QSpinBox, "stepsSpinBox").setValue(profile.default_steps)
         self.find(QDoubleSpinBox, "cfgSpinBox").setValue(profile.default_cfg)
-        display = next((key for key, value in SAMPLER_NAMES.items() if value == profile.sampler_name), profile.sampler_name)
+        display = next(
+            (
+                key
+                for key, value in SAMPLER_NAMES.items()
+                if value == profile.sampler_name
+            ),
+            profile.sampler_name,
+        )
         self.find(QComboBox, "samplerComboBox").setCurrentText(display)
         scheduler_combo = self.find(QComboBox, "schedulerComboBox")
         if scheduler_combo is not None:
-            scheduler_combo.setCurrentText(profile.scheduler if profile.scheduler in SCHEDULER_NAMES else "normal")
+            scheduler_combo.setCurrentText(
+                profile.scheduler if profile.scheduler in SCHEDULER_NAMES else "normal"
+            )
         denoise_spin = self.find(QDoubleSpinBox, "denoiseSpinBox")
         if denoise_spin is not None:
             denoise_spin.setValue(1.0)
-        
+
         # 로드한 모델 프로파일 정보를 로그에 표시
         profile_info = f"모델 프로파일 로드: [{profile.family.upper()}] {profile.name}"
         if profile.workflow_type == "gguf":
@@ -640,11 +783,11 @@ class MainController(QObject):
             profile_info += " (Flux-GGUF)"
         profile_info += f" | Steps: {profile.default_steps}, CFG: {profile.default_cfg}, Sampler: {display}"
         self.append_log(profile_info)
-        
+
         # 보조 모델 정보 표시
         if profile.default_vae:
             self.append_log(f"  └─ VAE: {profile.default_vae}")
-        
+
         if profile.default_clip1 or profile.default_clip2:
             clip_info = "  └─ CLIP:"
             clips = []
@@ -668,19 +811,27 @@ class MainController(QObject):
 
         if file_exists:
             message = f"저장된 설정을 불러왔습니다. ({config_path.name})"
-            show_message_box(self.window, QMessageBox.Icon.Information, "설정 불러오기", message)
+            show_message_box(
+                self.window, QMessageBox.Icon.Information, "설정 불러오기", message
+            )
             self.append_log(message)
         else:
             message = f"설정 파일이 없어 기본값을 불러왔습니다. ({config_path.name})"
-            show_message_box(self.window, QMessageBox.Icon.Information, "기본값 로드", message)
+            show_message_box(
+                self.window, QMessageBox.Icon.Information, "기본값 로드", message
+            )
             self.append_log(message)
 
         self.find(QLineEdit, "lmUrlEdit").setText(self.config.lmstudio.url)
         self.find(QLineEdit, "comfyUrlEdit").setText(self.config.comfyui.url)
         if self.config.lmstudio.model:
-            self.find(QComboBox, "lmModelCombo").setCurrentText(self.config.lmstudio.model)
+            self.find(QComboBox, "lmModelCombo").setCurrentText(
+                self.config.lmstudio.model
+            )
         if self.config.comfyui.model:
-            self.find(QComboBox, "comfyModelCombo").setCurrentText(self.config.comfyui.model)
+            self.find(QComboBox, "comfyModelCombo").setCurrentText(
+                self.config.comfyui.model
+            )
 
         model_paths = self.config_manager.get_model_base_paths()
         if model_paths:
@@ -688,16 +839,27 @@ class MainController(QObject):
             self.find(QLineEdit, "comfyModelPathEdit").setText(first_path)
             self.update_model_path_status(first_path)
 
-        self.find(QSpinBox, "widthSpinBox").setValue(self.config.generation.default_width)
-        self.find(QSpinBox, "heightSpinBox").setValue(self.config.generation.default_height)
-        self.find(QSpinBox, "stepsSpinBox").setValue(self.config.generation.default_steps)
-        self.find(QDoubleSpinBox, "cfgSpinBox").setValue(self.config.generation.default_cfg)
+        self.find(QSpinBox, "widthSpinBox").setValue(
+            self.config.generation.default_width
+        )
+        self.find(QSpinBox, "heightSpinBox").setValue(
+            self.config.generation.default_height
+        )
+        self.find(QSpinBox, "stepsSpinBox").setValue(
+            self.config.generation.default_steps
+        )
+        self.find(QDoubleSpinBox, "cfgSpinBox").setValue(
+            self.config.generation.default_cfg
+        )
         self.find(QSpinBox, "seedSpinBox").setValue(self.config.generation.default_seed)
 
         sampler_name = self.config.workflow.sampler_name
-        sampler_display = next((label for label, value in SAMPLER_NAMES.items() if value == sampler_name), sampler_name)
+        sampler_display = next(
+            (label for label, value in SAMPLER_NAMES.items() if value == sampler_name),
+            sampler_name,
+        )
         self.find(QComboBox, "samplerComboBox").setCurrentText(sampler_display)
-        
+
         # Scheduler 복구
         scheduler_name = self.config.workflow.scheduler
         scheduler_combo = self.find(QComboBox, "schedulerComboBox")
@@ -706,7 +868,7 @@ class MainController(QObject):
                 scheduler_combo.setCurrentText(scheduler_name)
             else:
                 scheduler_combo.setCurrentIndex(0)
-        
+
         # Denoise 복구
         denoise_spin = self.find(QDoubleSpinBox, "denoiseSpinBox")
         if denoise_spin is not None:
@@ -736,7 +898,9 @@ class MainController(QObject):
         readme_path = BASE_DIR / "assets" / "help" / "README.md"
         install_path = BASE_DIR / "assets" / "help" / "INSTALLATION.md"
 
-        html_parts = ["<h1 style='color: #0f172a; font-size: 24px; margin-bottom: 8px;'>📖 프로그램 도움말 v0.3</h1><hr style='border-color: #e2e8f0;'>"]
+        html_parts = [
+            "<h1 style='color: #0f172a; font-size: 24px; margin-bottom: 8px;'>📖 프로그램 도움말 v0.3</h1><hr style='border-color: #e2e8f0;'>"
+        ]
 
         # README.md 요약
         if readme_path.exists():
@@ -746,16 +910,23 @@ class MainController(QObject):
                     # markdown → HTML 변환 (패키지 없으면 텍스트 그대로)
                     try:
                         import importlib
+
                         markdown = importlib.import_module("markdown")
-                        html_parts.append(markdown.markdown(readme_text, extensions=["tables"]))
+                        html_parts.append(
+                            markdown.markdown(readme_text, extensions=["tables"])
+                        )
                     except ImportError:
                         html_parts.append("<pre>" + readme_text + "</pre>")
             except Exception as e:  # noqa: BLE001  (오류 내용을 도움말 화면에 표시하는 것이 의도)
                 html_parts.append(f"<p style='color:red;'>README.md 읽기 오류: {e}</p>")
         else:
-            html_parts.append("<p style='color:red;'>⚠️ README.md 파일을 찾을 수 없습니다.</p>")
+            html_parts.append(
+                "<p style='color:red;'>⚠️ README.md 파일을 찾을 수 없습니다.</p>"
+            )
 
-        html_parts.append("<hr style='border-color: #e2e8f0; margin: 24px 0;'><h2 style='color: #0f172a; font-size: 20px;'>🔧 설치 및 트러블슈팅</h2>")
+        html_parts.append(
+            "<hr style='border-color: #e2e8f0; margin: 24px 0;'><h2 style='color: #0f172a; font-size: 20px;'>🔧 설치 및 트러블슈팅</h2>"
+        )
 
         # INSTALLATION.md 요약
         if install_path.exists():
@@ -764,14 +935,21 @@ class MainController(QObject):
                     install_text = f.read()
                     try:
                         import importlib
+
                         markdown = importlib.import_module("markdown")
-                        html_parts.append(markdown.markdown(install_text, extensions=["tables"]))
+                        html_parts.append(
+                            markdown.markdown(install_text, extensions=["tables"])
+                        )
                     except ImportError:
                         html_parts.append("<pre>" + install_text + "</pre>")
             except Exception as e:  # noqa: BLE001  (오류 내용을 도움말 화면에 표시하는 것이 의도)
-                html_parts.append(f"<p style='color:red;'>INSTALLATION.md 읽기 오류: {e}</p>")
+                html_parts.append(
+                    f"<p style='color:red;'>INSTALLATION.md 읽기 오류: {e}</p>"
+                )
         else:
-            html_parts.append("<p style='color:red;'>⚠️ INSTALLATION.md 파일을 찾을 수 없습니다.</p>")
+            html_parts.append(
+                "<p style='color:red;'>⚠️ INSTALLATION.md 파일을 찾을 수 없습니다.</p>"
+            )
 
         browser.setHtml("\n".join(html_parts))
 
@@ -780,34 +958,46 @@ class MainController(QObject):
         # LM Studio URL 및 모델 업데이트
         self.config.lmstudio.url = self.find(QLineEdit, "lmUrlEdit").text().strip()
         self.config.lmstudio.model = self.find(QComboBox, "lmModelCombo").currentText()
-        
+
         # ComfyUI URL 및 모델 업데이트
         self.config.comfyui.url = self.find(QLineEdit, "comfyUrlEdit").text().strip()
-        self.config.comfyui.model = self.find(QComboBox, "comfyModelCombo").currentText()
-        
+        self.config.comfyui.model = self.find(
+            QComboBox, "comfyModelCombo"
+        ).currentText()
+
         # ComfyUI 모델 경로 업데이트 (첫 번째 경로만 저장하는 방식으로 유지)
         model_path = self.find(QLineEdit, "comfyModelPathEdit").text().strip()
         if model_path:
-            self.config.comfyui_model_paths = [model_path] + [p for p in self.config.comfyui_model_paths if p != model_path]
+            self.config.comfyui_model_paths = [model_path] + [
+                p for p in self.config.comfyui_model_paths if p != model_path
+            ]
         else:
-             self.config.comfyui_model_paths = []
+            self.config.comfyui_model_paths = []
 
         # Generation options 저장
-        self.config.generation.default_width = self.find(QSpinBox, "widthSpinBox").value()
-        self.config.generation.default_height = self.find(QSpinBox, "heightSpinBox").value()
-        self.config.generation.default_steps = self.find(QSpinBox, "stepsSpinBox").value()
-        self.config.generation.default_cfg = self.find(QDoubleSpinBox, "cfgSpinBox").value()
+        self.config.generation.default_width = self.find(
+            QSpinBox, "widthSpinBox"
+        ).value()
+        self.config.generation.default_height = self.find(
+            QSpinBox, "heightSpinBox"
+        ).value()
+        self.config.generation.default_steps = self.find(
+            QSpinBox, "stepsSpinBox"
+        ).value()
+        self.config.generation.default_cfg = self.find(
+            QDoubleSpinBox, "cfgSpinBox"
+        ).value()
         self.config.generation.default_seed = self.find(QSpinBox, "seedSpinBox").value()
-        
+
         # Sampler는 실제 값으로 저장 (라벨->값 매핑)
         sampler_label = self.find(QComboBox, "samplerComboBox").currentText()
         self.config.workflow.sampler_name = SAMPLER_NAMES.get(sampler_label, "euler")
-        
+
         # Scheduler 저장
         scheduler_combo = self.find(QComboBox, "schedulerComboBox")
         if scheduler_combo is not None:
             self.config.workflow.scheduler = scheduler_combo.currentText()
-        
+
         # Denoise 저장
         denoise_spin = self.find(QDoubleSpinBox, "denoiseSpinBox")
         if denoise_spin is not None:
@@ -816,9 +1006,19 @@ class MainController(QObject):
         # 설정 객체 업데이트 및 저장 시도
         self.config_manager._config = self.config
         if self.config_manager.save():
-            show_message_box(self.window, QMessageBox.Icon.Information, "저장 완료", "설정이 성공적으로 저장되었습니다.")
+            show_message_box(
+                self.window,
+                QMessageBox.Icon.Information,
+                "저장 완료",
+                "설정이 성공적으로 저장되었습니다.",
+            )
         else:
-            show_message_box(self.window, QMessageBox.Icon.Warning, "저장 실패", "설정 저장에 실패했습니다. 경로 권한을 확인해주세요.")
+            show_message_box(
+                self.window,
+                QMessageBox.Icon.Warning,
+                "저장 실패",
+                "설정 저장에 실패했습니다. 경로 권한을 확인해주세요.",
+            )
 
     def restore_defaults(self):
         generation = self.config.generation
@@ -839,37 +1039,75 @@ class MainController(QObject):
         prompt_text = self.find(QPlainTextEdit, "positivePromptEdit").toPlainText()
         negative_text = self.find(QPlainTextEdit, "negativePromptEdit").toPlainText()
         # enhancePromptEdit 내용도 스냅샷에 포함 (이미지 생성 시 LM Studio 재요청 방지용)
-        enhance_prompt_text = self.find(QPlainTextEdit, "enhancePromptEdit").toPlainText()
-        generation_settings = build_generation_snapshot({
-            "width": self.find(QSpinBox, "widthSpinBox").value(),
-            "height": self.find(QSpinBox, "heightSpinBox").value(),
-            "steps": self.find(QSpinBox, "stepsSpinBox").value(),
-            "cfg": self.find(QDoubleSpinBox, "cfgSpinBox").value(),
-            "seed": self.find(QSpinBox, "seedSpinBox").value(),
-            "sampler": SAMPLER_NAMES.get(self.find(QComboBox, "samplerComboBox").currentText(), "euler"),
-            "scheduler": self.find(QComboBox, "schedulerComboBox").currentText() if self.find(QComboBox, "schedulerComboBox") is not None else "normal",
-            "denoise": float(self.find(QDoubleSpinBox, "denoiseSpinBox").value() if self.find(QDoubleSpinBox, "denoiseSpinBox") is not None else 1.0),
-        })
+        enhance_prompt_text = self.find(
+            QPlainTextEdit, "enhancePromptEdit"
+        ).toPlainText()
+        generation_settings = build_generation_snapshot(
+            {
+                "width": self.find(QSpinBox, "widthSpinBox").value(),
+                "height": self.find(QSpinBox, "heightSpinBox").value(),
+                "steps": self.find(QSpinBox, "stepsSpinBox").value(),
+                "cfg": self.find(QDoubleSpinBox, "cfgSpinBox").value(),
+                "seed": self.find(QSpinBox, "seedSpinBox").value(),
+                "sampler": SAMPLER_NAMES.get(
+                    self.find(QComboBox, "samplerComboBox").currentText(), "euler"
+                ),
+                "scheduler": self.find(QComboBox, "schedulerComboBox").currentText()
+                if self.find(QComboBox, "schedulerComboBox") is not None
+                else "normal",
+                "denoise": float(
+                    self.find(QDoubleSpinBox, "denoiseSpinBox").value()
+                    if self.find(QDoubleSpinBox, "denoiseSpinBox") is not None
+                    else 1.0
+                ),
+            }
+        )
         # FaceDetailer 설정도 스냅샷에 포함
         facedetailer_enabled = self.find(QCheckBox, "facedetailerCheckBox").isChecked()
-        facedetailer_denoise = self.find(QDoubleSpinBox, "facedetailerDenoiseSpinBox").value()
+        facedetailer_denoise = self.find(
+            QDoubleSpinBox, "facedetailerDenoiseSpinBox"
+        ).value()
         facedetailer_steps = self.find(QSpinBox, "facedetailerStepsSpinBox").value()
         facedetailer_cfg = self.find(QDoubleSpinBox, "facedetailerCfgSpinBox").value()
-        facedetailer_guide_size = self.find(QSpinBox, "facedetailerGuideSizeSpinBox").value()
-        facedetailer_max_size = self.find(QSpinBox, "facedetailerMaxSizeSpinBox").value()
+        facedetailer_guide_size = self.find(
+            QSpinBox, "facedetailerGuideSizeSpinBox"
+        ).value()
+        facedetailer_max_size = self.find(
+            QSpinBox, "facedetailerMaxSizeSpinBox"
+        ).value()
         facedetailer_feather = self.find(QSpinBox, "facedetailerFeatherSpinBox").value()
-        facedetailer_bbox_threshold = self.find(QDoubleSpinBox, "facedetailerBboxThresholdSpinBox").value()
-        facedetailer_bbox_dilation = self.find(QSpinBox, "facedetailerBboxDilationSpinBox").value()
-        facedetailer_bbox_crop_factor = self.find(QDoubleSpinBox, "facedetailerBboxCropFactorSpinBox").value()
-        facedetailer_sam_detection_hint = self.find(QComboBox, "facedetailerSamDetectionHintComboBox").currentText()
-        facedetailer_sam_dilation = self.find(QSpinBox, "facedetailerSamDilationSpinBox").value()
-        facedetailer_sam_threshold = self.find(QDoubleSpinBox, "facedetailerSamThresholdSpinBox").value()
-        facedetailer_sam_bbox_expansion = self.find(QSpinBox, "facedetailerSamBboxExpansionSpinBox").value()
-        facedetailer_sam_mask_hint_threshold = self.find(QDoubleSpinBox, "facedetailerSamMaskHintThresholdSpinBox").value()
-        facedetailer_sam_mask_hint_use_negative = self.find(QComboBox, "facedetailerSamMaskHintUseNegativeComboBox").currentText()
+        facedetailer_bbox_threshold = self.find(
+            QDoubleSpinBox, "facedetailerBboxThresholdSpinBox"
+        ).value()
+        facedetailer_bbox_dilation = self.find(
+            QSpinBox, "facedetailerBboxDilationSpinBox"
+        ).value()
+        facedetailer_bbox_crop_factor = self.find(
+            QDoubleSpinBox, "facedetailerBboxCropFactorSpinBox"
+        ).value()
+        facedetailer_sam_detection_hint = self.find(
+            QComboBox, "facedetailerSamDetectionHintComboBox"
+        ).currentText()
+        facedetailer_sam_dilation = self.find(
+            QSpinBox, "facedetailerSamDilationSpinBox"
+        ).value()
+        facedetailer_sam_threshold = self.find(
+            QDoubleSpinBox, "facedetailerSamThresholdSpinBox"
+        ).value()
+        facedetailer_sam_bbox_expansion = self.find(
+            QSpinBox, "facedetailerSamBboxExpansionSpinBox"
+        ).value()
+        facedetailer_sam_mask_hint_threshold = self.find(
+            QDoubleSpinBox, "facedetailerSamMaskHintThresholdSpinBox"
+        ).value()
+        facedetailer_sam_mask_hint_use_negative = self.find(
+            QComboBox, "facedetailerSamMaskHintUseNegativeComboBox"
+        ).currentText()
         facedetailer_cycle = self.find(QSpinBox, "facedetailerCycleSpinBox").value()
-        facedetailer_drop_size = self.find(QSpinBox, "facedetailerDropSizeSpinBox").value()
-        
+        facedetailer_drop_size = self.find(
+            QSpinBox, "facedetailerDropSizeSpinBox"
+        ).value()
+
         return {
             "prompt": normalize_prompt(prompt_text),
             "negative": build_negative_prompt(negative_text),
@@ -913,21 +1151,36 @@ class MainController(QObject):
         prompt_text = self.find(QPlainTextEdit, "positivePromptEdit").toPlainText()
         prompt = normalize_prompt(prompt_text)
         if not prompt:
-            show_message_box(self.window, QMessageBox.Icon.Warning, "프롬프트 필요", "향상시킬 프롬프트를 입력해주세요.")
+            show_message_box(
+                self.window,
+                QMessageBox.Icon.Warning,
+                "프롬프트 필요",
+                "향상시킬 프롬프트를 입력해주세요.",
+            )
             return
 
         lm_url = self.find(QLineEdit, "lmUrlEdit").text().strip()
         lm_model = self.find(QComboBox, "lmModelCombo").currentText()
         self.append_log(f"[DEBUG] lm_url={lm_url}, lm_model={lm_model}")
         if not lm_model or lm_model == "로드된 모델 없음":
-            show_message_box(self.window, QMessageBox.Icon.Warning, "모델 필요", "LM Studio 모델을 선택해주세요.")
+            show_message_box(
+                self.window,
+                QMessageBox.Icon.Warning,
+                "모델 필요",
+                "LM Studio 모델을 선택해주세요.",
+            )
             return
 
         # LM Studio 연결 확인
         lm_connected = self.is_lm_connected()
         self.append_log(f"[DEBUG] is_lm_connected={lm_connected}")
         if not lm_connected:
-            show_message_box(self.window, QMessageBox.Icon.Warning, "연결 필요", "LM Studio가 연결되지 않았습니다. 연결 확인 후 다시 시도해주세요.")
+            show_message_box(
+                self.window,
+                QMessageBox.Icon.Warning,
+                "연결 필요",
+                "LM Studio가 연결되지 않았습니다. 연결 확인 후 다시 시도해주세요.",
+            )
             return
 
         self.append_log("프롬프트 향상 중...")
@@ -940,33 +1193,46 @@ class MainController(QObject):
         profile = self.model_registry.detect(comfy_model_name)
         manager = self.workflow_manager
 
-        is_flux = bool(profile.workflow_type == "flux_gguf" or manager.is_flux_model(comfy_model_name) or profile.family == "flux")
-        is_zimage = bool(manager.is_zimage_model(comfy_model_name) or profile.workflow_type == "zimage")
+        is_flux = bool(
+            profile.workflow_type == "flux_gguf"
+            or manager.is_flux_model(comfy_model_name)
+            or profile.family == "flux"
+        )
+        is_zimage = bool(
+            manager.is_zimage_model(comfy_model_name)
+            or profile.workflow_type == "zimage"
+        )
 
         # LM Studio에는 영문 시스템 프롬프트 사용 (출력 언어 준수율 향상)
         # use_korean_prompt 설정과 무관하게 영문 프롬프트(_en) 사용
         if is_flux or is_zimage:
-            self.append_log(f"[AI 자동 분석] '{comfy_model_name}' 모델 감지: '문장형' 프롬프트 지시문을 사용합니다.")
+            self.append_log(
+                f"[AI 자동 분석] '{comfy_model_name}' 모델 감지: '문장형' 프롬프트 지시문을 사용합니다."
+            )
             system_prompt = ext_prompts.get("system_prompt_flux_en")
         else:
-            self.append_log(f"[AI 자동 분석] '{comfy_model_name}' 모델 감지: '태그형(쉼표 구분)' 프롬프트 지시문을 사용합니다.")
+            self.append_log(
+                f"[AI 자동 분석] '{comfy_model_name}' 모델 감지: '태그형(쉼표 구분)' 프롬프트 지시문을 사용합니다."
+            )
             system_prompt = ext_prompts.get("system_prompt_sdxl_en")
 
         # 백업용 기본값
         if not system_prompt:
             system_prompt = ext_prompts.get("system_prompt_sdxl_en")
 
-        # PromptEnhanceWorker 사용 (test2.py 완전 호환 버전)
+        # PromptEnhanceWorker 사용
         self._prompt_enhance_worker = PromptEnhanceWorker(
             lm_url=lm_url,
             model_name=lm_model,
             prompt=prompt,
             system_prompt=system_prompt,
-            timeout=self.config.lmstudio.timeout_seconds
+            timeout=self.config.lmstudio.timeout_seconds,
         )
         self._prompt_enhance_worker.finished_signal.connect(self._on_prompt_enhanced)
         self._prompt_enhance_worker.error_signal.connect(self._on_prompt_enhance_error)
-        self._prompt_enhance_worker.debug_signal.connect(lambda msg: self.append_log(msg))
+        self._prompt_enhance_worker.debug_signal.connect(
+            lambda msg: self.append_log(msg)
+        )
         self.append_log("[DEBUG] 워커 시작...")
         self._prompt_enhance_worker.start()
 
@@ -978,12 +1244,16 @@ class MainController(QObject):
     def _on_prompt_enhance_error(self, error_msg: str):
         """프롬프트 향상 실패 시 호출"""
         self.append_log(f"[DEBUG] 프롬프트 향상 실패: {error_msg}")
-        show_message_box(self.window, QMessageBox.Icon.Warning, "프롬프트 향상 실패", error_msg)
+        show_message_box(
+            self.window, QMessageBox.Icon.Warning, "프롬프트 향상 실패", error_msg
+        )
         self.find(QLabel, "progressStatusLabel").setText("준비 완료")
 
     def _apply_enhanced_prompt(self, enhanced_prompt):
         """향상된 프롬프트를 enhancePromptEdit에 적용"""
-        self.append_log(f"[DEBUG] _apply_enhanced_prompt 호출됨: {enhanced_prompt[:50]}...")
+        self.append_log(
+            f"[DEBUG] _apply_enhanced_prompt 호출됨: {enhanced_prompt[:50]}..."
+        )
         prompt_edit = self.find(QPlainTextEdit, "enhancePromptEdit")
         self.append_log(f"[DEBUG] prompt_edit 찾음: {prompt_edit is not None}")
         if prompt_edit:
@@ -999,30 +1269,39 @@ class MainController(QObject):
             return
         snapshot = self.capture_snapshot()
         if not snapshot["prompt"]:
-            show_message_box(self.window, QMessageBox.Icon.Warning, "프롬프트 필요", "프롬프트를 입력해주세요.")
+            show_message_box(
+                self.window,
+                QMessageBox.Icon.Warning,
+                "프롬프트 필요",
+                "프롬프트를 입력해주세요.",
+            )
             return
-            
+
         # 워커 인스턴스 생성
         self.worker = GenerationWorker(self, snapshot)
-        
+
         # 🚀 중복되지 않도록 시그널 이벤트를 딱 1번만 연결합니다.
         self.worker.signals.enhanced_prompt.connect(self._apply_enhanced_prompt)
         self.worker.signals.progress.connect(self.set_progress)
-        self.worker.signals.status.connect(lambda text: self.find(QLabel, "progressStatusLabel").setText(text))
+        self.worker.signals.status.connect(
+            lambda text: self.find(QLabel, "progressStatusLabel").setText(text)
+        )
         self.worker.signals.log.connect(self.append_log)
         self.worker.signals.image.connect(self.show_image)
-        self.worker.signals.error.connect(lambda text: show_message_box(self.window, QMessageBox.Icon.Critical, "생성 오류", text))
+        self.worker.signals.error.connect(
+            lambda text: show_message_box(
+                self.window, QMessageBox.Icon.Critical, "생성 오류", text
+            )
+        )
         self.worker.signals.finished.connect(self.generation_finished)
-        
+
         # UI 및 타이머 상태 업데이트
-        self.find(QPushButton, "generateButton").setEnabled(False)
-        self.find(QPushButton, "stopButton").setEnabled(True)
         self.generation_started_at = time.monotonic()
         self.elapsed_timer.start()
 
         self.loading_animation.start("이미지 생성 중...")
         self.append_log("이미지 생성을 시작했습니다.")
-        
+
         # 🚀 단 1번만 백그라운드 스레드를 가동합니다.
         threading.Thread(target=self.worker.run, daemon=True).start()
 
@@ -1033,18 +1312,37 @@ class MainController(QObject):
             self.find(QLabel, "progressStatusLabel").setText("중단 중...")
         self.loading_animation.stop()
 
+    def _on_gen_stop_state_changed(self, checked):
+        """PlayStopButton의 toggled 시그널 핸들러.
+        파랑(checked=False, "이미지 생성 시작") 클릭 → 빨강으로 변화 → toggled(True) → 생성 시작
+        빨강(checked=True, "정지") 클릭 → 파랑으로 변화 → toggled(False) → 생성 중지
+        """
+        if checked:
+            # 파랑 "이미지 생성 시작"에서 클릭 → 빨강 "정지"로 변화 → 생성 시작
+            self.start_generation()
+        else:
+            # 빨강 "정지"에서 클릭 → 파랑 "이미지 생성 시작"으로 변화 → 생성 중지
+            self.stop_generation()
+
     def generation_finished(self, success):
         self.elapsed_timer.stop()
         self.loading_animation.stop()
         self.worker = None
-        self.find(QPushButton, "generateButton").setEnabled(True)
-        self.find(QPushButton, "stopButton").setEnabled(False)
-        self.find(QLabel, "progressStatusLabel").setText("생성 완료" if success else "생성 실패 또는 중단")
+        btn = self.find(QPushButton, "generateButton")
+        if btn is not None:
+            btn.setChecked(False)
+        self.find(QLabel, "progressStatusLabel").setText(
+            "생성 완료" if success else "생성 실패 또는 중단"
+        )
         bar = self.find(QProgressBar, "progressBar")
         bar.setRange(0, 100)
         bar.setValue(100 if success else 0)
         self.find(QLabel, "progressPercentLabel").setText("100%" if success else "0%")
-        update_execution_status(self.execution_status, 100 if success else 0, "생성 완료" if success else "생성 실패 또는 중단")
+        update_execution_status(
+            self.execution_status,
+            100 if success else 0,
+            "생성 완료" if success else "생성 실패 또는 중단",
+        )
         if success:
             self.append_log("이미지 생성이 완료되었습니다.")
 
@@ -1080,7 +1378,12 @@ class MainController(QObject):
 
     def save_image_as(self):
         if not self.current_image_path:
-            show_message_box(self.window, QMessageBox.Icon.Information, "알림", "저장할 이미지가 없습니다.")
+            show_message_box(
+                self.window,
+                QMessageBox.Icon.Information,
+                "알림",
+                "저장할 이미지가 없습니다.",
+            )
             return
         target = save_image_as(self.window, self.current_image_path, self.output_dir)
         if target:
@@ -1090,7 +1393,12 @@ class MainController(QObject):
         if open_output_folder(self.output_dir):
             self.append_log(f"출력 폴더 열기: {self.output_dir}")
         else:
-            show_message_box(self.window, QMessageBox.Icon.Warning, "폴더 열기 실패", "출력 폴더를 열 수 없습니다.")
+            show_message_box(
+                self.window,
+                QMessageBox.Icon.Warning,
+                "폴더 열기 실패",
+                "출력 폴더를 열 수 없습니다.",
+            )
 
     def build_filename_prefix(self):
         return build_filename_prefix(self.config.output, self.output_dir)
@@ -1106,7 +1414,7 @@ class MainController(QObject):
         self.find(QLabel, "progressStatusLabel").setText("종료 중...")
         self.find(QLabel, "progressPercentLabel").setText("")
         self.close_timer.start(300)
-        
+
     def toggle_log(self):
         """로그창을 보이거나 숨기는 토글 함수 (아이콘 변경 포함)"""
         self.log_visible = not self.log_visible
@@ -1118,7 +1426,7 @@ class MainController(QObject):
             if self.log_visible:
                 btn.setIcon(self.icon_collapse)  # ▼
             else:
-                btn.setIcon(self.icon_expand)    # ▲
+                btn.setIcon(self.icon_expand)  # ▲
 
 
 def main():
@@ -1133,6 +1441,7 @@ def main():
     window.show()
 
     return app.exec()
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1500</width>
-    <height>912</height>
+    <width>1100</width>
+    <height>1108</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -101,7 +101,7 @@
        <item>
         <widget class="QPushButton" name="pushButton">
          <property name="text">
-          <string />
+          <string/>
          </property>
          <property name="icon">
           <iconset>
@@ -186,7 +186,7 @@
       <item>
        <widget class="QTabWidget" name="tabWidget">
         <property name="currentIndex">
-         <number>5</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="homeTab">
          <attribute name="title">
@@ -298,7 +298,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QListWidget" name="recentList" />
+           <widget class="QListWidget" name="recentList"/>
           </item>
           <item>
            <widget class="QFrame" name="systemCard">
@@ -336,10 +336,7 @@
          <attribute name="title">
           <string>◈   ComfyUI</string>
          </attribute>
-         <layout class="QVBoxLayout" name="comfyTabLayout">
-          <property name="spacing">
-           <number>10</number>
-          </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
            <widget class="QGroupBox" name="ComfygroupBox">
             <property name="minimumSize">
@@ -349,7 +346,7 @@
              </size>
             </property>
             <property name="title">
-             <string />
+             <string/>
             </property>
             <widget class="QLabel" name="comfyAddressLabel">
              <property name="geometry">
@@ -452,7 +449,6 @@
              <property name="font">
               <font>
                <family>Cascadia Code</family>
-               <pointsize>-1</pointsize>
                <bold>true</bold>
               </font>
              </property>
@@ -542,7 +538,7 @@
                <height>42</height>
               </size>
              </property>
-             </widget>
+            </widget>
             <zorder>modelPathStatusLabel</zorder>
             <zorder>browseModelFolderButton</zorder>
             <zorder>comfyModelLabel</zorder>
@@ -572,7 +568,7 @@
               <rect>
                <x>10</x>
                <y>192</y>
-               <width>414</width>
+               <width>445</width>
                <height>51</height>
               </rect>
              </property>
@@ -969,9 +965,9 @@
                    </size>
                   </property>
                   <property name="toolTip">
-                   <string>SAMPLER_OPTIONS("dpmpp_2m_sde", "SDE 기반으로 디테일이 뛰어나며, 부드러운 결과물을 생성합니다."),("dpmpp_2m", "가장 보편적으로 사용되며 속도와 품질의 균형이 훌륭합니다."),("euler", "빠르고 안정적이며 깔끔한 결과물을 원할 때 적합합니다."),("euler_ancestral", "매 스텝마다 노이즈를 추가하여 다양한 변형을 시도합니다."),("lcm", "적은 스텝(4~8)으로도 빠르게 생성할 수 있습니다."),("ddim", "일관성이 높고 안정적인 생성을 보장합니다."),</string>
+                   <string>SAMPLER_OPTIONS(&quot;dpmpp_2m_sde&quot;, &quot;SDE 기반으로 디테일이 뛰어나며, 부드러운 결과물을 생성합니다.&quot;),(&quot;dpmpp_2m&quot;, &quot;가장 보편적으로 사용되며 속도와 품질의 균형이 훌륭합니다.&quot;),(&quot;euler&quot;, &quot;빠르고 안정적이며 깔끔한 결과물을 원할 때 적합합니다.&quot;),(&quot;euler_ancestral&quot;, &quot;매 스텝마다 노이즈를 추가하여 다양한 변형을 시도합니다.&quot;),(&quot;lcm&quot;, &quot;적은 스텝(4~8)으로도 빠르게 생성할 수 있습니다.&quot;),(&quot;ddim&quot;, &quot;일관성이 높고 안정적인 생성을 보장합니다.&quot;),</string>
                   </property>
-                  </widget>
+                 </widget>
                 </item>
                </layout>
               </item>
@@ -1002,9 +998,9 @@
                    </size>
                   </property>
                   <property name="toolTip">
-                   <string>SCHEDULER_OPTIONS ("normal", "가장 무난하고 기본적인 노이즈 스케줄입니다."), ("karras", "고화질 이미지 생성에 강하며 디테일을 살리는 데 효과적입니다."), ("exponential", "지수적으로 변화하며 부드러운 감쇠를 제공합니다."), ("sgm_uniform", "SGM 노이즈 스케줄을 사용하며 일정한 간격을 가집니다."), ("simple", "복잡한 계산 없이 단순한 선형 스케줄입니다."), ("ddim_uniform", "DDIM의 균일한 노이즈 스케줄을 따릅니다."), ("beta", "베타 분포를 따르는 노이즈 스케줄입니다."), ("linear_quadratic", "선형과 이차 함수가 혼합된 독특한 스케줄입니다."), ("kl_optimal", "KL 발산을 최적화하여 수렴 속도를 높입니다."),</string>
+                   <string>SCHEDULER_OPTIONS (&quot;normal&quot;, &quot;가장 무난하고 기본적인 노이즈 스케줄입니다.&quot;), (&quot;karras&quot;, &quot;고화질 이미지 생성에 강하며 디테일을 살리는 데 효과적입니다.&quot;), (&quot;exponential&quot;, &quot;지수적으로 변화하며 부드러운 감쇠를 제공합니다.&quot;), (&quot;sgm_uniform&quot;, &quot;SGM 노이즈 스케줄을 사용하며 일정한 간격을 가집니다.&quot;), (&quot;simple&quot;, &quot;복잡한 계산 없이 단순한 선형 스케줄입니다.&quot;), (&quot;ddim_uniform&quot;, &quot;DDIM의 균일한 노이즈 스케줄을 따릅니다.&quot;), (&quot;beta&quot;, &quot;베타 분포를 따르는 노이즈 스케줄입니다.&quot;), (&quot;linear_quadratic&quot;, &quot;선형과 이차 함수가 혼합된 독특한 스케줄입니다.&quot;), (&quot;kl_optimal&quot;, &quot;KL 발산을 최적화하여 수렴 속도를 높입니다.&quot;),</string>
                   </property>
-                  </widget>
+                 </widget>
                 </item>
                </layout>
               </item>
@@ -1017,7 +1013,7 @@
             <property name="title">
              <string>▶️ Launch</string>
             </property>
-            <layout class="QVBoxLayout" name="executionLayout" stretch="0,1,2">
+            <layout class="QVBoxLayout" name="executionLayout" stretch="0,2">
              <property name="spacing">
               <number>0</number>
              </property>
@@ -1068,90 +1064,85 @@
               </layout>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="progressBarLayout">
-               <item>
-                <widget class="QProgressBar" name="progressBar">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="minimum">
-                  <number>0</number>
-                 </property>
-                 <property name="maximum">
-                  <number>100</number>
-                 </property>
-                 <property name="value">
-                  <number>0</number>
-                 </property>
-                 <property name="textVisible">
-                  <bool>false</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="progressPercentLabel">
-                 <property name="text">
-                  <string>0%</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="generateStopLayout">
-               <item>
-                <widget class="QPushButton" name="generateButton">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="text">
-                  <string>이미지 생성 시작</string>
-                 </property>
-                 <property name="icon">
-                  <iconset>
-                   <normaloff>:/newPrefix1/play.svg</normaloff>:/newPrefix1/play.svg</iconset>
-                 </property>
-                 <property name="checkable">
-                  <bool>false</bool>
-                 </property>
-                 <property name="autoDefault">
-                  <bool>false</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="stopButton">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="text">
-                  <string>정지</string>
-                 </property>
-                 <property name="icon">
-                  <iconset>
-                   <normaloff>:/newPrefix1/stop-svgrepo-com.svg</normaloff>:/newPrefix1/stop-svgrepo-com.svg</iconset>
-                 </property>
-                </widget>
-               </item>
-              </layout>
+              <layout class="QHBoxLayout" name="generateStopLayout"/>
              </item>
             </layout>
            </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="progressBarLayout">
+            <item>
+             <widget class="QProgressBar" name="progressBar">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimum">
+               <number>0</number>
+              </property>
+              <property name="maximum">
+               <number>100</number>
+              </property>
+              <property name="value">
+               <number>0</number>
+              </property>
+              <property name="textVisible">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="progressPercentLabel">
+              <property name="text">
+               <string>0%</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="PlayStopButton" name="generateButton" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(0, 170, 255);</string>
+            </property>
+            <property name="text" stdset="0">
+             <string>이미지 생성 시작</string>
+            </property>
+            <property name="icon" stdset="0">
+             <iconset>
+              <normaloff>:/newPrefix1/play.svg</normaloff>:/newPrefix1/play.svg</iconset>
+            </property>
+            <property name="checkable" stdset="0">
+             <bool>true</bool>
+            </property>
+            <property name="autoDefault" stdset="0">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="comfyTabSpacer">
+            <property name="orientation">
+             <enum>Qt::Orientation::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
           </item>
           <item>
            <widget class="QGroupBox" name="facedetailerGroupBox">
@@ -1170,7 +1161,7 @@
             <widget class="QCheckBox" name="facedetailerCheckBox">
              <property name="geometry">
               <rect>
-               <x>190</x>
+               <x>200</x>
                <y>0</y>
                <width>31</width>
                <height>26</height>
@@ -1180,7 +1171,7 @@
               <string>FaceDetailer 얼굴 보정 기능 켜기/끄기 체크 시: 전체 이미지생성 후 얼굴 영역만 별도로 보정 해제 시: 보정 없이, 일반 이미지생성만 수행 필수: ComfyUI Impact Pack 설치 필요</string>
              </property>
              <property name="text">
-              <string />
+              <string/>
              </property>
              <property name="iconSize">
               <size>
@@ -1588,7 +1579,7 @@
                     <property name="toolTip">
                      <string>SAM 얼굴 감지 힌트 모드 center-1: 중앙 단일 얼굴 center-2: 중앙 두 얼굴 center-3: 중앙 세 얼굴 center-4: 중앙 네 얼굴 all: 모든 얼굴 기본 center-1</string>
                     </property>
-                    </widget>
+                   </widget>
                   </item>
                  </layout>
                 </item>
@@ -1780,7 +1771,7 @@
                     <property name="toolTip">
                      <string>SAM 마스크 힌트 네거티브 사용 False: 사용 안함, Small: 작은 영역, Outter: 바깥 영역 기본 False</string>
                     </property>
-                    </widget>
+                   </widget>
                   </item>
                  </layout>
                 </item>
@@ -1868,19 +1859,6 @@
             </widget>
            </widget>
           </item>
-          <item>
-           <spacer name="comfyTabSpacer">
-            <property name="orientation">
-             <enum>Qt::Orientation::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
          </layout>
         </widget>
         <widget class="QWidget" name="lmstudioTab">
@@ -1900,7 +1878,7 @@
              </size>
             </property>
             <property name="title">
-             <string />
+             <string/>
             </property>
             <widget class="QLabel" name="lmAddressLabel">
              <property name="geometry">
@@ -1952,7 +1930,6 @@
              <property name="font">
               <font>
                <family>Cascadia Code</family>
-               <pointsize>-1</pointsize>
               </font>
              </property>
              <property name="text">
@@ -2025,7 +2002,7 @@
                <height>42</height>
               </size>
              </property>
-             </widget>
+            </widget>
            </widget>
           </item>
           <item>
@@ -2388,7 +2365,7 @@
             <item>
              <widget class="QPushButton" name="toggleLogButton">
               <property name="text">
-               <string />
+               <string/>
               </property>
               <property name="icon">
                <iconset>
@@ -2640,6 +2617,13 @@
    </layout>
   </widget>
  </widget>
- <resources />
- <connections />
+ <customwidgets>
+  <customwidget>
+   <class>PlayStopButton</class>
+   <extends>QWidget</extends>
+   <header>playstopbutton.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
 </ui>

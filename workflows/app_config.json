@@ -1,7 +1,7 @@
 {
   "lmstudio": {
     "url": "http://127.0.0.1:1234",
-    "model": "qwen3.5-4b",
+    "model": "로드된 모델 없음",
     "timeout_seconds": 120,
     "enhance_temperature": 0.7,
     "enhance_max_tokens": 5000
@@ -40,9 +40,8 @@
     "flux_gguf_template": "workflows/flux_gguf.json",
     "zimage_template": "workflows/zimage.json",
     "sampler_name": "dpmpp_2m",
-    "scheduler": "karras",
-    "denoise": 1.0,
-    "use_facedetailer": false
+    "scheduler": "normal",
+    "denoise": 1.0
   },
   "output": {
     "directory": "outputs",

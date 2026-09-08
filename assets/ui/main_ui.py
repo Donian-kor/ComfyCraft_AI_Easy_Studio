@@ -22,11 +22,13 @@ from PySide6.QtWidgets import (QAbstractSpinBox, QApplication, QCheckBox, QCombo
     QPushButton, QSizePolicy, QSpacerItem, QSpinBox,
     QTabWidget, QTextBrowser, QVBoxLayout, QWidget)
 
+from playstopbutton import PlayStopButton
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1500, 912)
+        MainWindow.resize(1100, 1108)
         MainWindow.setMinimumSize(QSize(1100, 720))
         font = QFont()
         font.setFamilies([u"Segoe UI"])
@@ -221,9 +223,8 @@ class Ui_MainWindow(object):
         self.tabWidget.addTab(self.homeTab, "")
         self.comfyTab = QWidget()
         self.comfyTab.setObjectName(u"comfyTab")
-        self.comfyTabLayout = QVBoxLayout(self.comfyTab)
-        self.comfyTabLayout.setSpacing(10)
-        self.comfyTabLayout.setObjectName(u"comfyTabLayout")
+        self.verticalLayout_3 = QVBoxLayout(self.comfyTab)
+        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
         self.ComfygroupBox = QGroupBox(self.comfyTab)
         self.ComfygroupBox.setObjectName(u"ComfygroupBox")
         self.ComfygroupBox.setMinimumSize(QSize(351, 301))
@@ -289,14 +290,14 @@ class Ui_MainWindow(object):
         self.comfyUrlEdit.raise_()
         self.comfyCheckButton.raise_()
 
-        self.comfyTabLayout.addWidget(self.ComfygroupBox)
+        self.verticalLayout_3.addWidget(self.ComfygroupBox)
 
         self.generationPanel = QGroupBox(self.comfyTab)
         self.generationPanel.setObjectName(u"generationPanel")
         self.generationPanel.setMinimumSize(QSize(441, 251))
         self.layoutWidget = QWidget(self.generationPanel)
         self.layoutWidget.setObjectName(u"layoutWidget")
-        self.layoutWidget.setGeometry(QRect(10, 192, 414, 51))
+        self.layoutWidget.setGeometry(QRect(10, 192, 445, 51))
         self.horizontalLayout_3 = QHBoxLayout(self.layoutWidget)
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
@@ -544,7 +545,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addLayout(self.verticalLayout_10)
 
 
-        self.comfyTabLayout.addWidget(self.generationPanel)
+        self.verticalLayout_3.addWidget(self.generationPanel)
 
         self.executionPanel = QGroupBox(self.comfyTab)
         self.executionPanel.setObjectName(u"executionPanel")
@@ -572,9 +573,18 @@ class Ui_MainWindow(object):
 
         self.executionLayout.addLayout(self.progressStatusLayout)
 
+        self.generateStopLayout = QHBoxLayout()
+        self.generateStopLayout.setObjectName(u"generateStopLayout")
+
+        self.executionLayout.addLayout(self.generateStopLayout)
+
+        self.executionLayout.setStretch(1, 2)
+
+        self.verticalLayout_3.addWidget(self.executionPanel)
+
         self.progressBarLayout = QHBoxLayout()
         self.progressBarLayout.setObjectName(u"progressBarLayout")
-        self.progressBar = QProgressBar(self.executionPanel)
+        self.progressBar = QProgressBar(self.comfyTab)
         self.progressBar.setObjectName(u"progressBar")
         sizePolicy5 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
         sizePolicy5.setHorizontalStretch(0)
@@ -588,57 +598,41 @@ class Ui_MainWindow(object):
 
         self.progressBarLayout.addWidget(self.progressBar)
 
-        self.progressPercentLabel = QLabel(self.executionPanel)
+        self.progressPercentLabel = QLabel(self.comfyTab)
         self.progressPercentLabel.setObjectName(u"progressPercentLabel")
         self.progressPercentLabel.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
 
         self.progressBarLayout.addWidget(self.progressPercentLabel)
 
 
-        self.executionLayout.addLayout(self.progressBarLayout)
+        self.verticalLayout_3.addLayout(self.progressBarLayout)
 
-        self.generateStopLayout = QHBoxLayout()
-        self.generateStopLayout.setObjectName(u"generateStopLayout")
-        self.generateButton = QPushButton(self.executionPanel)
+        self.generateButton = PlayStopButton(self.comfyTab)
         self.generateButton.setObjectName(u"generateButton")
         sizePolicy6 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy6.setHorizontalStretch(0)
         sizePolicy6.setVerticalStretch(0)
         sizePolicy6.setHeightForWidth(self.generateButton.sizePolicy().hasHeightForWidth())
         self.generateButton.setSizePolicy(sizePolicy6)
+        self.generateButton.setStyleSheet(u"background-color: rgb(0, 170, 255);")
         icon1 = QIcon()
         icon1.addFile(u":/newPrefix1/play.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
-        self.generateButton.setIcon(icon1)
-        self.generateButton.setCheckable(False)
-        self.generateButton.setAutoDefault(False)
+        self.generateButton.setProperty(u"icon", icon1)
+        self.generateButton.setProperty(u"checkable", True)
+        self.generateButton.setProperty(u"autoDefault", False)
 
-        self.generateStopLayout.addWidget(self.generateButton)
+        self.verticalLayout_3.addWidget(self.generateButton)
 
-        self.stopButton = QPushButton(self.executionPanel)
-        self.stopButton.setObjectName(u"stopButton")
-        self.stopButton.setEnabled(False)
-        sizePolicy1.setHeightForWidth(self.stopButton.sizePolicy().hasHeightForWidth())
-        self.stopButton.setSizePolicy(sizePolicy1)
-        icon2 = QIcon()
-        icon2.addFile(u":/newPrefix1/stop-svgrepo-com.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
-        self.stopButton.setIcon(icon2)
+        self.comfyTabSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
-        self.generateStopLayout.addWidget(self.stopButton)
-
-
-        self.executionLayout.addLayout(self.generateStopLayout)
-
-        self.executionLayout.setStretch(1, 1)
-        self.executionLayout.setStretch(2, 2)
-
-        self.comfyTabLayout.addWidget(self.executionPanel)
+        self.verticalLayout_3.addItem(self.comfyTabSpacer)
 
         self.facedetailerGroupBox = QGroupBox(self.comfyTab)
         self.facedetailerGroupBox.setObjectName(u"facedetailerGroupBox")
         self.facedetailerGroupBox.setMinimumSize(QSize(751, 181))
         self.facedetailerCheckBox = QCheckBox(self.facedetailerGroupBox)
         self.facedetailerCheckBox.setObjectName(u"facedetailerCheckBox")
-        self.facedetailerCheckBox.setGeometry(QRect(190, 0, 31, 26))
+        self.facedetailerCheckBox.setGeometry(QRect(200, 0, 31, 26))
         self.facedetailerCheckBox.setIconSize(QSize(33, 33))
         self.layoutWidget3 = QWidget(self.facedetailerGroupBox)
         self.layoutWidget3.setObjectName(u"layoutWidget3")
@@ -1012,11 +1006,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addLayout(self.horizontalLayout_5)
 
 
-        self.comfyTabLayout.addWidget(self.facedetailerGroupBox)
-
-        self.comfyTabSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.comfyTabLayout.addItem(self.comfyTabSpacer)
+        self.verticalLayout_3.addWidget(self.facedetailerGroupBox)
 
         self.tabWidget.addTab(self.comfyTab, "")
         self.lmstudioTab = QWidget()
@@ -1145,9 +1135,9 @@ class Ui_MainWindow(object):
         self.enhancePromptButton.setObjectName(u"enhancePromptButton")
         self.enhancePromptButton.setMinimumSize(QSize(0, 28))
         self.enhancePromptButton.setMaximumSize(QSize(16777215, 28))
-        icon3 = QIcon()
-        icon3.addFile(u":/newPrefix1/sparkel.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
-        self.enhancePromptButton.setIcon(icon3)
+        icon2 = QIcon()
+        icon2.addFile(u":/newPrefix1/sparkel.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        self.enhancePromptButton.setIcon(icon2)
 
         self.enhancePromptHeaderLayout.addWidget(self.enhancePromptButton)
 
@@ -1235,9 +1225,9 @@ class Ui_MainWindow(object):
         self.logHeaderRow.setObjectName(u"logHeaderRow")
         self.toggleLogButton = QPushButton(self.logTab)
         self.toggleLogButton.setObjectName(u"toggleLogButton")
-        icon4 = QIcon()
-        icon4.addFile(u":/newPrefix1/toggle-off.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
-        self.toggleLogButton.setIcon(icon4)
+        icon3 = QIcon()
+        icon3.addFile(u":/newPrefix1/toggle-off.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        self.toggleLogButton.setIcon(icon3)
         self.toggleLogButton.setIconSize(QSize(55, 55))
 
         self.logHeaderRow.addWidget(self.toggleLogButton)
@@ -1306,9 +1296,9 @@ class Ui_MainWindow(object):
         sizePolicy6.setHeightForWidth(self.exitButton.sizePolicy().hasHeightForWidth())
         self.exitButton.setSizePolicy(sizePolicy6)
         self.exitButton.setMinimumSize(QSize(120, 32))
-        icon5 = QIcon()
-        icon5.addFile(u":/newPrefix1/off-2.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
-        self.exitButton.setIcon(icon5)
+        icon4 = QIcon()
+        icon4.addFile(u":/newPrefix1/off-2.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        self.exitButton.setIcon(icon4)
 
         self.exitRow.addWidget(self.exitButton)
 
@@ -1352,7 +1342,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.tabWidget.setCurrentIndex(5)
+        self.tabWidget.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -1418,8 +1408,7 @@ class Ui_MainWindow(object):
         self.progressStatusLabel.setText(QCoreApplication.translate("MainWindow", u"\uc900\ube44 \uc644\ub8cc", None))
         self.elapsedLabel.setText(QCoreApplication.translate("MainWindow", u"0\ucd08", None))
         self.progressPercentLabel.setText(QCoreApplication.translate("MainWindow", u"0%", None))
-        self.generateButton.setText(QCoreApplication.translate("MainWindow", u"\uc774\ubbf8\uc9c0 \uc0dd\uc131 \uc2dc\uc791", None))
-        self.stopButton.setText(QCoreApplication.translate("MainWindow", u"\uc815\uc9c0", None))
+        self.generateButton.setProperty(u"text", QCoreApplication.translate("MainWindow", u"\uc774\ubbf8\uc9c0 \uc0dd\uc131 \uc2dc\uc791", None))
 #if QT_CONFIG(tooltip)
         self.facedetailerGroupBox.setToolTip(QCoreApplication.translate("MainWindow", u"FaceDetailer\ub294 ComfyUI Impact Pack\uc758 \ub178\ub4dc\ub85c, \uc0dd\uc131\ub41c \uc774\ubbf8\uc9c0\uc5d0\uc11c \uc5bc\uad74\uc744 \uac10\uc9c0\ud558\uc5ec \ubcc4\ub3c4\uc758 \ud30c\ub77c\ubbf8\ud130\ub85c\uc5bc\uad74 \uc601\uc5ed\ub9cc \uc7ac\uc0dd\uc131\ud558\uc5ec \ub514\ud14c\uc77c\uc744 \ubcf4\uc815\ud569\ub2c8\ub2e4.\uae30\uc874 \uc0dd\uc131 \uc635\uc158(CFG, Steps \ub4f1)\uacfc \ubcc4\ub3c4\ub85c \ub3d9\uc791\ud558\uba70, \uc5bc\uad74 \uc601\uc5ed\ub9cc \ub354 \uc12c\uc138\ud558\uac8c/\uac15\ud558\uac8c \ubcf4\uc815\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.\ud544\uc218 \uc870\uac74: ComfyUI\uc5d0 Impact Pack \uc124\uce58 \ud544\uc694 (FaceDetailer, UltralyticsDetectorProvider \ub178\ub4dc \ud3ec\ud568)", None))
 #endif // QT_CONFIG(tooltip)
