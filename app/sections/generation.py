@@ -331,10 +331,17 @@ class GenerationWorker:
 
         return None
 
+    def _require_comfy_api(self) -> ComfyUIApiClient:
+        """comfy_api가 None이 아님을 보장하고 반환합니다."""
+        if self.comfy_api is None:
+            raise RuntimeError("ComfyUI API 클라이언트가 초기화되지 않았습니다.")
+        return self.comfy_api
+
     def _comfyui_node_exists(self, node_name: str, base_url: str) -> bool:
         try:
-            response = self.comfy_api.session.get(
-                f"{base_url.rstrip('/')}/object_info/{node_name}",
+            api = self._require_comfy_api()
+            response = api.get_object_info(
+                node_name,
                 timeout=(0.5, 1.0)
             )
             if response.status_code != 200:
@@ -712,12 +719,13 @@ class GenerationWorker:
 
 
     def download_first_image(self, history_item: Dict[str, Any]) -> Optional[Path]:
+        api = self._require_comfy_api()
         for output in history_item.get("outputs", {}).values():
             images = output.get("images", [])
             if not images:
                 continue
             image = images[0]
-            response = self.comfy_api.view({
+            response = api.view({
                 "filename": image.get("filename", "output.png"),
                 "subfolder": image.get("subfolder", ""),
                 "type": image.get("type", "output"),

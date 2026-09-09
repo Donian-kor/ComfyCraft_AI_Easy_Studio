@@ -23,10 +23,13 @@ DEFAULT_THEME = "fluent_dark"
 # 콤보박스에 표시되는 순서대로 정의
 AVAILABLE_THEMES: dict[str, str] = {
     "fluent_dark": "🎨  플루언트 다크 (기본)",
-    "midnight_navy": "🌙  미드나잇 네이비",
-    "emerald_forest": "🌲  에메랄드 포레스트",
-    "purple_nebula": "🔮  퍼플 네뷸라",
-    "warm_cocoa": "🍫  웜 코코아",
+    "midnight_navy": "🌙  미드나잇 네이비 (미드톤)",
+    "emerald_forest": "🌲  에메랄드 포레스트 (미드톤)",
+    "purple_nebula": "🔮  퍼플 네뷸라 (미드톤)",
+    "warm_cocoa": "🍫  웜 코코아 (미드톤)",
+    "slate_amber": "🧱  슬레이트 앰버 (미드톤)",
+    "midnight_coral": "🪸  미드나잇 코랄 (미드톤)",
+    "plum_sage": "🌸  플럼 세이지 (미드톤 라이트)",
     "fluent_light": "☀️  플루언트 라이트",
 }
 

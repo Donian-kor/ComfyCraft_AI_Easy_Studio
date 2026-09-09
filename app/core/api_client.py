@@ -30,12 +30,13 @@ class BaseApiClient:
         session = requests.Session()
         
         # Configure retry strategy
-        retry_strategy = Retry(
-            total=max_retries,
-            backoff_factor=0.5,  # 0.5s, 1s, 2s for retries
-            status_forcelist=[429, 500, 502, 503, 504],  # Retry on these HTTP errors
-            allowed_methods=["GET", "POST", "HEAD"]
-        )
+        # Pylance가 urllib3 버전을 잘못 인식해서 생기는 오탐지 회피용:
+        # 옵션은 생성자 키워드로 넣지 않고, 만든 뒤 직접 넣어줍니다.
+        retry_strategy = Retry()
+        retry_strategy.total = max_retries
+        retry_strategy.backoff_factor = 0.5
+        retry_strategy.status_forcelist = [429, 500, 502, 503, 504]
+        retry_strategy.allowed_methods = ["GET", "POST", "HEAD"]
         
         adapter = HTTPAdapter(max_retries=retry_strategy)
         session.mount("http://", adapter)
@@ -85,6 +86,9 @@ class ComfyUIApiClient(BaseApiClient):
 
     def history(self, prompt_id: str, timeout: Any = 5) -> requests.Response:
         return self.get(f'/history/{prompt_id}', timeout=timeout)
+
+    def get_object_info(self, node_name: str, timeout: Any = (0.5, 1.0)) -> requests.Response:
+        return self.get(f'/object_info/{node_name}', timeout=timeout)
 
     def view(self, params: Dict[str, Any], timeout: Any = 30) -> requests.Response:
         return requests.get(self.build_url('/view'), params=params, timeout=timeout)
