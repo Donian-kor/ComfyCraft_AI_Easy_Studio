@@ -13,7 +13,7 @@
 2. **LM Studio** (로컬 서버 모드)
    - 다운로드: https://lmstudio.ai
    - 설치 후 모델 로드 필요
-   - 기본 포트: 1729 (v0.3부터 1729로 변경)
+   - 기본 포트: 1234
 
 3. **ComfyUI** (웹 서버 모드)
    - 다운로드: https://github.com/comfyanonymous/ComfyUI
@@ -88,12 +88,12 @@ pip show PySide6 requests websocket-client urllib3 markdown
 2. 왼쪽 메뉴에서 모델 선택
 3. 모델 로드 (크기에 따라 1-5분 소요)
 4. 서버 탭 (서버 아이콘) 선택
-5. 기본 포트 1729에서 서버 시작
+5. 기본 포트 1234에서 서버 시작
 
 **확인 방법**:
 ```powershell
 # LM Studio 서버 상태 확인
-Invoke-WebRequest http://127.0.0.1:1729/v1/models -TimeoutSec 5
+Invoke-WebRequest http://127.0.0.1:1234/v1/models -TimeoutSec 5
 ```
 
 #### ComfyUI 설정
@@ -139,17 +139,16 @@ python main.py
 
 ```
 프로젝트 폴더/
-├── workflows/
-│   └── app_config.json  ← 사용자 설정 (URL, 모델, 생성 파라미터 등)
 └── workflows/
-    └── prompt.json      ← 시스템 프롬프트 (v0.3: 별도 파일로 분리)
+    ├── app_config.json  ← 사용자 설정 (URL, 모델, 생성 파라미터 등)
+    └── prompt.json      ← 시스템 프롬프트
 ```
 
 **수동 편집 방법 (app_config.json)**:
 ```json
 {
   "lmstudio": {
-    "url": "http://127.0.0.1:1729",
+    "url": "http://127.0.0.1:1234",
     "model": "qwen2.5-7b-instruct"
   },
   "comfyui": {
@@ -229,7 +228,7 @@ pip install markdown>=3.5
 **해결**:
 ```powershell
 # LM Studio 확인
-Test-NetConnection -ComputerName 127.0.0.1 -Port 1729
+Test-NetConnection -ComputerName 127.0.0.1 -Port 1234
 
 # ComfyUI 확인
 Test-NetConnection -ComputerName 127.0.0.1 -Port 8188
@@ -272,7 +271,7 @@ Test-NetConnection -ComputerName 127.0.0.1 -Port 8188
 **해결**:
 ```powershell
 # 직접 API 테스트
-Invoke-WebRequest http://127.0.0.1:1729/v1/models
+Invoke-WebRequest http://127.0.0.1:1234/v1/models
 Invoke-WebRequest http://127.0.0.1:8188/system_stats
 ```
 

@@ -40,7 +40,7 @@ LM Studio의 강력한 LLM 프롬프트 엔지니어링 능력과 ComfyUI의 정
 
 ## 📦 모델 프로필 및 설정 시스템
 
-### 모델 프로필 (`src/model_profiles/`)
+### 모델 프로필 (`app/core/model_profiles/`)
 각 모델은 `ModelProfile` 클래스를 상속받아 정의되며, 다음과 같은 속성을 관리합니다.
 - **Scheduler**: 모델에 최적화된 스케줄러 (예: Flux $\rightarrow$ `simple`, ZImage $\rightarrow$ `karras`)
 - **Priority**: 모델 로드 우선순위 설정

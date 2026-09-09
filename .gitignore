@@ -1,0 +1,7 @@
+# Python runtime cache files
+__pycache__/
+*.py[cod]
+
+# Test and type-checker caches
+.pytest_cache/
+.mypy_cache/
