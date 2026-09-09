@@ -184,7 +184,7 @@ class MainController(QObject):
         )
         ext_prompts = load_external_prompts()
         self.find(QPlainTextEdit, "negativePromptEdit").setPlainText(
-            ext_prompts.get("negative_default")
+            ext_prompts.get("negative_default") or ""
         )
         sampler = self.find(QComboBox, "samplerComboBox")
         sampler.clear()
@@ -1203,16 +1203,16 @@ class MainController(QObject):
             self.append_log(
                 f"[AI 자동 분석] '{comfy_model_name}' 모델 감지: '문장형' 프롬프트 지시문을 사용합니다."
             )
-            system_prompt = ext_prompts.get("system_prompt_flux_en")
+            system_prompt = ext_prompts.get("system_prompt_flux_en") or ""
         else:
             self.append_log(
                 f"[AI 자동 분석] '{comfy_model_name}' 모델 감지: '태그형(쉼표 구분)' 프롬프트 지시문을 사용합니다."
             )
-            system_prompt = ext_prompts.get("system_prompt_sdxl_en")
+            system_prompt = ext_prompts.get("system_prompt_sdxl_en") or ""
 
         # 백업용 기본값
         if not system_prompt:
-            system_prompt = ext_prompts.get("system_prompt_sdxl_en")
+            system_prompt = ext_prompts.get("system_prompt_sdxl_en") or ""
 
         # PromptEnhanceWorker 사용
         self._prompt_enhance_worker = PromptEnhanceWorker(

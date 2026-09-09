@@ -690,16 +690,16 @@ class GenerationWorker:
         # 1. 모델이 FLUX이거나 ZImage 계열일 때 ➡️ '문장형' 프롬프트 분기
         if is_flux or is_zimage:
             self.emit_log(f"[AI 자동 분석] '{comfy_model_name}' 모델 감지: '문장형' 프롬프트 지시문을 사용합니다.")
-            system_prompt = ext_prompts.get("system_prompt_flux_kr" if use_korean else "system_prompt_flux_en")
+            system_prompt = ext_prompts.get("system_prompt_flux_kr" if use_korean else "system_prompt_flux_en") or ""
         
        # 2. 저거넛, 리얼비스를 포함한 나머지 모든 SDXL 계열일 때 ➡️ '태그형' 프롬프트 분기
         else:
             self.emit_log(f"[AI 자동 분석] '{comfy_model_name}' 모델 감지: '태그형(쉼표 구분)' 프롬프트 지시문을 사용합니다.")
-            system_prompt = ext_prompts.get("system_prompt_sdxl_kr" if use_korean else "system_prompt_sdxl_en")
+            system_prompt = ext_prompts.get("system_prompt_sdxl_kr" if use_korean else "system_prompt_sdxl_en") or ""
 
         # 만약 json 매핑 문제로 해당 키가 안 읽히면 백업용 기본값 지정
         if not system_prompt:
-            system_prompt = ext_prompts.get("system_prompt_sdxl_kr" if use_korean else "system_prompt_sdxl_en")
+            system_prompt = ext_prompts.get("system_prompt_sdxl_kr" if use_korean else "system_prompt_sdxl_en") or ""
 
         return enhance_prompt_sync(
             lm_url=s["lm_url"],
