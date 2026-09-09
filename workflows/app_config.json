@@ -1,24 +1,24 @@
 {
   "lmstudio": {
     "url": "http://127.0.0.1:1234",
-    "model": "로드된 모델 없음",
+    "model": "krea-2-engineer-v1",
     "timeout_seconds": 120,
     "enhance_temperature": 0.7,
     "enhance_max_tokens": 5000
   },
   "comfyui": {
     "url": "http://127.0.0.1:8188",
-    "model": "juggernautXL_ragnarok.safetensors",
+    "model": "RealVisXL_V5.0_fp16.safetensors",
     "timeout_seconds": 10,
     "poll_interval_seconds": 1,
     "max_wait_seconds": 600
   },
   "generation": {
-    "default_width": 1024,
-    "default_height": 1024,
-    "default_steps": 35,
-    "default_cfg": 3.5,
-    "default_seed": -1,
+    "default_width": 896,
+    "default_height": 1152,
+    "default_steps": 25,
+    "default_cfg": 4.5,
+    "default_seed": 452687693,
     "width_min": 256,
     "width_max": 2048,
     "height_min": 256,
@@ -40,7 +40,7 @@
     "flux_gguf_template": "workflows/flux_gguf.json",
     "zimage_template": "workflows/zimage.json",
     "sampler_name": "dpmpp_2m",
-    "scheduler": "normal",
+    "scheduler": "karras",
     "denoise": 1.0
   },
   "output": {

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import random
-
 import sys
 import threading
 import time
@@ -18,7 +16,7 @@ from PySide6.QtCore import (
     QTimer,
     Signal,
 )
-from PySide6.QtGui import QIcon, QRegularExpressionValidator, QPixmap
+from PySide6.QtGui import QIcon, QRegularExpressionValidator
 from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -36,13 +34,10 @@ from PySide6.QtWidgets import (
     QPushButton,
     QSizePolicy,
     QSpacerItem,
-    QSlider,
-    QDialog,
     QSpinBox,
     QTabWidget,
     QTextBrowser,
     QVBoxLayout,
-    QWidget,
 )
 
 from assets.icons import (
@@ -268,23 +263,18 @@ class MainController(QObject):
             self.apply_model_defaults
         )
         presets = {
-            "preset_1024x1024": (1024, 1024),
-            "preset_896x1152": (896, 1152),
-            "preset_1152x896": (1152, 896),
-            # 하위 호환용
             "preset_512x512": (512, 512),
             "preset_768x768": (768, 768),
+            "preset_1024x1024": (1024, 1024),
             "preset_832x1216": (832, 1216),
             "preset_1216x832": (1216, 832),
         }
         for button_name, (width, height) in presets.items():
-            btn = self.find(QPushButton, button_name)
-            if btn is not None:
-                btn.clicked.connect(
-                    lambda checked=False, width=width, height=height: self.apply_preset(
-                        width, height
-                    )
+            self.find(QPushButton, button_name).clicked.connect(
+                lambda checked=False, width=width, height=height: self.apply_preset(
+                    width, height
                 )
+            )
         self.find(QPlainTextEdit, "positivePromptEdit").textChanged.connect(
             lambda: self.update_counter(
                 "positivePromptEdit", "positivePromptCounterLabel"
@@ -373,27 +363,13 @@ class MainController(QObject):
         # ===== 테마 선택기 (설정 탭) =====
         self._setup_theme_selector()
 
-        # ===== 신규 UI 기능 연동 (ComfyCraft AI Easy Studio) =====
-        self._setup_new_studio_features()
-
     def _setup_theme_selector(self):
-        """상단 헤더의 테마 선택 콤보박스를 초기화하고 연결한다."""
-        combo = self.find(QComboBox, "themeComboBox")
-        if combo is not None:
-            combo.blockSignals(True)
-            combo.clear()
-            for key, display_name in AVAILABLE_THEMES.items():
-                combo.addItem(display_name, key)
-            current_theme = load_theme_choice()
-            idx = combo.findData(current_theme)
-            if idx >= 0:
-                combo.setCurrentIndex(idx)
-            combo.blockSignals(False)
-            combo.currentIndexChanged.connect(self._on_theme_changed)
-            return
-
+        """설정 탭 맨 위에 테마 선택 콤보박스를 만들어 넣는다."""
         settings_layout = self.window.findChild(QVBoxLayout, "settingsLayout")
         if settings_layout is None:
+            print(
+                "[테마] 설정 탭 레이아웃을 찾을 수 없어 테마 선택기를 추가하지 못했습니다."
+            )
             return
 
         box = QGroupBox("🎨  테마")
@@ -403,11 +379,11 @@ class MainController(QObject):
         combo = QComboBox()
         combo.setObjectName("themeComboBox")
         for key, display_name in AVAILABLE_THEMES.items():
-            combo.addItem(display_name, key)
+            combo.addItem(display_name, key)  # 항목 data에 테마 키를 저장
         combo.setCurrentIndex(max(0, combo.findData(load_theme_choice())))
         combo.currentIndexChanged.connect(self._on_theme_changed)
         row.addWidget(combo, 1)
-        settings_layout.insertWidget(0, box)
+        settings_layout.insertWidget(0, box)  # 설정 탭 맨 위에 배치
 
     def _on_theme_changed(self, index: int):
         """테마 선택이 바뀌면 즉시 적용하고 설정 파일에 저장한다."""
@@ -732,41 +708,15 @@ class MainController(QObject):
         label = self.find(
             QLabel, "lmStatusLabel" if which == "lm" else "comfyStatusLabel"
         )
-        if label:
-            if ok is None:
-                label.setText("📡 연결 중...")
-                label.setStyleSheet("color:#B8C0CC;")
-            else:
-                text = "🟢연결 성공" if ok else "🔴연결 실패"
-                color = "#26C66D" if ok else "#E45757"
-                label.setText(text)
-                label.setStyleSheet(f"color:{color};")
+        if ok is None:
+            label.setText("📡 연결 중...")
+            label.setStyleSheet("color:#B8C0CC;")
+            return
 
-        # 상단 헤더 배지 버튼들 각각 갱신
-        comfy_badge = self.find(QPushButton, "comfyStatusBtn")
-        lm_badge = self.find(QPushButton, "lmStatusBtn")
-
-        if which == "comfy" and comfy_badge:
-            if ok is None:
-                comfy_badge.setText("🎨 ComfyUI 📡 확인 중...")
-                comfy_badge.setStyleSheet("color: #cbc3d7; border-color: #33343b;")
-            elif ok:
-                comfy_badge.setText("🎨 ComfyUI 🟢 준비 완료")
-                comfy_badge.setStyleSheet("color: #4edea3; border-color: #4edea3;")
-            else:
-                comfy_badge.setText("🎨 ComfyUI 🔴 미연결")
-                comfy_badge.setStyleSheet("color: #ffb4ab; border-color: #ffb4ab;")
-
-        elif which == "lm" and lm_badge:
-            if ok is None:
-                lm_badge.setText("💬 LM Studio 📡 확인 중...")
-                lm_badge.setStyleSheet("color: #cbc3d7; border-color: #33343b;")
-            elif ok:
-                lm_badge.setText("💬 LM Studio 🟢 준비 완료")
-                lm_badge.setStyleSheet("color: #4cd7f6; border-color: #4cd7f6;")
-            else:
-                lm_badge.setText("💬 LM Studio 🔴 미연결")
-                lm_badge.setStyleSheet("color: #ffb4ab; border-color: #ffb4ab;")
+        text = "🟢연결 성공" if ok else "🔴연결 실패"
+        color = "#26C66D" if ok else "#E45757"
+        label.setText(text)
+        label.setStyleSheet(f"color:{color};")
 
     def browse_model_folder(self):
         folder = QFileDialog.getExistingDirectory(self.window, "ComfyUI 모델 폴더 선택")
@@ -808,18 +758,6 @@ class MainController(QObject):
             profile.sampler_name,
         )
         self.find(QComboBox, "samplerComboBox").setCurrentText(display)
-
-        # 모델별 네거티브 프롬프트 동적 제어 (FLUX/ZImage는 숨김, SDXL은 표시)
-        neg_frame = self.find(QFrame, "negativePromptFrame")
-        if neg_frame:
-            m_lower = model_name.lower()
-            is_flux_or_zimage = any(k in m_lower for k in ["flux", "zimage", "z_image", "turbo"])
-            neg_frame.setVisible(not is_flux_or_zimage)
-
-        # 추천 설정 안내 배지 갱신
-        notice_label = self.find(QLabel, "modelProfileNoticeLabel")
-        if notice_label:
-            notice_label.setText(f"✓ {profile.name.upper()} 최적 설정 적용됨 (CFG {profile.default_cfg} / {profile.default_steps}스텝)")
         scheduler_combo = self.find(QComboBox, "schedulerComboBox")
         if scheduler_combo is not None:
             scheduler_combo.setCurrentText(
@@ -1323,12 +1261,6 @@ class MainController(QObject):
     def start_generation(self):
         if self.worker:
             return
-        # 시드 고정이 활성화되어 있지 않으면 매번 새 랜덤 시드 자동 적용
-        if not getattr(self, "is_seed_locked", False):
-            rand_seed = random.randint(100000000, 999999999)
-            seed_spin = self.find(QSpinBox, "seedSpinBox")
-            if seed_spin:
-                seed_spin.setValue(rand_seed)
         snapshot = self.capture_snapshot()
         if not snapshot["prompt"]:
             show_message_box(
@@ -1349,7 +1281,7 @@ class MainController(QObject):
             lambda text: self.find(QLabel, "progressStatusLabel").setText(text)
         )
         self.worker.signals.log.connect(self.append_log)
-        self.worker.signals.image.connect(lambda path: self.show_image(path, add_history=True))
+        self.worker.signals.image.connect(self.show_image)
         self.worker.signals.error.connect(
             lambda text: show_message_box(
                 self.window, QMessageBox.Icon.Critical, "생성 오류", text
@@ -1434,16 +1366,9 @@ class MainController(QObject):
         self.find(QPlainTextEdit, "logTextEdit").clear()
         self.append_log("로그를 초기화했습니다.")
 
-    def show_image(self, path, add_history=False):
+    def show_image(self, path):
         self.current_image_path = path
         show_image(self.find(QLabel, "previewLabel"), path)
-        # 새로 생성된 이미지일 때만 히스토리(썸네일)에 추가
-        if add_history:
-            try:
-                snapshot = self.capture_snapshot()
-                self.add_to_history(path, snapshot)
-            except Exception:
-                pass
 
     def save_image_as(self):
         if not self.current_image_path:
@@ -1496,409 +1421,6 @@ class MainController(QObject):
                 btn.setIcon(self.icon_collapse)  # ▼
             else:
                 btn.setIcon(self.icon_expand)  # ▲
-
-
-    def _setup_new_studio_features(self):
-        """ComfyCraft AI Easy Studio 신규 위젯 및 인터랙션 연결"""
-        self.generation_history = []
-        self.is_seed_locked = False
-
-        # 1. 슬라이더 동기화 (CFG)
-        cfg_slider = self.find(QSlider, "cfgSlider")
-        cfg_spin = self.find(QDoubleSpinBox, "cfgSpinBox")
-        cfg_label = self.find(QLabel, "cfgValueLabel")
-        if cfg_slider and cfg_spin:
-            def on_cfg_slider(val):
-                cfg_val = val / 10.0
-                cfg_spin.blockSignals(True)
-                cfg_spin.setValue(cfg_val)
-                cfg_spin.blockSignals(False)
-                if cfg_label:
-                    cfg_label.setText(f"{cfg_val:.1f}")
-
-            def on_cfg_spin(val):
-                cfg_slider.blockSignals(True)
-                cfg_slider.setValue(int(round(val * 10)))
-                cfg_slider.blockSignals(False)
-                if cfg_label:
-                    cfg_label.setText(f"{val:.1f}")
-
-            cfg_slider.valueChanged.connect(on_cfg_slider)
-            cfg_spin.valueChanged.connect(on_cfg_spin)
-            cfg_slider.setValue(int(round(cfg_spin.value() * 10)))
-
-        # 2. 슬라이더 동기화 (Steps)
-        steps_slider = self.find(QSlider, "stepsSlider")
-        steps_spin = self.find(QSpinBox, "stepsSpinBox")
-        steps_label = self.find(QLabel, "stepsValueLabel")
-        if steps_slider and steps_spin:
-            def on_steps_slider(val):
-                steps_spin.blockSignals(True)
-                steps_spin.setValue(val)
-                steps_spin.blockSignals(False)
-                if steps_label:
-                    steps_label.setText(str(val))
-
-            def on_steps_spin(val):
-                steps_slider.blockSignals(True)
-                steps_slider.setValue(val)
-                steps_slider.blockSignals(False)
-                if steps_label:
-                    steps_label.setText(str(val))
-
-            steps_slider.valueChanged.connect(on_steps_slider)
-            steps_spin.valueChanged.connect(on_steps_spin)
-            steps_slider.setValue(steps_spin.value())
-
-        # 3. 시드 제어 (랜덤 및 고정)
-        rand_seed_btn = self.find(QPushButton, "randomSeedButton")
-        if rand_seed_btn:
-            rand_seed_btn.clicked.connect(self._generate_random_seed)
-
-        lock_seed_btn = self.find(QPushButton, "lockSeedButton")
-        if lock_seed_btn:
-            lock_seed_btn.toggled.connect(self._on_lock_seed_toggled)
-
-        # 4. 영문 프롬프트 원클릭 복사
-        copy_prompt_btn = self.find(QPushButton, "copyPromptButton")
-        if copy_prompt_btn:
-            copy_prompt_btn.clicked.connect(self._copy_enhanced_prompt)
-
-        # 5. 클립보드 이미지 복사
-        copy_img_btn = self.find(QPushButton, "copyImageButton")
-        if copy_img_btn:
-            copy_img_btn.clicked.connect(self._copy_image_to_clipboard)
-
-        # 6. 얼굴 보정 토글 패널 및 슬라이더 동기화
-        fd_check = self.find(QCheckBox, "facedetailerCheckBox")
-        fd_panel = self.find(QFrame, "facedetailerPanel")
-        if fd_check and fd_panel:
-            fd_panel.setVisible(fd_check.isChecked())
-            fd_check.toggled.connect(lambda checked: fd_panel.setVisible(checked))
-
-        # FaceDetailer 슬라이더-스핀박스 양방향 동기화
-        def _sync_fd_double(slider_name, spin_name, factor=100.0):
-            slider = self.find(QSlider, slider_name)
-            spin = self.find(QDoubleSpinBox, spin_name)
-            if slider and spin:
-                def on_slider(val):
-                    spin.blockSignals(True)
-                    spin.setValue(val / factor)
-                    spin.blockSignals(False)
-                def on_spin(val):
-                    slider.blockSignals(True)
-                    slider.setValue(int(round(val * factor)))
-                    slider.blockSignals(False)
-                slider.valueChanged.connect(on_slider)
-                spin.valueChanged.connect(on_spin)
-                slider.setValue(int(round(spin.value() * factor)))
-
-        def _sync_fd_int(slider_name, spin_name):
-            slider = self.find(QSlider, slider_name)
-            spin = self.find(QSpinBox, spin_name)
-            if slider and spin:
-                def on_slider(val):
-                    spin.blockSignals(True)
-                    spin.setValue(val)
-                    spin.blockSignals(False)
-                def on_spin(val):
-                    slider.blockSignals(True)
-                    slider.setValue(val)
-                    slider.blockSignals(False)
-                slider.valueChanged.connect(on_slider)
-                spin.valueChanged.connect(on_spin)
-                slider.setValue(spin.value())
-
-        _sync_fd_double("facedetailerDenoiseSlider", "facedetailerDenoiseSpinBox", 100.0)
-        _sync_fd_int("facedetailerStepsSlider", "facedetailerStepsSpinBox")
-        _sync_fd_double("facedetailerCfgSlider", "facedetailerCfgSpinBox", 10.0)
-        _sync_fd_int("facedetailerFeatherSlider", "facedetailerFeatherSpinBox")
-        _sync_fd_int("facedetailerDropSizeSlider", "facedetailerDropSizeSpinBox")
-        _sync_fd_double("facedetailerBboxThresholdSlider", "facedetailerBboxThresholdSpinBox", 100.0)
-        _sync_fd_int("facedetailerBboxDilationSlider", "facedetailerBboxDilationSpinBox")
-        _sync_fd_double("facedetailerBboxCropFactorSlider", "facedetailerBboxCropFactorSpinBox", 100.0)
-        _sync_fd_double("facedetailerSamThresholdSlider", "facedetailerSamThresholdSpinBox", 100.0)
-        _sync_fd_int("facedetailerSamDilationSlider", "facedetailerSamDilationSpinBox")
-        _sync_fd_int("facedetailerSamBboxExpansionSlider", "facedetailerSamBboxExpansionSpinBox")
-        _sync_fd_double("facedetailerSamMaskHintThresholdSlider", "facedetailerSamMaskHintThresholdSpinBox", 100.0)
-
-        # 6-1. 네거티브 프롬프트 패널 초기 표시 상태 (SDXL 등 필요 모델 선택 시에만 표시)
-        neg_frame = self.find(QFrame, "negativePromptFrame")
-        if neg_frame:
-            curr_model = self.find(QComboBox, "comfyModelCombo").currentText() if self.find(QComboBox, "comfyModelCombo") else ""
-            if curr_model and curr_model != "로드된 모델 없음":
-                m_lower = curr_model.lower()
-                is_flux_or_zimage = any(k in m_lower for k in ["flux", "zimage", "z_image", "turbo"])
-                neg_frame.setVisible(not is_flux_or_zimage)
-            else:
-                neg_frame.setVisible(False)
-
-        # 7. 접이식 고급 설정 토글
-        adv_btn = self.find(QPushButton, "advancedToggleBtn")
-        adv_content = self.find(QWidget, "advancedContentWidget")
-        if adv_btn and adv_content:
-            adv_btn.clicked.connect(self._toggle_advanced_settings)
-
-        # 8. 연결 상태 배지 및 설정 버튼 다이얼로그 연동
-        comfy_btn = self.find(QPushButton, "comfyStatusBtn")
-        if comfy_btn:
-            comfy_btn.clicked.connect(self._show_settings_dialog)
-
-        lm_btn = self.find(QPushButton, "lmStatusBtn")
-        if lm_btn:
-            lm_btn.clicked.connect(self._show_settings_dialog)
-
-        settings_btn = self.find(QPushButton, "settingsButton")
-        if settings_btn:
-            settings_btn.clicked.connect(self._show_settings_dialog)
-
-        # 9. 상단 도움말 버튼 연동
-        help_btn = self.find(QPushButton, "helpButton")
-        if help_btn:
-            help_btn.clicked.connect(self._show_help_dialog)
-
-        # 10. 썸네일 그리드 버튼 4개 바인딩
-        for i in range(4):
-            btn = self.find(QPushButton, f"thumbBtn_{i}")
-            if btn:
-                btn.clicked.connect(lambda checked=False, idx=i: self._on_thumbnail_clicked(idx))
-
-    def _generate_random_seed(self):
-        new_seed = random.randint(100000000, 999999999)
-        seed_spin = self.find(QSpinBox, "seedSpinBox")
-        if seed_spin:
-            seed_spin.setValue(new_seed)
-        self.append_log(f"새 무작위 시드 생성: {new_seed}")
-
-    def _on_lock_seed_toggled(self, checked):
-        self.is_seed_locked = checked
-        btn = self.find(QPushButton, "lockSeedButton")
-        if btn:
-            btn.setText("🔒 시드 고정됨" if checked else "🔓 고정 안함")
-        self.append_log("시드 고정 모드: " + ("고정됨" if checked else "해제됨"))
-
-    def _copy_enhanced_prompt(self):
-        edit = self.find(QPlainTextEdit, "enhancePromptEdit")
-        if not edit:
-            return
-        text = edit.toPlainText().strip()
-        if not text:
-            # 영문 프롬프트가 비어있으면 한글 프롬프트 복사 시도
-            korean_edit = self.find(QPlainTextEdit, "positivePromptEdit")
-            text = korean_edit.toPlainText().strip() if korean_edit else ""
-        if text:
-            QApplication.clipboard().setText(text)
-            btn = self.find(QPushButton, "copyPromptButton")
-            if btn:
-                orig_text = btn.text()
-                btn.setText("✓ 복사 완료!")
-                QTimer.singleShot(1500, lambda: btn.setText(orig_text))
-            self.append_log("프롬프트가 클립보드에 복사되었습니다.")
-
-    def _copy_image_to_clipboard(self):
-        label = self.find(QLabel, "previewLabel")
-        if label and label.pixmap() and not label.pixmap().isNull():
-            QApplication.clipboard().setPixmap(label.pixmap())
-            btn = self.find(QPushButton, "copyImageButton")
-            if btn:
-                orig_text = btn.text()
-                btn.setText("✓ 복사 완료!")
-                QTimer.singleShot(1500, lambda: btn.setText(orig_text))
-            self.append_log("결과 이미지가 클립보드에 복사되었습니다. (Ctrl+V로 붙여넣기 가능)")
-        elif self.current_image_path and Path(self.current_image_path).exists():
-            pix = QPixmap(str(self.current_image_path))
-            if not pix.isNull():
-                QApplication.clipboard().setPixmap(pix)
-                self.append_log("결과 이미지가 클립보드에 복사되었습니다.")
-        else:
-            show_message_box(self.window, QMessageBox.Icon.Information, "알림", "복사할 이미지가 없습니다.")
-
-    def _toggle_advanced_settings(self):
-        content = self.find(QWidget, "advancedContentWidget")
-        btn = self.find(QPushButton, "advancedToggleBtn")
-        if content:
-            is_visible = content.isVisible()
-            content.setVisible(not is_visible)
-            if btn:
-                arrow = "▲" if not is_visible else "▼"
-                state = "접기" if not is_visible else "펼치기"
-                btn.setText(f"⚙️ 고급 설정 {state} (시드, 슬라이더, 샘플러)  {arrow}")
-
-    def _show_settings_dialog(self):
-        """연결 상태 배지 및 설정 버튼 클릭 시 모달 설정창 표시"""
-        dlg = QDialog(self.window)
-        dlg.setWindowTitle("서버 연결 및 모델 폴더 설정")
-        dlg.resize(480, 400)
-        dlg.setStyleSheet(self.window.styleSheet())
-        layout = QVBoxLayout(dlg)
-        layout.setSpacing(12)
-
-        # ComfyUI 설정 그룹
-        comfy_group = QGroupBox("🎨 ComfyUI 설정", dlg)
-        comfy_layout = QVBoxLayout(comfy_group)
-        comfy_layout.setSpacing(8)
-
-        comfy_url_row = QHBoxLayout()
-        comfy_url_edit = QLineEdit(self.find(QLineEdit, "comfyUrlEdit").text(), comfy_group)
-        comfy_check_btn = QPushButton("연결 확인", comfy_group)
-        comfy_check_btn.clicked.connect(lambda: (
-            self.find(QLineEdit, "comfyUrlEdit").setText(comfy_url_edit.text()),
-            self.check_connection("comfy")
-        ))
-        comfy_url_row.addWidget(QLabel("서버 주소:"))
-        comfy_url_row.addWidget(comfy_url_edit)
-        comfy_url_row.addWidget(comfy_check_btn)
-        comfy_layout.addLayout(comfy_url_row)
-
-        model_path_row = QHBoxLayout()
-        model_path_edit = QLineEdit(self.find(QLineEdit, "comfyModelPathEdit").text(), comfy_group)
-        browse_btn = QPushButton("찾아보기", comfy_group)
-        def on_browse():
-            folder = QFileDialog.getExistingDirectory(dlg, "ComfyUI 모델 폴더 선택")
-            if folder:
-                model_path_edit.setText(folder)
-                self.find(QLineEdit, "comfyModelPathEdit").setText(folder)
-                self.update_model_path_status(folder)
-        browse_btn.clicked.connect(on_browse)
-        model_path_row.addWidget(QLabel("모델 폴더:"))
-        model_path_row.addWidget(model_path_edit)
-        model_path_row.addWidget(browse_btn)
-        comfy_layout.addLayout(model_path_row)
-        layout.addWidget(comfy_group)
-
-        # LM Studio 설정 그룹
-        lm_group = QGroupBox("💬 LM Studio 설정", dlg)
-        lm_layout = QVBoxLayout(lm_group)
-        lm_layout.setSpacing(8)
-
-        lm_url_row = QHBoxLayout()
-        lm_url_edit = QLineEdit(self.find(QLineEdit, "lmUrlEdit").text(), lm_group)
-        lm_check_btn = QPushButton("연결 확인", lm_group)
-        lm_check_btn.clicked.connect(lambda: (
-            self.find(QLineEdit, "lmUrlEdit").setText(lm_url_edit.text()),
-            self.check_connection("lm")
-        ))
-        lm_url_row.addWidget(QLabel("서버 주소:"))
-        lm_url_row.addWidget(lm_url_edit)
-        lm_url_row.addWidget(lm_check_btn)
-        lm_layout.addLayout(lm_url_row)
-        layout.addWidget(lm_group)
-
-        # 하단 닫기/저장 버튼
-        btn_box = QHBoxLayout()
-        save_btn = QPushButton("💾 설정 저장 후 닫기", dlg)
-        def on_save_close():
-            self.find(QLineEdit, "comfyUrlEdit").setText(comfy_url_edit.text())
-            self.find(QLineEdit, "comfyModelPathEdit").setText(model_path_edit.text())
-            self.find(QLineEdit, "lmUrlEdit").setText(lm_url_edit.text())
-            self.save_config()
-            dlg.accept()
-        save_btn.clicked.connect(on_save_close)
-        btn_box.addStretch()
-        btn_box.addWidget(save_btn)
-        layout.addLayout(btn_box)
-
-        dlg.exec()
-
-    def _show_help_dialog(self):
-        """도움말 다이얼로그 표시"""
-        dlg = QDialog(self.window)
-        dlg.setWindowTitle("📖 ComfyCraft AI Easy Studio 도움말")
-        dlg.resize(750, 580)
-        dlg.setStyleSheet(self.window.styleSheet())
-        layout = QVBoxLayout(dlg)
-
-        browser = QTextBrowser(dlg)
-        browser.setOpenExternalLinks(True)
-
-        readme_path = BASE_DIR / "assets" / "help" / "README.md"
-        html_content = "<h2 style='color:#d0bcff;'>📖 ComfyCraft AI Easy Studio 안내</h2><hr style='border-color:#33343b;'>"
-        if readme_path.exists():
-            try:
-                with open(readme_path, "r", encoding="utf-8") as f:
-                    readme_text = f.read()
-                try:
-                    import markdown
-                    html_content += markdown.markdown(readme_text, extensions=["tables"])
-                except Exception:
-                    html_content += f"<pre style='color:#e2e2eb;'>{readme_text}</pre>"
-            except Exception as e:
-                html_content += f"<p style='color:red;'>도움말 로드 오류: {e}</p>"
-        else:
-            html_content += "<p>도움말 파일을 찾을 수 없습니다.</p>"
-
-        browser.setHtml(html_content)
-        layout.addWidget(browser)
-
-        close_btn = QPushButton("닫기", dlg)
-        close_btn.clicked.connect(dlg.accept)
-        layout.addWidget(close_btn)
-        dlg.exec()
-
-    def _on_thumbnail_clicked(self, index):
-        """썸네일 클릭 시 당시 사용했던 프롬프트, 모델, 세부옵션 및 이미지 복원"""
-        if index >= len(self.generation_history):
-            return
-        item = self.generation_history[index]
-        img_path = item.get("path")
-        snap = item.get("snapshot", {})
-
-        # 1. 이미지 표시
-        if img_path and Path(img_path).exists():
-            self.show_image(img_path)
-
-        # 2. 프롬프트 복원
-        if "prompt" in snap:
-            self.find(QPlainTextEdit, "positivePromptEdit").setPlainText(snap.get("prompt", ""))
-        if "enhance_prompt" in snap and snap.get("enhance_prompt"):
-            self.find(QPlainTextEdit, "enhancePromptEdit").setPlainText(snap.get("enhance_prompt", ""))
-        if "negative" in snap:
-            self.find(QPlainTextEdit, "negativePromptEdit").setPlainText(snap.get("negative", ""))
-
-        # 3. 모델 및 해상도, 시드, CFG, 스텝 복원
-        if "comfy_model" in snap:
-            self.find(QComboBox, "comfyModelCombo").setCurrentText(snap.get("comfy_model"))
-        if "width" in snap and "height" in snap:
-            self.apply_preset(snap["width"], snap["height"])
-        if "steps" in snap:
-            self.find(QSpinBox, "stepsSpinBox").setValue(snap["steps"])
-        if "cfg" in snap:
-            self.find(QDoubleSpinBox, "cfgSpinBox").setValue(snap["cfg"])
-        if "seed" in snap and snap["seed"] != -1:
-            self.find(QSpinBox, "seedSpinBox").setValue(snap["seed"])
-        if "sampler" in snap:
-            self.find(QComboBox, "samplerComboBox").setCurrentText(snap["sampler"])
-        if "scheduler" in snap:
-            self.find(QComboBox, "schedulerComboBox").setCurrentText(snap["scheduler"])
-
-        self.append_log(f"최근 생성 기록 [{index + 1}번]의 설정 및 프롬프트를 성공적으로 복원했습니다.")
-
-    def add_to_history(self, path, snapshot):
-        """새로 생성된 이미지를 최근 기록 히스토리 목록에 추가하고 썸네일 갱신"""
-        # 동일한 이미지가 이미 히스토리에 있다면 기존 항목 제거 후 최상단 추가 (중복 방지)
-        self.generation_history = [item for item in self.generation_history if item.get("path") != path]
-        self.generation_history.insert(0, {"path": path, "snapshot": snapshot})
-        if len(self.generation_history) > 4:
-            self.generation_history.pop()
-
-        # 썸네일 버튼 갱신
-        for i in range(4):
-            btn = self.find(QPushButton, f"thumbBtn_{i}")
-            if not btn:
-                continue
-            if i < len(self.generation_history):
-                p = self.generation_history[i]["path"]
-                if Path(p).exists():
-                    pix = QPixmap(str(p))
-                    if not pix.isNull():
-                        btn.setIcon(QIcon(pix.scaled(72, 72, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)))
-                        btn.setIconSize(btn.size())
-                        btn.setText("")
-                        btn.setToolTip(f"기록 {i+1}: 클릭하여 설정 및 프롬프트 복원")
-            else:
-                btn.setIcon(QIcon())
-                btn.setText("대기 중")
-                btn.setToolTip("")
 
 
 def main():

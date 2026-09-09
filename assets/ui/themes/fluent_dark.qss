@@ -563,3 +563,149 @@ QMenu::separator {
     background-color: rgba(255, 255, 255, 0.12);
     margin: 4px 8px;
 }
+
+
+/* ===== STUDIO_UI_COMPONENTS ===== */
+/* ---------- 스튜디오 공통 카드 스타일 ---------- */
+QFrame#headerFrame, QFrame#step1Card, QFrame#step2Card, QFrame#viewerCard, QFrame#historyCard, QFrame#faceDetailerCard, QFrame#advancedSettingsFrame {
+    background-color: #2c2c2c;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+}
+
+QFrame#enhancePromptCard, QFrame#negativePromptFrame, QFrame#facedetailerPanel {
+    background-color: #242424;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+}
+
+/* 카드 내부 모든 일반 QLabel 텍스트 색상 강제 지정 (테마별 글자색 대비 완벽 보장) */
+QFrame#step1Card QLabel, QFrame#step2Card QLabel, QFrame#viewerCard QLabel, QFrame#historyCard QLabel,
+QFrame#faceDetailerCard QLabel, QFrame#advancedSettingsFrame QLabel, QFrame#headerFrame QLabel,
+QFrame#enhancePromptCard QLabel, QFrame#negativePromptFrame QLabel, QFrame#facedetailerPanel QLabel,
+QWidget#advancedContentWidget QLabel {
+    color: #ffffff;
+}
+
+/* 제목 및 강조 라벨 */
+QLabel#appTitle, QLabel#step1Title, QLabel#step2Title, QLabel#viewerTitle, QLabel#historyTitle,
+QLabel#aspectRatioTitle, QLabel#modelSelectLabel, QLabel#lmModelSelectLabel, QLabel#seedTitleLabel, QLabel#widthLabel, QLabel#heightLabel,
+QLabel#cfgLabelTitle, QLabel#stepsLabelTitle, QLabel#samplerLabel, QLabel#schedulerLabel, QLabel#denoiseLabel,
+QLabel#facedetailerDenoiseLabel, QLabel#facedetailerStepsLabel, QLabel#facedetailerCfgLabel, QLabel#facedetailerGuideSizeLabel,
+QLabel#facedetailerMaxSizeLabel, QLabel#facedetailerFeatherLabel, QLabel#facedetailerBboxThresholdLabel, QLabel#facedetailerBboxDilationLabel,
+QLabel#facedetailerBboxCropFactorLabel, QLabel#facedetailerSamDetectionHintLabel, QLabel#facedetailerSamDilationLabel,
+QLabel#facedetailerSamThresholdLabel, QLabel#facedetailerSamBboxExpansionLabel, QLabel#facedetailerSamMaskHintThresholdLabel,
+QLabel#facedetailerSamMaskHintUseNegativeLabel, QLabel#facedetailerCycleLabel, QLabel#facedetailerDropSizeLabel {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+/* 배지 라벨 */
+QLabel#step1Badge, QLabel#step2Badge {
+    background-color: #0078D4;
+    color: #ffffff;
+    border-radius: 4px;
+    font-weight: bold;
+    padding: 2px 6px;
+}
+
+QLabel#modelProfileNoticeLabel {
+    color: #0078D4;
+    font-weight: bold;
+}
+
+/* 보조 라벨 색상 */
+QLabel#positivePromptCounterLabel, QLabel#enhancePromptCounterLabel, QLabel#negativePromptCounterLabel,
+QLabel#elapsedLabel, QLabel#enhancePromptLabel, QLabel#negTitleLabel, QLabel#progressStatusLabel, QLabel#progressPercentLabel,
+QLabel#cfgValueLabel, QLabel#stepsValueLabel {
+    color: #a0a0a0;
+}
+
+/* 입력창 및 스핀박스 */
+QPlainTextEdit#positivePromptEdit, QPlainTextEdit#enhancePromptEdit, QPlainTextEdit#negativePromptEdit {
+    background-color: #333333;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 8px;
+}
+
+QSpinBox, QDoubleSpinBox {
+    background-color: #333333;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+}
+
+QComboBox {
+    background-color: #333333;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+}
+
+/* 버튼 스타일 */
+QPushButton#comfyStatusBtn, QPushButton#lmStatusBtn, QPushButton#helpButton, QPushButton#settingsButton,
+QPushButton#copyPromptButton, QPushButton#saveImageButton, QPushButton#copyImageButton, QPushButton#openOutputFolderButton,
+QPushButton#randomSeedButton, QPushButton#lockSeedButton, QPushButton#advancedToggleBtn {
+    background-color: #333333;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+}
+QPushButton#comfyStatusBtn:hover, QPushButton#lmStatusBtn:hover, QPushButton#helpButton:hover, QPushButton#settingsButton:hover {
+    border-color: #0078D4;
+}
+
+QPushButton#preset_1024x1024, QPushButton#preset_896x1152, QPushButton#preset_1152x896 {
+    background-color: #333333;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+}
+QPushButton#preset_1024x1024:hover, QPushButton#preset_896x1152:hover, QPushButton#preset_1152x896:hover {
+    border-color: #0078D4;
+}
+
+/* 뷰어 프리뷰 */
+QLabel#previewLabel {
+    background-color: #181818;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    color: #757575;
+}
+
+/* 썸네일 그리드 */
+QPushButton#thumbBtn_0, QPushButton#thumbBtn_1, QPushButton#thumbBtn_2, QPushButton#thumbBtn_3 {
+    background-color: #333333;
+    color: #a0a0a0;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+}
+QPushButton#thumbBtn_0:hover, QPushButton#thumbBtn_1:hover, QPushButton#thumbBtn_2:hover, QPushButton#thumbBtn_3:hover {
+    border: 2px solid #0078D4;
+}
+
+/* 체크박스 */
+QCheckBox {
+    color: #ffffff;
+}
+
+/* 슬라이더 스타일 */
+QSlider::groove:horizontal {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+}
+QSlider::sub-page:horizontal {
+    background: #0078D4;
+    border-radius: 3px;
+}
+QSlider::handle:horizontal {
+    background: #0078D4;
+    border: 2px solid #2c2c2c;
+    width: 16px;
+    margin-top: -5px;
+    margin-bottom: -5px;
+    border-radius: 8px;
+}
