@@ -18,7 +18,7 @@
     "default_height": 1152,
     "default_steps": 25,
     "default_cfg": 4.5,
-    "default_seed": 452687693,
+    "default_seed": 211619897,
     "width_min": 256,
     "width_max": 2048,
     "height_min": 256,
@@ -40,7 +40,7 @@
     "flux_gguf_template": "workflows/flux_gguf.json",
     "zimage_template": "workflows/zimage.json",
     "sampler_name": "dpmpp_2m",
-    "scheduler": "karras",
+    "scheduler": "normal",
     "denoise": 1.0
   },
   "output": {

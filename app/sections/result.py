@@ -94,35 +94,11 @@ def build_filename_prefix(config_output, output_dir: Path) -> str:
 
 def show_message_box(parent, icon: QMessageBox.Icon, title: str, text: str,
                      buttons: QMessageBox.StandardButton = QMessageBox.StandardButton.Ok) -> QMessageBox.StandardButton:
-    """다크 테마에 맞는 스타일이 적용된 메시지 박스 표시"""
+    """현재 테마 스타일에 맞는 메시지 박스 표시"""
     msg_box = QMessageBox(parent)
     msg_box.setIcon(icon)
     msg_box.setWindowTitle(title)
     msg_box.setText(text)
     msg_box.setStandardButtons(buttons)
-    msg_box.setStyleSheet("""
-        QMessageBox {
-            background-color: #1f2937;
-            color: #e2e8f0;
-        }
-        QMessageBox QLabel {
-            color: #e2e8f0;
-            min-width: 300px;
-        }
-        QMessageBox QPushButton {
-            background-color: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 24px;
-            font-weight: 500;
-            min-width: 80px;
-        }
-        QMessageBox QPushButton:hover {
-            background-color: #2563eb;
-        }
-        QMessageBox QPushButton:pressed {
-            background-color: #1d4ed8;
-        }
-    """)
+    msg_box.setStyleSheet("QMessageBox QLabel { min-width: 280px; }")
     return msg_box.exec()

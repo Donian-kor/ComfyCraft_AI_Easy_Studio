@@ -1,0 +1,57 @@
+<h2 style='color:#d0bcff;'>❓ 얼굴 보정(FaceDetailer) 쉬운 설명서</h2>
+<hr style='border-color:#33343B;'>
+
+<h3>🎯 이 기능은 뭔가요?</h3>
+<p>이미지를 만든 뒤 <b>얼굴이 뭉개지거나 지저분하면</b>, 얼굴만 자동으로 찾아서 한 번 더 고쳐주는 기능입니다.
+<b>켜기(체크)</b>만 해도 기본값으로 충분히 좋은 결과가 나옵니다. 어려우면 값은 그대로 두세요.</p>
+
+<h3>🚶 초보자 추천 3단계</h3>
+<ul>
+<li><b>1단계:</b> 체크박스를 끈 채 그대로 사용합니다. (기본)</li>
+<li><b>2단계:</b> 체크박스를 켜고 모든 값은 그대로 둡니다. 보통 이 정도면 충분합니다.</li>
+<li><b>3단계:</b> 얼굴을 못 찾으면 <code>얼굴 찾기 민감도(BBox Thresh)</code>를 0.40~0.45로,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;얼굴이 너무 변하면 <code>얼굴 다시그리기 정도(Denoise)</code>를 0.25~0.30으로 낮춰 봅니다.</li>
+</ul>
+
+<h3> 🧾 17개 옵션 쉬운 설명</h3>
+<table border='1' cellspacing='0' cellpadding='6' style='border-color:#33343B;'>
+<tr style='background:#2a2b31;'><th>옵션</th><th>무슨 뜻?</th><th>기본값</th></tr>
+<tr><td>Denoise (얼굴 다시그리기 정도)</td><td>얼굴을 얼마나 새로 그릴지. 높으면 많이 바뀜</td><td>0.40</td></tr>
+<tr><td>Steps (보정 정밀도)</td><td>고치는 계산 횟수. 높을수록 정교하지만 느림</td><td>20</td></tr>
+<tr><td>CFG (프롬프트 반영 세기)</td><td>긍정/부정 프롬프트를 얼마나 반영할지</td><td>4.0</td></tr>
+<tr><td>Feather (얼굴 경계 자연스럽게)</td><td>고친 얼굴과 주변을 부드럽게 이어줌</td><td>5</td></tr>
+<tr><td>Drop Size (작은 얼굴 무시)</td><td>이보다 작은 얼굴은 보정 안 함</td><td>10</td></tr>
+<tr><td>Guide Size (얼굴 분석 크기)</td><td>얼굴을 분석하는 해상도. 클수록 정밀</td><td>256</td></tr>
+<tr><td>Max Size (보정 최대 크기)</td><td>한 번에 보정하는 최대 크기</td><td>768</td></tr>
+<tr><td>Cycle (보정 반복 횟수)</td><td>몇 번 반복해서 보정할지</td><td>1</td></tr>
+<tr><td>BBox Thresh (얼굴 찾기 민감도)</td><td>얼굴을 얼마나 민감하게 찾을지</td><td>0.50</td></tr>
+<tr><td>BBox Dilate (얼굴 박스 넓히기)</td><td>잡은 얼굴 주변 박스를 넓힘</td><td>10</td></tr>
+<tr><td>Crop Factor (얼굴 주변 같이 보기)</td><td>얼굴 주변을 얼마나 함께 볼지</td><td>1.50</td></tr>
+<tr><td>SAM Thresh (윤곽선 정밀도)</td><td>얼굴 윤곽선(마스크)을 얼마나 정밀하게</td><td>0.93</td></tr>
+<tr><td>SAM Dilate (윤곽선 넓히기)</td><td>윤곽선(마스크)을 넓힘</td><td>0</td></tr>
+<tr><td>SAM BBox Exp (윤곽선 영역 넓히기)</td><td>윤곽선 작업 영역을 넓힘</td><td>0</td></tr>
+<tr><td>Mask Hint Thresh (힌트 민감도)</td><td>마스크 힌트 적용 판정 민감도</td><td>0.70</td></tr>
+<tr><td>SAM Hint (얼굴 위치 힌트)</td><td>얼굴을 잡을 기준 위치(아래 표 참고)</td><td>center-1</td></tr>
+<tr><td>Mask Hint Neg (반대영역 제외)</td><td>마스크 바깥 영역을 함께 쓸지</td><td>False</td></tr>
+</table>
+
+<h3>📍 SAM Hint(얼굴 위치 힌트) 9가지란?</h3>
+<ul>
+<li><b>center-1</b> : 가운데 1점. 기본이고 가장 안전함</li>
+<li><b>horizontal-2 / vertical-2</b> : 가로/세로 2점</li>
+<li><b>rect-4 / diamond-4</b> : 사각/마름모 4점</li>
+<li><b>mask-area / mask-points / mask-point-bbox</b> : 마스크 기준(고급)</li>
+<li><b>none</b> : 힌트 사용 안 함</li>
+</ul>
+
+<h3>⚠️ 참고: SAM 옵션이 전부는 아닌 이유</h3>
+<p>현재 ComfyUI에 SAM 모델이 연결되어 있지 않아서, SAM 계열 옵션(SAM
+Thresh/Dilate/BBox Exp, SAM Hint 등)은 일부만 반영되고 <b>YOLO 얼굴 박스 기준</b>으로
+주로 동작합니다. 외형상 오류는 없으며, 안전 기본값 그대로 사용하시면 됩니다.</p>
+
+<h3>🛠️ 자주 생기는 문제</h3>
+<ul>
+<li><b>얼굴을 못 찾아요:</b> BBox Thresh를 0.4~0.45로 낮춰 보세요.</li>
+<li><b>보정된 얼굴이 다른 사람 같아요:</b> Denoise를 0.25~0.3, CFG를 3~4로 낮춰 보세요.</li>
+<li><b>너무 느려요:</b> Steps를 20 이하로, FaceDetailer를 필요한 이미지에만 켜세요.</li>
+</ul>

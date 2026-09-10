@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import ClassVar
+
 from PySide6.QtCore import (
     QEasingCurve,
     QPointF,
@@ -19,6 +21,10 @@ class PlayStopButton(QPushButton):
     - Checked (blue #0078D4): '정지' text, stop icon
     """
 
+    # 클래스 변수로 테마 색상 관리 (모든 인스턴스가 공유)
+    _theme_colors: ClassVar[dict[str, dict[str, str]]] = {}
+    _current_theme: ClassVar[str] = "fluent_dark"
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setCursor(Qt.PointingHandCursor)
@@ -31,6 +37,9 @@ class PlayStopButton(QPushButton):
         self._t = 0.0
         self._hover = 0.0
         self._pressed = 0.0
+
+        # 색상 초기화 (테마 색상이 있으면 사용, 없으면 기본값)
+        self._apply_theme_color()
 
         self._anim = QVariantAnimation(self)
         self._anim.setDuration(800)
@@ -55,7 +64,7 @@ class PlayStopButton(QPushButton):
         self._anim.setEndValue(1.0 if checked else 0.0)
         self._anim.setDuration(1000)
         self._anim.start()
-        self.setText("이미지생성 시작" if checked else "정 지")
+        self.setText("정지" if checked else "이미지생성 시작")
 
     def _set_t(self, v):
         self._t = float(v)
@@ -65,13 +74,60 @@ class PlayStopButton(QPushButton):
         self._hover = float(v)
         self.update()
 
+    # ------------------------------------------------------------------ #
+    # 테마 색상 지원
+    # ------------------------------------------------------------------ #
+
+    @classmethod
+    def updateThemeColors(
+        cls,
+        theme_key: str,
+        colors: dict[str, dict[str, str]],
+    ) -> None:
+        """테마 색상 테이블을 갱신하고 모든 인스턴스의 색상을 업데이트한다.
+
+        Args:
+            theme_key: 현재 테마 키 (예: "fluent_dark")
+            colors: 상태별 색상 딕셔너리
+                {
+                    "play": {"bg": "#0078D4"},
+                    "stop": {"bg": "#C42B1C"},
+                }
+        """
+        cls._theme_colors = colors
+        cls._current_theme = theme_key
+        try:
+            from PySide6.QtWidgets import QApplication
+            app = QApplication.instance()
+            if app is not None:
+                for widget in app.topLevelWidgets():
+                    for child in widget.findChildren(cls):
+                        child._apply_theme_color()
+        except Exception:
+            pass
+
+    def _apply_theme_color(self) -> None:
+        """현재 테마에 맞는 색상을 적용한다."""
+        theme_colors = self._theme_colors
+        if not theme_colors:
+            # 테마 색상이 없으면 기본값 사용
+            self._play_color = QColor("#0078D4")
+            self._stop_color = QColor("#C42B1C")
+            return
+
+        play_colors = theme_colors.get("play", {"bg": "#0078D4"})
+        stop_colors = theme_colors.get("stop", {"bg": "#C42B1C"})
+        self._play_color = QColor(play_colors.get("bg", "#0078D4"))
+        self._stop_color = QColor(stop_colors.get("bg", "#C42B1C"))
+        self.update()
+
     @staticmethod
     def _ease(t):
         t = max(0.0, min(1.0, t))
         return t * t * (3.0 - 2.0 * t)
 
     def _draw_shadow(self, p, r):
-        shadow = QColor("#0078D4" if self._t > 0.5 else "#C42B1C")
+        shadow = self._stop_color if self._t > 0.5 else self._play_color
         for i in range(8, 0, -1):
             c = QColor(shadow)
             c.setAlpha(int(5 + i * 2))
@@ -83,8 +139,8 @@ class PlayStopButton(QPushButton):
             p.drawRoundedRect(rr, 22 + i * 0.15, 22 + i * 0.15)
 
     def _background(self, p, r):
-        play_color = QColor("#0078D4")  # 파랑 - 이미지 생성 시작
-        stop_color = QColor("#C42B1C")  # 빨강 - 정지
+        play_color = self._play_color  # 파랑 - 이미지 생성 시작
+        stop_color = self._stop_color  # 빨강 - 정지
         t = max(0.0, min(1.0, self._t))
 
         def mix(a, b, amount):

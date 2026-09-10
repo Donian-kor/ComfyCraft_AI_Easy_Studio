@@ -102,4 +102,139 @@ def apply_theme(app: QApplication, key: str) -> str:
         app.setStyleSheet(qss)
     else:
         app.setStyleSheet("")  # 테마 파일이 전혀 없으면 스타일 해제
+    # 상태 속성(property)이 새 테마에 맞게 즉시 반영되도록 이벤트 처리
+    app.processEvents()
+    # SplitTextButton 테마 색상 업데이트
+    _update_split_text_button_theme(key)
+    # PlayStopButton 테마 색상 업데이트
+    _update_play_stop_button_theme(key)
     return key
+
+
+def _update_split_text_button_theme(key: str) -> None:
+    """SplitTextButton의 테마 색상을 업데이트한다."""
+    try:
+        from app.gui.split_text_button import SplitTextButton
+        colors = _SPLIT_TEXT_BUTTON_COLORS.get(key, _SPLIT_TEXT_BUTTON_COLORS[DEFAULT_THEME])
+        SplitTextButton.updateThemeColors(key, colors)
+    except Exception:
+        pass
+
+
+def _update_play_stop_button_theme(key: str) -> None:
+    """PlayStopButton의 테마 색상을 업데이트한다."""
+    try:
+        from app.gui.play_stop_button import PlayStopButton
+        colors = _PLAY_STOP_BUTTON_COLORS.get(key, _PLAY_STOP_BUTTON_COLORS[DEFAULT_THEME])
+        PlayStopButton.updateThemeColors(key, colors)
+    except Exception:
+        pass
+
+
+# SplitTextButton용 테마 색상 테이블
+_SPLIT_TEXT_BUTTON_COLORS: dict[str, dict[str, dict[str, str]]] = {
+    "fluent_dark": {
+        "accent": {"bg": "#0078D4", "text": "#ffffff"},
+        "success": {"bg": "#4edea3", "text": "#ffffff"},
+        "error": {"bg": "#ffb4ab", "text": "#ffffff"},
+        "warning": {"bg": "#fbbf24", "text": "#1a1a1a"},
+        "pending": {"bg": "#b8c0cc", "text": "#1a1a1a"},
+    },
+    "midnight_navy": {
+        "accent": {"bg": "#4cc2ff", "text": "#ffffff"},
+        "success": {"bg": "#7ed9f5", "text": "#ffffff"},
+        "error": {"bg": "#ffb4ab", "text": "#ffffff"},
+        "warning": {"bg": "#ffc97a", "text": "#1a1a1a"},
+        "pending": {"bg": "#d5ddf0", "text": "#1a1a1a"},
+    },
+    "emerald_forest": {
+        "accent": {"bg": "#34d399", "text": "#ffffff"},
+        "success": {"bg": "#7ce0af", "text": "#ffffff"},
+        "error": {"bg": "#ffb4ab", "text": "#ffffff"},
+        "warning": {"bg": "#ffd98a", "text": "#1a1a1a"},
+        "pending": {"bg": "#d9e8e0", "text": "#1a1a1a"},
+    },
+    "purple_nebula": {
+        "accent": {"bg": "#a78bfa", "text": "#ffffff"},
+        "success": {"bg": "#c4b5fd", "text": "#ffffff"},
+        "error": {"bg": "#ffb4ab", "text": "#ffffff"},
+        "warning": {"bg": "#ffd9b8", "text": "#1a1a1a"},
+        "pending": {"bg": "#d9d1ec", "text": "#1a1a1a"},
+    },
+    "warm_cocoa": {
+        "accent": {"bg": "#f0a13e", "text": "#ffffff"},
+        "success": {"bg": "#ffc57a", "text": "#ffffff"},
+        "error": {"bg": "#ffb4ab", "text": "#ffffff"},
+        "warning": {"bg": "#ffe5b8", "text": "#1a1a1a"},
+        "pending": {"bg": "#ddd2c4", "text": "#1a1a1a"},
+    },
+    "slate_amber": {
+        "accent": {"bg": "#e8a33d", "text": "#ffffff"},
+        "success": {"bg": "#f4d99a", "text": "#ffffff"},
+        "error": {"bg": "#ffb4ab", "text": "#ffffff"},
+        "warning": {"bg": "#ffe5b8", "text": "#1a1a1a"},
+        "pending": {"bg": "#c3c8d4", "text": "#1a1a1a"},
+    },
+    "midnight_coral": {
+        "accent": {"bg": "#e8637a", "text": "#ffffff"},
+        "success": {"bg": "#ffa8b8", "text": "#ffffff"},
+        "error": {"bg": "#ff8a92", "text": "#ffffff"},
+        "warning": {"bg": "#ffd5c0", "text": "#1a1a1a"},
+        "pending": {"bg": "#c6bedd", "text": "#1a1a1a"},
+    },
+    "plum_sage": {
+        "accent": {"bg": "#7a3b69", "text": "#ffffff"},
+        "success": {"bg": "#b8a0c4", "text": "#1a1a1a"},
+        "error": {"bg": "#e8a8ac", "text": "#1a1a1a"},
+        "warning": {"bg": "#e6c8d4", "text": "#1a1a1a"},
+        "pending": {"bg": "#4e4657", "text": "#ffffff"},
+    },
+    "fluent_light": {
+        "accent": {"bg": "#0078d4", "text": "#ffffff"},
+        "success": {"bg": "#4edea3", "text": "#ffffff"},
+        "error": {"bg": "#ffb4ab", "text": "#1a1a1a"},
+        "warning": {"bg": "#fbbf24", "text": "#1a1a1a"},
+        "pending": {"bg": "#5c5c5c", "text": "#ffffff"},
+    },
+}
+
+
+# PlayStopButton용 테마 색상 테이블 (play: 시작 버튼 색상, stop: 정지 버튼 색상)
+_PLAY_STOP_BUTTON_COLORS: dict[str, dict[str, dict[str, str]]] = {
+    "fluent_dark": {
+        "play": {"bg": "#0078D4"},
+        "stop": {"bg": "#C42B1C"},
+    },
+    "midnight_navy": {
+        "play": {"bg": "#4cc2ff"},
+        "stop": {"bg": "#E05263"},
+    },
+    "emerald_forest": {
+        "play": {"bg": "#34d399"},
+        "stop": {"bg": "#E05263"},
+    },
+    "purple_nebula": {
+        "play": {"bg": "#a78bfa"},
+        "stop": {"bg": "#E05263"},
+    },
+    "warm_cocoa": {
+        "play": {"bg": "#f0a13e"},
+        "stop": {"bg": "#d9534f"},
+    },
+    "slate_amber": {
+        "play": {"bg": "#e8a33d"},
+        "stop": {"bg": "#C42B1C"},
+    },
+    "midnight_coral": {
+        "play": {"bg": "#e8637a"},
+        "stop": {"bg": "#C42B1C"},
+    },
+    "plum_sage": {
+        "play": {"bg": "#7a3b69"},
+        "stop": {"bg": "#c42b1c"},
+    },
+    "fluent_light": {
+        "play": {"bg": "#0078d4"},
+        "stop": {"bg": "#c42b1c"},
+    },
+}

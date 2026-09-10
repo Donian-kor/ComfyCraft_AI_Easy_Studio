@@ -97,6 +97,25 @@ from app.core.model_status_service import ModelStatusService
 
 UI_FILE = BASE_DIR / "assets" / "ui" / "main.ui"
 
+# FaceDetailer 슬라이더 설정 명세: (키, 슬라이더 위젯 이름, 기본값, 배율, 64단위 여부)
+FACEDETAILER_SLIDER_SPECS = [
+    ("facedetailer_denoise", "facedetailerDenoiseSlider", 0.40, 100.0, False),
+    ("facedetailer_steps", "facedetailerStepsSlider", 20, 1.0, False),
+    ("facedetailer_cfg", "facedetailerCfgSlider", 4.0, 10.0, False),
+    ("facedetailer_guide_size", "facedetailerGuideSizeSlider", 256, 1.0, True),
+    ("facedetailer_max_size", "facedetailerMaxSizeSlider", 768, 1.0, True),
+    ("facedetailer_feather", "facedetailerFeatherSlider", 5, 1.0, False),
+    ("facedetailer_bbox_threshold", "facedetailerBboxThresholdSlider", 0.50, 100.0, False),
+    ("facedetailer_bbox_dilation", "facedetailerBboxDilationSlider", 10, 1.0, False),
+    ("facedetailer_bbox_crop_factor", "facedetailerBboxCropFactorSlider", 1.50, 100.0, False),
+    ("facedetailer_sam_dilation", "facedetailerSamDilationSlider", 0, 1.0, False),
+    ("facedetailer_sam_threshold", "facedetailerSamThresholdSlider", 0.93, 100.0, False),
+    ("facedetailer_sam_bbox_expansion", "facedetailerSamBboxExpansionSlider", 0, 1.0, False),
+    ("facedetailer_sam_mask_hint_threshold", "facedetailerSamMaskHintThresholdSlider", 0.70, 100.0, False),
+    ("facedetailer_cycle", "facedetailerCycleSlider", 1, 1.0, False),
+    ("facedetailer_drop_size", "facedetailerDropSizeSlider", 10, 1.0, False),
+]
+
 
 class MainController(QObject):
     model_list_ready = Signal(list, list)
@@ -105,6 +124,7 @@ class MainController(QObject):
     def __init__(self, window):
         super().__init__()
         self.window = window
+        self._generation_lock = threading.Lock()
         self.config_manager = get_config_manager(
             BASE_DIR / "workflows" / "app_config.json"
         )
@@ -157,20 +177,23 @@ class MainController(QObject):
                 generation.height_max,
                 generation.default_height,
             ),
-            (
-                "stepsSpinBox",
-                generation.steps_min,
-                generation.steps_max,
-                generation.default_steps,
-            ),
         ):
             widget = self.find(QSpinBox, name)
-            widget.setRange(minimum, maximum)
-            widget.setValue(value)
-        cfg = self.find(QDoubleSpinBox, "cfgSpinBox")
-        cfg.setRange(generation.cfg_min, generation.cfg_max)
-        cfg.setSingleStep(generation.cfg_increment)
-        cfg.setValue(generation.default_cfg)
+            if widget:
+                widget.setRange(minimum, maximum)
+                widget.setValue(value)
+
+        steps_slider = self.find(QSlider, "stepsSlider")
+        if steps_slider:
+            steps_slider.setRange(generation.steps_min, generation.steps_max)
+            steps_slider.setValue(generation.default_steps)
+        self.set_steps_value(generation.default_steps)
+
+        cfg_slider = self.find(QSlider, "cfgSlider")
+        if cfg_slider:
+            cfg_slider.setRange(int(generation.cfg_min * 10), int(generation.cfg_max * 10))
+            cfg_slider.setValue(int(round(generation.default_cfg * 10)))
+        self.set_cfg_value(generation.default_cfg)
         seed = self.find(QSpinBox, "seedSpinBox")
         seed.setRange(-1, 2147483647)
         seed.setValue(generation.default_seed)
@@ -211,11 +234,22 @@ class MainController(QObject):
             denoise_spin.setValue(1.0)
 
         # FaceDetailer ComboBox 초기화
+        # 공식 FaceDetailer sam_detection_hint 옵션과 동일하게 유지
         sam_hint_combo = self.find(QComboBox, "facedetailerSamDetectionHintComboBox")
         if sam_hint_combo is not None:
             sam_hint_combo.clear()
             sam_hint_combo.addItems(
-                ["center-1", "center-2", "center-3", "center-4", "all"]
+                [
+                    "center-1",
+                    "horizontal-2",
+                    "vertical-2",
+                    "rect-4",
+                    "diamond-4",
+                    "mask-area",
+                    "mask-points",
+                    "mask-point-bbox",
+                    "none",
+                ]
             )
             sam_hint_combo.setCurrentText("center-1")
 
@@ -564,8 +598,12 @@ class MainController(QObject):
             self.append_log(
                 "[WARNING] LM Studio 서버를 찾을 수 없습니다. URL을 확인해주세요."
             )
-            self.find(QLabel, "lmStatusLabel").setText("🔴서버 없음")
-            self.find(QLabel, "lmStatusLabel").setStyleSheet("color:#E45757;")
+            lm_label = self.find(QLabel, "lmStatusLabel")
+            if lm_label:
+                lm_label.setText("🔴서버 없음")
+                lm_label.setProperty("status", "error")
+                lm_label.style().unpolish(lm_label)
+                lm_label.style().polish(lm_label)
 
         if resolved_comfy_url and resolved_comfy_url != comfy_url:
             self.find(QLineEdit, "comfyUrlEdit").setText(resolved_comfy_url)
@@ -574,8 +612,12 @@ class MainController(QObject):
             self.append_log(
                 "[WARNING] ComfyUI 서버를 찾을 수 없습니다. URL을 확인해주세요."
             )
-            self.find(QLabel, "comfyStatusLabel").setText("🔴서버 없음")
-            self.find(QLabel, "comfyStatusLabel").setStyleSheet("color:#E45757;")
+            comfy_label = self.find(QLabel, "comfyStatusLabel")
+            if comfy_label:
+                comfy_label.setText("🔴서버 없음")
+                comfy_label.setProperty("status", "error")
+                comfy_label.style().unpolish(comfy_label)
+                comfy_label.style().polish(comfy_label)
 
         def fetch():
             # URL이 없으면 모델 목록 조회 건너뛰기
@@ -729,44 +771,47 @@ class MainController(QObject):
         return bool(label and "연결 성공" in label.text())
 
     def update_connection_label(self, which, ok):
+        """연결 상태를 라벨과 배지 버튼에 반영합니다 (속성 기반)."""
+        from app.gui.split_text_button import SplitTextButton
+
         label = self.find(
             QLabel, "lmStatusLabel" if which == "lm" else "comfyStatusLabel"
         )
+        badge = self.find(
+            QPushButton, "lmStatusBtn" if which == "lm" else "comfyStatusBtn"
+        )
+        status = "pending" if ok is None else ("success" if ok else "error")
+
         if label:
             if ok is None:
                 label.setText("📡 연결 중...")
-                label.setStyleSheet("color:#B8C0CC;")
             else:
-                text = "🟢연결 성공" if ok else "🔴연결 실패"
-                color = "#26C66D" if ok else "#E45757"
-                label.setText(text)
-                label.setStyleSheet(f"color:{color};")
+                label.setText("🟢연결 성공" if ok else "🔴연결 실패")
+            # 하드코딩된 색상 대신 속성 설정 (QSS에서 처리)
+            label.setProperty("status", status)
+            label.style().unpolish(label)
+            label.style().polish(label)
 
-        # 상단 헤더 배지 버튼들 각각 갱신
-        comfy_badge = self.find(QPushButton, "comfyStatusBtn")
-        lm_badge = self.find(QPushButton, "lmStatusBtn")
-
-        if which == "comfy" and comfy_badge:
-            if ok is None:
-                comfy_badge.setText("🎨 ComfyUI 📡 확인 중...")
-                comfy_badge.setStyleSheet("color: #cbc3d7; border-color: #33343b;")
-            elif ok:
-                comfy_badge.setText("🎨 ComfyUI 🟢 준비 완료")
-                comfy_badge.setStyleSheet("color: #4edea3; border-color: #4edea3;")
+        if badge:
+            if which == "comfy":
+                badge.setText(
+                    "🎨 ComfyUI 📡 확인 중..."
+                    if ok is None
+                    else ("🎨 ComfyUI 🟢 준비 완료" if ok else "🎨 ComfyUI 🔴 미연결")
+                )
             else:
-                comfy_badge.setText("🎨 ComfyUI 🔴 미연결")
-                comfy_badge.setStyleSheet("color: #ffb4ab; border-color: #ffb4ab;")
-
-        elif which == "lm" and lm_badge:
-            if ok is None:
-                lm_badge.setText("💬 LM Studio 📡 확인 중...")
-                lm_badge.setStyleSheet("color: #cbc3d7; border-color: #33343b;")
-            elif ok:
-                lm_badge.setText("💬 LM Studio 🟢 준비 완료")
-                lm_badge.setStyleSheet("color: #4cd7f6; border-color: #4cd7f6;")
+                badge.setText(
+                    "💬 LM Studio 📡 확인 중..."
+                    if ok is None
+                    else ("💬 LM Studio 🟢 준비 완료" if ok else "💬 LM Studio 🔴 미연결")
+                )
+            # SplitTextButton이면 setStatus() 사용, 아니면 속성 설정 (QSS에서 처리)
+            if isinstance(badge, SplitTextButton):
+                badge.setStatus(status)
             else:
-                lm_badge.setText("💬 LM Studio 🔴 미연결")
-                lm_badge.setStyleSheet("color: #ffb4ab; border-color: #ffb4ab;")
+                badge.setProperty("status", status)
+                badge.style().unpolish(badge)
+                badge.style().polish(badge)
 
     def browse_model_folder(self):
         folder = QFileDialog.getExistingDirectory(self.window, "ComfyUI 모델 폴더 선택")
@@ -788,17 +833,49 @@ class MainController(QObject):
             )
         )
         label = self.find(QLabel, "modelPathStatusLabel")
-        label.setText(
-            "✓ ComfyUI 모델 폴더 확인됨" if valid else "✗ 올바른 모델 폴더가 아닙니다"
-        )
-        label.setStyleSheet(f"color:{'#26C66D' if valid else '#E45757'};")
+        if label:
+            label.setText(
+                "✓ ComfyUI 모델 폴더 확인됨" if valid else "✗ 올바른 모델 폴더가 아닙니다"
+            )
+            # 하드코딩된 색상 대신 속성 설정 (QSS에서 처리)
+            label.setProperty("status", "success" if valid else "error")
+            label.style().unpolish(label)
+            label.style().polish(label)
+
+    def get_cfg_value(self) -> float:
+        cfg_slider = self.find(QSlider, "cfgSlider")
+        return (cfg_slider.value() / 10.0) if cfg_slider else 3.5
+
+    def set_cfg_value(self, val: float):
+        cfg_slider = self.find(QSlider, "cfgSlider")
+        if cfg_slider:
+            cfg_slider.blockSignals(True)
+            cfg_slider.setValue(int(round(val * 10)))
+            cfg_slider.blockSignals(False)
+        cfg_label = self.find(QLabel, "cfgValueLabel")
+        if cfg_label:
+            cfg_label.setText(f"{val:.1f}")
+
+    def get_steps_value(self) -> int:
+        steps_slider = self.find(QSlider, "stepsSlider")
+        return steps_slider.value() if steps_slider else 24
+
+    def set_steps_value(self, val: int):
+        steps_slider = self.find(QSlider, "stepsSlider")
+        if steps_slider:
+            steps_slider.blockSignals(True)
+            steps_slider.setValue(int(val))
+            steps_slider.blockSignals(False)
+        steps_label = self.find(QLabel, "stepsValueLabel")
+        if steps_label:
+            steps_label.setText(str(val))
 
     def apply_model_defaults(self, model_name):
         if not model_name or model_name == "로드된 모델 없음":
             return
         profile = self.model_registry.detect(model_name)
-        self.find(QSpinBox, "stepsSpinBox").setValue(profile.default_steps)
-        self.find(QDoubleSpinBox, "cfgSpinBox").setValue(profile.default_cfg)
+        self.set_steps_value(profile.default_steps)
+        self.set_cfg_value(profile.default_cfg)
         display = next(
             (
                 key
@@ -863,7 +940,7 @@ class MainController(QObject):
         config_path = self.config_manager.config_path
         file_exists = config_path.exists()
         self.config = self.config_manager.load()
-        self.config_manager._config = self.config
+        self.config_manager.set_config(self.config)
 
         if file_exists:
             message = f"저장된 설정을 불러왔습니다. ({config_path.name})"
@@ -901,12 +978,8 @@ class MainController(QObject):
         self.find(QSpinBox, "heightSpinBox").setValue(
             self.config.generation.default_height
         )
-        self.find(QSpinBox, "stepsSpinBox").setValue(
-            self.config.generation.default_steps
-        )
-        self.find(QDoubleSpinBox, "cfgSpinBox").setValue(
-            self.config.generation.default_cfg
-        )
+        self.set_steps_value(self.config.generation.default_steps)
+        self.set_cfg_value(self.config.generation.default_cfg)
         self.find(QSpinBox, "seedSpinBox").setValue(self.config.generation.default_seed)
 
         sampler_name = self.config.workflow.sampler_name
@@ -944,68 +1017,36 @@ class MainController(QObject):
             pass
         # (이전 QSplitter 비율 코드는 구조 변경으로 제거됨)
 
+    def _render_markdown_file(self, file_path: Path) -> str:
+        """Markdown 파일을 읽어 HTML 문자열로 변환 (공통 헬퍼)"""
+        if not file_path.exists():
+            return f"<p style='color:red;'>⚠️ {file_path.name} 파일을 찾을 수 없습니다.</p>"
+        try:
+            readme_text = file_path.read_text(encoding="utf-8")
+            try:
+                import markdown
+
+                return markdown.markdown(readme_text, extensions=["tables"])
+            except ImportError:
+                return "<pre>" + readme_text + "</pre>"
+        except Exception as e:
+            return f"<p style='color:red;'>{file_path.name} 읽기 오류: {e}</p>"
+
     def _setup_help_tab(self):
         """도움말 탭의 helpBrowser(main.ui에 정의됨)에 README.md와 INSTALLATION.md 내용을 채운다."""
         browser = self.find(QTextBrowser, "helpBrowser")
         if browser is None:
             return
 
-        # 파일 읽기
         readme_path = BASE_DIR / "assets" / "help" / "README.md"
         install_path = BASE_DIR / "assets" / "help" / "INSTALLATION.md"
 
         html_parts = [
-            "<h1 style='color: #0f172a; font-size: 24px; margin-bottom: 8px;'>📖 프로그램 도움말 v0.3</h1><hr style='border-color: #e2e8f0;'>"
+            "<h1 style='color: #0f172a; font-size: 24px; margin-bottom: 8px;'>📖 프로그램 도움말 v0.3</h1><hr style='border-color: #e2e8f0;'>",
+            self._render_markdown_file(readme_path),
+            "<hr style='border-color: #e2e8f0; margin: 24px 0;'><h2 style='color: #0f172a; font-size: 20px;'>🔧 설치 및 트러블슈팅</h2>",
+            self._render_markdown_file(install_path),
         ]
-
-        # README.md 요약
-        if readme_path.exists():
-            try:
-                with open(readme_path, "r", encoding="utf-8") as f:
-                    readme_text = f.read()
-                    # markdown → HTML 변환 (패키지 없으면 텍스트 그대로)
-                    try:
-                        import importlib
-
-                        markdown = importlib.import_module("markdown")
-                        html_parts.append(
-                            markdown.markdown(readme_text, extensions=["tables"])
-                        )
-                    except ImportError:
-                        html_parts.append("<pre>" + readme_text + "</pre>")
-            except Exception as e:  # noqa: BLE001  (오류 내용을 도움말 화면에 표시하는 것이 의도)
-                html_parts.append(f"<p style='color:red;'>README.md 읽기 오류: {e}</p>")
-        else:
-            html_parts.append(
-                "<p style='color:red;'>⚠️ README.md 파일을 찾을 수 없습니다.</p>"
-            )
-
-        html_parts.append(
-            "<hr style='border-color: #e2e8f0; margin: 24px 0;'><h2 style='color: #0f172a; font-size: 20px;'>🔧 설치 및 트러블슈팅</h2>"
-        )
-
-        # INSTALLATION.md 요약
-        if install_path.exists():
-            try:
-                with open(install_path, "r", encoding="utf-8") as f:
-                    install_text = f.read()
-                    try:
-                        import importlib
-
-                        markdown = importlib.import_module("markdown")
-                        html_parts.append(
-                            markdown.markdown(install_text, extensions=["tables"])
-                        )
-                    except ImportError:
-                        html_parts.append("<pre>" + install_text + "</pre>")
-            except Exception as e:  # noqa: BLE001  (오류 내용을 도움말 화면에 표시하는 것이 의도)
-                html_parts.append(
-                    f"<p style='color:red;'>INSTALLATION.md 읽기 오류: {e}</p>"
-                )
-        else:
-            html_parts.append(
-                "<p style='color:red;'>⚠️ INSTALLATION.md 파일을 찾을 수 없습니다.</p>"
-            )
 
         browser.setHtml("\n".join(html_parts))
 
@@ -1037,12 +1078,8 @@ class MainController(QObject):
         self.config.generation.default_height = self.find(
             QSpinBox, "heightSpinBox"
         ).value()
-        self.config.generation.default_steps = self.find(
-            QSpinBox, "stepsSpinBox"
-        ).value()
-        self.config.generation.default_cfg = self.find(
-            QDoubleSpinBox, "cfgSpinBox"
-        ).value()
+        self.config.generation.default_steps = self.get_steps_value()
+        self.config.generation.default_cfg = self.get_cfg_value()
         self.config.generation.default_seed = self.find(QSpinBox, "seedSpinBox").value()
 
         # Sampler는 실제 값으로 저장 (라벨->값 매핑)
@@ -1060,7 +1097,7 @@ class MainController(QObject):
             self.config.workflow.denoise = denoise_spin.value()
 
         # 설정 객체 업데이트 및 저장 시도
-        self.config_manager._config = self.config
+        self.config_manager.set_config(self.config)
         if self.config_manager.save():
             show_message_box(
                 self.window,
@@ -1080,8 +1117,8 @@ class MainController(QObject):
         generation = self.config.generation
         self.find(QSpinBox, "widthSpinBox").setValue(generation.default_width)
         self.find(QSpinBox, "heightSpinBox").setValue(generation.default_height)
-        self.find(QSpinBox, "stepsSpinBox").setValue(generation.default_steps)
-        self.find(QDoubleSpinBox, "cfgSpinBox").setValue(generation.default_cfg)
+        self.set_steps_value(generation.default_steps)
+        self.set_cfg_value(generation.default_cfg)
         self.find(QSpinBox, "seedSpinBox").setValue(generation.default_seed)
         self.find(QComboBox, "samplerComboBox").setCurrentText("DPM++ 2M·균형")
         scheduler_combo = self.find(QComboBox, "schedulerComboBox")
@@ -1090,6 +1127,45 @@ class MainController(QObject):
         denoise_spin = self.find(QDoubleSpinBox, "denoiseSpinBox")
         if denoise_spin is not None:
             denoise_spin.setValue(1.0)
+
+        # FaceDetailer 옵션도 기본값으로 초기화
+        self._reset_facedetailer_to_defaults()
+
+    def _set_fd_slider(self, slider_name, value):
+        """FaceDetailer 슬라이더 값을 안전하게 설정 (라벨은 시그널로 자동 갱신)."""
+        slider = self.find(QSlider, slider_name)
+        if slider is not None:
+            try:
+                slider.setValue(int(value))
+            except Exception:
+                pass
+
+    def _reset_facedetailer_to_defaults(self):
+        """FaceDetailer 체크박스/슬라이더/콤보박스를 기본값으로 되돌림."""
+        fd_check = self.find(QCheckBox, "facedetailerCheckBox")
+        if fd_check is not None:
+            fd_check.setChecked(False)
+        self._set_fd_slider("facedetailerDenoiseSlider", 40)
+        self._set_fd_slider("facedetailerStepsSlider", 20)
+        self._set_fd_slider("facedetailerCfgSlider", 40)
+        self._set_fd_slider("facedetailerFeatherSlider", 5)
+        self._set_fd_slider("facedetailerDropSizeSlider", 10)
+        self._set_fd_slider("facedetailerGuideSizeSlider", 4)
+        self._set_fd_slider("facedetailerMaxSizeSlider", 12)
+        self._set_fd_slider("facedetailerCycleSlider", 1)
+        self._set_fd_slider("facedetailerBboxThresholdSlider", 50)
+        self._set_fd_slider("facedetailerBboxDilationSlider", 10)
+        self._set_fd_slider("facedetailerBboxCropFactorSlider", 150)
+        self._set_fd_slider("facedetailerSamThresholdSlider", 93)
+        self._set_fd_slider("facedetailerSamDilationSlider", 0)
+        self._set_fd_slider("facedetailerSamBboxExpansionSlider", 0)
+        self._set_fd_slider("facedetailerSamMaskHintThresholdSlider", 70)
+        hint_combo = self.find(QComboBox, "facedetailerSamDetectionHintComboBox")
+        if hint_combo is not None:
+            hint_combo.setCurrentText("center-1")
+        neg_combo = self.find(QComboBox, "facedetailerSamMaskHintUseNegativeComboBox")
+        if neg_combo is not None:
+            neg_combo.setCurrentText("False")
 
     def capture_snapshot(self):
         prompt_text = self.find(QPlainTextEdit, "positivePromptEdit").toPlainText()
@@ -1102,8 +1178,8 @@ class MainController(QObject):
             {
                 "width": self.find(QSpinBox, "widthSpinBox").value(),
                 "height": self.find(QSpinBox, "heightSpinBox").value(),
-                "steps": self.find(QSpinBox, "stepsSpinBox").value(),
-                "cfg": self.find(QDoubleSpinBox, "cfgSpinBox").value(),
+                "steps": self.get_steps_value(),
+                "cfg": self.get_cfg_value(),
                 "seed": self.find(QSpinBox, "seedSpinBox").value(),
                 "sampler": SAMPLER_NAMES.get(
                     self.find(QComboBox, "samplerComboBox").currentText(), "euler"
@@ -1118,53 +1194,34 @@ class MainController(QObject):
                 ),
             }
         )
-        # FaceDetailer 설정도 스냅샷에 포함
-        facedetailer_enabled = self.find(QCheckBox, "facedetailerCheckBox").isChecked()
-        facedetailer_denoise = self.find(
-            QDoubleSpinBox, "facedetailerDenoiseSpinBox"
-        ).value()
-        facedetailer_steps = self.find(QSpinBox, "facedetailerStepsSpinBox").value()
-        facedetailer_cfg = self.find(QDoubleSpinBox, "facedetailerCfgSpinBox").value()
-        facedetailer_guide_size = self.find(
-            QSpinBox, "facedetailerGuideSizeSpinBox"
-        ).value()
-        facedetailer_max_size = self.find(
-            QSpinBox, "facedetailerMaxSizeSpinBox"
-        ).value()
-        facedetailer_feather = self.find(QSpinBox, "facedetailerFeatherSpinBox").value()
-        facedetailer_bbox_threshold = self.find(
-            QDoubleSpinBox, "facedetailerBboxThresholdSpinBox"
-        ).value()
-        facedetailer_bbox_dilation = self.find(
-            QSpinBox, "facedetailerBboxDilationSpinBox"
-        ).value()
-        facedetailer_bbox_crop_factor = self.find(
-            QDoubleSpinBox, "facedetailerBboxCropFactorSpinBox"
-        ).value()
-        facedetailer_sam_detection_hint = self.find(
-            QComboBox, "facedetailerSamDetectionHintComboBox"
-        ).currentText()
-        facedetailer_sam_dilation = self.find(
-            QSpinBox, "facedetailerSamDilationSpinBox"
-        ).value()
-        facedetailer_sam_threshold = self.find(
-            QDoubleSpinBox, "facedetailerSamThresholdSpinBox"
-        ).value()
-        facedetailer_sam_bbox_expansion = self.find(
-            QSpinBox, "facedetailerSamBboxExpansionSpinBox"
-        ).value()
-        facedetailer_sam_mask_hint_threshold = self.find(
-            QDoubleSpinBox, "facedetailerSamMaskHintThresholdSpinBox"
-        ).value()
-        facedetailer_sam_mask_hint_use_negative = self.find(
-            QComboBox, "facedetailerSamMaskHintUseNegativeComboBox"
-        ).currentText()
-        facedetailer_cycle = self.find(QSpinBox, "facedetailerCycleSpinBox").value()
-        facedetailer_drop_size = self.find(
-            QSpinBox, "facedetailerDropSizeSpinBox"
-        ).value()
+        # FaceDetailer 설정 스냅샷 수집
+        fd_values = {}
+        for key, slider_name, default, factor, is_step_64 in FACEDETAILER_SLIDER_SPECS:
+            s = self.find(QSlider, slider_name)
+            if not s:
+                fd_values[key] = default
+            elif is_step_64:
+                fd_values[key] = s.value() * 64
+            elif factor != 1.0:
+                fd_values[key] = round(s.value() / factor, 2)
+            else:
+                fd_values[key] = s.value()
 
-        return {
+        hint_combo = self.find(QComboBox, "facedetailerSamDetectionHintComboBox")
+        neg_combo = self.find(QComboBox, "facedetailerSamMaskHintUseNegativeComboBox")
+        fd_values["facedetailer_sam_detection_hint"] = (
+            hint_combo.currentText() if hint_combo else "center-1"
+        )
+        fd_values["facedetailer_sam_mask_hint_use_negative"] = (
+            neg_combo.currentText() if neg_combo else "False"
+        )
+        fd_values["facedetailer_enabled"] = bool(
+            self.find(QCheckBox, "facedetailerCheckBox").isChecked()
+            if self.find(QCheckBox, "facedetailerCheckBox")
+            else False
+        )
+
+        snapshot = {
             "prompt": normalize_prompt(prompt_text),
             "negative": build_negative_prompt(negative_text),
             "enhance_prompt": enhance_prompt_text,  # enhancePromptEdit 내용 추가
@@ -1180,30 +1237,48 @@ class MainController(QObject):
             "sampler": generation_settings.sampler,
             "scheduler": generation_settings.scheduler,
             "denoise": generation_settings.denoise,
-            # FaceDetailer 설정
-            "facedetailer_enabled": facedetailer_enabled,
-            "facedetailer_denoise": facedetailer_denoise,
-            "facedetailer_steps": facedetailer_steps,
-            "facedetailer_cfg": facedetailer_cfg,
-            "facedetailer_guide_size": facedetailer_guide_size,
-            "facedetailer_max_size": facedetailer_max_size,
-            "facedetailer_feather": facedetailer_feather,
-            "facedetailer_bbox_threshold": facedetailer_bbox_threshold,
-            "facedetailer_bbox_dilation": facedetailer_bbox_dilation,
-            "facedetailer_bbox_crop_factor": facedetailer_bbox_crop_factor,
-            "facedetailer_sam_detection_hint": facedetailer_sam_detection_hint,
-            "facedetailer_sam_dilation": facedetailer_sam_dilation,
-            "facedetailer_sam_threshold": facedetailer_sam_threshold,
-            "facedetailer_sam_bbox_expansion": facedetailer_sam_bbox_expansion,
-            "facedetailer_sam_mask_hint_threshold": facedetailer_sam_mask_hint_threshold,
-            "facedetailer_sam_mask_hint_use_negative": facedetailer_sam_mask_hint_use_negative,
-            "facedetailer_cycle": facedetailer_cycle,
-            "facedetailer_drop_size": facedetailer_drop_size,
         }
+        snapshot.update(fd_values)
+        return snapshot
+
+    def _restore_facedetailer_from_snapshot(self, snap):
+        """스냅샷 딕셔너리에서 FaceDetailer 옵션을 UI로 복원."""
+        if "facedetailer_enabled" in snap:
+            fd_check = self.find(QCheckBox, "facedetailerCheckBox")
+            if fd_check is not None:
+                fd_check.setChecked(bool(snap.get("facedetailer_enabled", False)))
+
+        for key, slider_name, _default, factor, is_step_64 in FACEDETAILER_SLIDER_SPECS:
+            if key in snap:
+                try:
+                    val = float(snap[key])
+                    if is_step_64:
+                        slider_val = round(val / 64)
+                    elif factor != 1.0:
+                        slider_val = round(val * factor)
+                    else:
+                        slider_val = int(val)
+                    self._set_fd_slider(slider_name, slider_val)
+                except Exception:
+                    pass
+
+        if "facedetailer_sam_detection_hint" in snap:
+            hint_combo = self.find(QComboBox, "facedetailerSamDetectionHintComboBox")
+            if hint_combo is not None:
+                hint_value = str(snap.get("facedetailer_sam_detection_hint", "center-1"))
+                if hint_value not in (
+                    "center-1", "horizontal-2", "vertical-2", "rect-4",
+                    "diamond-4", "mask-area", "mask-points", "mask-point-bbox", "none",
+                ):
+                    hint_value = "center-1"
+                hint_combo.setCurrentText(hint_value)
+
+        if "facedetailer_sam_mask_hint_use_negative" in snap:
+            neg_combo = self.find(QComboBox, "facedetailerSamMaskHintUseNegativeComboBox")
+            if neg_combo is not None:
+                neg_combo.setCurrentText(str(snap.get("facedetailer_sam_mask_hint_use_negative", "False")))
 
     def enhance_prompt_only(self):
-        """이미지 생성 없이 프롬프트만 LM Studio로 향상시켜 positivePromptEdit에 적용"""
-        self.append_log("[DEBUG] enhance_prompt_only 호출됨")
         prompt_text = self.find(QPlainTextEdit, "positivePromptEdit").toPlainText()
         prompt = normalize_prompt(prompt_text)
         if not prompt:
@@ -1217,7 +1292,6 @@ class MainController(QObject):
 
         lm_url = self.find(QLineEdit, "lmUrlEdit").text().strip()
         lm_model = self.find(QComboBox, "lmModelCombo").currentText()
-        self.append_log(f"[DEBUG] lm_url={lm_url}, lm_model={lm_model}")
         if not lm_model or lm_model == "로드된 모델 없음":
             show_message_box(
                 self.window,
@@ -1229,7 +1303,6 @@ class MainController(QObject):
 
         # LM Studio 연결 확인
         lm_connected = self.is_lm_connected()
-        self.append_log(f"[DEBUG] is_lm_connected={lm_connected}")
         if not lm_connected:
             show_message_box(
                 self.window,
@@ -1289,17 +1362,15 @@ class MainController(QObject):
         self._prompt_enhance_worker.debug_signal.connect(
             lambda msg: self.append_log(msg)
         )
-        self.append_log("[DEBUG] 워커 시작...")
         self._prompt_enhance_worker.start()
 
     def _on_prompt_enhanced(self, enhanced_prompt: str):
         """프롬프트 향상 성공 시 호출"""
-        self.append_log(f"[DEBUG] 프롬프트 향상 성공: {enhanced_prompt[:50]}...")
         self._apply_enhanced_prompt(enhanced_prompt)
 
     def _on_prompt_enhance_error(self, error_msg: str):
         """프롬프트 향상 실패 시 호출"""
-        self.append_log(f"[DEBUG] 프롬프트 향상 실패: {error_msg}")
+        self.append_log(f"프롬프트 향상 실패: {error_msg}")
         show_message_box(
             self.window, QMessageBox.Icon.Warning, "프롬프트 향상 실패", error_msg
         )
@@ -1307,40 +1378,36 @@ class MainController(QObject):
 
     def _apply_enhanced_prompt(self, enhanced_prompt):
         """향상된 프롬프트를 enhancePromptEdit에 적용"""
-        self.append_log(
-            f"[DEBUG] _apply_enhanced_prompt 호출됨: {enhanced_prompt[:50]}..."
-        )
         prompt_edit = self.find(QPlainTextEdit, "enhancePromptEdit")
-        self.append_log(f"[DEBUG] prompt_edit 찾음: {prompt_edit is not None}")
         if prompt_edit:
             prompt_edit.setPlainText(enhanced_prompt)
-            self.append_log("[DEBUG] setPlainText 완료")
         else:
             self.append_log("[ERROR] enhancePromptEdit을 찾을 수 없음!")
         self.append_log(f"프롬프트 향상 완료: {enhanced_prompt[:100]}...")
         self.find(QLabel, "progressStatusLabel").setText("준비 완료")
 
     def start_generation(self):
-        if self.worker:
-            return
-        # 시드 고정이 활성화되어 있지 않으면 매번 새 랜덤 시드 자동 적용
-        if not getattr(self, "is_seed_locked", False):
-            rand_seed = random.randint(100000000, 999999999)
-            seed_spin = self.find(QSpinBox, "seedSpinBox")
-            if seed_spin:
-                seed_spin.setValue(rand_seed)
-        snapshot = self.capture_snapshot()
-        if not snapshot["prompt"]:
-            show_message_box(
-                self.window,
-                QMessageBox.Icon.Warning,
-                "프롬프트 필요",
-                "프롬프트를 입력해주세요.",
-            )
-            return
+        with self._generation_lock:
+            if self.worker:
+                return
+            # 시드 고정이 활성화되어 있지 않으면 매번 새 랜덤 시드 자동 적용
+            if not getattr(self, "is_seed_locked", False):
+                rand_seed = random.randint(100000000, 999999999)
+                seed_spin = self.find(QSpinBox, "seedSpinBox")
+                if seed_spin:
+                    seed_spin.setValue(rand_seed)
+            snapshot = self.capture_snapshot()
+            if not snapshot["prompt"]:
+                show_message_box(
+                    self.window,
+                    QMessageBox.Icon.Warning,
+                    "프롬프트 필요",
+                    "프롬프트를 입력해주세요.",
+                )
+                return
 
-        # 워커 인스턴스 생성
-        self.worker = GenerationWorker(self, snapshot)
+            # 워커 인스턴스 생성
+            self.worker = GenerationWorker(self, snapshot)
 
         # 🚀 중복되지 않도록 시그널 이벤트를 딱 1번만 연결합니다.
         self.worker.signals.enhanced_prompt.connect(self._apply_enhanced_prompt)
@@ -1368,10 +1435,11 @@ class MainController(QObject):
         threading.Thread(target=self.worker.run, daemon=True).start()
 
     def stop_generation(self):
-        if self.worker:
-            self.worker.stop()
-            self.append_log("생성 중지를 요청했습니다.")
-            self.find(QLabel, "progressStatusLabel").setText("중단 중...")
+        with self._generation_lock:
+            if self.worker:
+                self.worker.stop()
+                self.append_log("생성 중지를 요청했습니다.")
+                self.find(QLabel, "progressStatusLabel").setText("중단 중...")
         self.loading_animation.stop()
 
     def _on_gen_stop_state_changed(self, checked):
@@ -1389,7 +1457,8 @@ class MainController(QObject):
     def generation_finished(self, success):
         self.elapsed_timer.stop()
         self.loading_animation.stop()
-        self.worker = None
+        with self._generation_lock:
+            self.worker = None
         btn = self.find(QPushButton, "generateButton")
         if btn is not None:
             btn.setChecked(False)
@@ -1442,8 +1511,8 @@ class MainController(QObject):
             try:
                 snapshot = self.capture_snapshot()
                 self.add_to_history(path, snapshot)
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"[경고] 히스토리 추가 실패: {e}")
 
     def save_image_as(self):
         if not self.current_image_path:
@@ -1505,50 +1574,25 @@ class MainController(QObject):
 
         # 1. 슬라이더 동기화 (CFG)
         cfg_slider = self.find(QSlider, "cfgSlider")
-        cfg_spin = self.find(QDoubleSpinBox, "cfgSpinBox")
         cfg_label = self.find(QLabel, "cfgValueLabel")
-        if cfg_slider and cfg_spin:
+        if cfg_slider:
             def on_cfg_slider(val):
-                cfg_val = val / 10.0
-                cfg_spin.blockSignals(True)
-                cfg_spin.setValue(cfg_val)
-                cfg_spin.blockSignals(False)
                 if cfg_label:
-                    cfg_label.setText(f"{cfg_val:.1f}")
-
-            def on_cfg_spin(val):
-                cfg_slider.blockSignals(True)
-                cfg_slider.setValue(int(round(val * 10)))
-                cfg_slider.blockSignals(False)
-                if cfg_label:
-                    cfg_label.setText(f"{val:.1f}")
+                    cfg_label.setText(f"{val / 10.0:.1f}")
 
             cfg_slider.valueChanged.connect(on_cfg_slider)
-            cfg_spin.valueChanged.connect(on_cfg_spin)
-            cfg_slider.setValue(int(round(cfg_spin.value() * 10)))
+            on_cfg_slider(cfg_slider.value())
 
         # 2. 슬라이더 동기화 (Steps)
         steps_slider = self.find(QSlider, "stepsSlider")
-        steps_spin = self.find(QSpinBox, "stepsSpinBox")
         steps_label = self.find(QLabel, "stepsValueLabel")
-        if steps_slider and steps_spin:
+        if steps_slider:
             def on_steps_slider(val):
-                steps_spin.blockSignals(True)
-                steps_spin.setValue(val)
-                steps_spin.blockSignals(False)
-                if steps_label:
-                    steps_label.setText(str(val))
-
-            def on_steps_spin(val):
-                steps_slider.blockSignals(True)
-                steps_slider.setValue(val)
-                steps_slider.blockSignals(False)
                 if steps_label:
                     steps_label.setText(str(val))
 
             steps_slider.valueChanged.connect(on_steps_slider)
-            steps_spin.valueChanged.connect(on_steps_spin)
-            steps_slider.setValue(steps_spin.value())
+            on_steps_slider(steps_slider.value())
 
         # 3. 시드 제어 (랜덤 및 고정)
         rand_seed_btn = self.find(QPushButton, "randomSeedButton")
@@ -1576,51 +1620,44 @@ class MainController(QObject):
             fd_panel.setVisible(fd_check.isChecked())
             fd_check.toggled.connect(lambda checked: fd_panel.setVisible(checked))
 
-        # FaceDetailer 슬라이더-스핀박스 양방향 동기화
-        def _sync_fd_double(slider_name, spin_name, factor=100.0):
-            slider = self.find(QSlider, slider_name)
-            spin = self.find(QDoubleSpinBox, spin_name)
-            if slider and spin:
-                def on_slider(val):
-                    spin.blockSignals(True)
-                    spin.setValue(val / factor)
-                    spin.blockSignals(False)
-                def on_spin(val):
-                    slider.blockSignals(True)
-                    slider.setValue(int(round(val * factor)))
-                    slider.blockSignals(False)
-                slider.valueChanged.connect(on_slider)
-                spin.valueChanged.connect(on_spin)
-                slider.setValue(int(round(spin.value() * factor)))
+        # 6-0. [?] 얼굴 보정 도움말 버튼 (main.ui의 facedetailerHelpBtn 연동)
+        fd_help_btn = self.find(QPushButton, "facedetailerHelpBtn")
+        if fd_help_btn:
+            fd_help_btn.clicked.connect(self._show_facedetailer_guide)
 
-        def _sync_fd_int(slider_name, spin_name):
+        # FaceDetailer 슬라이더 -> 수치 라벨(QLabel) 동기화
+        # (main.ui에서는 SpinBox가 제거되고 ValueLabel로 교체됨)
+        def _sync_fd_label(slider_name, label_name, fmt):
             slider = self.find(QSlider, slider_name)
-            spin = self.find(QSpinBox, spin_name)
-            if slider and spin:
-                def on_slider(val):
-                    spin.blockSignals(True)
-                    spin.setValue(val)
-                    spin.blockSignals(False)
-                def on_spin(val):
-                    slider.blockSignals(True)
-                    slider.setValue(val)
-                    slider.blockSignals(False)
-                slider.valueChanged.connect(on_slider)
-                spin.valueChanged.connect(on_spin)
-                slider.setValue(spin.value())
+            label = self.find(QLabel, label_name)
+            if slider and label:
+                def on_val(val, _lbl=label, _fmt=fmt):
+                    try:
+                        _lbl.setText(_fmt(val))
+                    except Exception:
+                        pass
+                slider.valueChanged.connect(on_val)
+                # 초기 표시도 맞춤
+                try:
+                    label.setText(fmt(slider.value()))
+                except Exception:
+                    pass
 
-        _sync_fd_double("facedetailerDenoiseSlider", "facedetailerDenoiseSpinBox", 100.0)
-        _sync_fd_int("facedetailerStepsSlider", "facedetailerStepsSpinBox")
-        _sync_fd_double("facedetailerCfgSlider", "facedetailerCfgSpinBox", 10.0)
-        _sync_fd_int("facedetailerFeatherSlider", "facedetailerFeatherSpinBox")
-        _sync_fd_int("facedetailerDropSizeSlider", "facedetailerDropSizeSpinBox")
-        _sync_fd_double("facedetailerBboxThresholdSlider", "facedetailerBboxThresholdSpinBox", 100.0)
-        _sync_fd_int("facedetailerBboxDilationSlider", "facedetailerBboxDilationSpinBox")
-        _sync_fd_double("facedetailerBboxCropFactorSlider", "facedetailerBboxCropFactorSpinBox", 100.0)
-        _sync_fd_double("facedetailerSamThresholdSlider", "facedetailerSamThresholdSpinBox", 100.0)
-        _sync_fd_int("facedetailerSamDilationSlider", "facedetailerSamDilationSpinBox")
-        _sync_fd_int("facedetailerSamBboxExpansionSlider", "facedetailerSamBboxExpansionSpinBox")
-        _sync_fd_double("facedetailerSamMaskHintThresholdSlider", "facedetailerSamMaskHintThresholdSpinBox", 100.0)
+        _sync_fd_label("facedetailerDenoiseSlider", "facedetailerDenoiseValueLabel", lambda v: f"{v / 100.0:.2f}")
+        _sync_fd_label("facedetailerStepsSlider", "facedetailerStepsValueLabel", lambda v: f"{int(v)}")
+        _sync_fd_label("facedetailerCfgSlider", "facedetailerCfgValueLabel", lambda v: f"{v / 10.0:.1f}")
+        _sync_fd_label("facedetailerFeatherSlider", "facedetailerFeatherValueLabel", lambda v: f"{int(v)}")
+        _sync_fd_label("facedetailerDropSizeSlider", "facedetailerDropSizeValueLabel", lambda v: f"{int(v)}")
+        _sync_fd_label("facedetailerGuideSizeSlider", "facedetailerGuideSizeValueLabel", lambda v: f"{int(v * 64)}")
+        _sync_fd_label("facedetailerMaxSizeSlider", "facedetailerMaxSizeValueLabel", lambda v: f"{int(v * 64)}")
+        _sync_fd_label("facedetailerCycleSlider", "facedetailerCycleValueLabel", lambda v: f"{int(v)}")
+        _sync_fd_label("facedetailerBboxThresholdSlider", "facedetailerBboxThresholdValueLabel", lambda v: f"{v / 100.0:.2f}")
+        _sync_fd_label("facedetailerBboxDilationSlider", "facedetailerBboxDilationValueLabel", lambda v: f"{int(v)}")
+        _sync_fd_label("facedetailerBboxCropFactorSlider", "facedetailerBboxCropFactorValueLabel", lambda v: f"{v / 100.0:.2f}")
+        _sync_fd_label("facedetailerSamThresholdSlider", "facedetailerSamThresholdValueLabel", lambda v: f"{v / 100.0:.2f}")
+        _sync_fd_label("facedetailerSamDilationSlider", "facedetailerSamDilationValueLabel", lambda v: f"{int(v)}")
+        _sync_fd_label("facedetailerSamBboxExpansionSlider", "facedetailerSamBboxExpansionValueLabel", lambda v: f"{int(v)}")
+        _sync_fd_label("facedetailerSamMaskHintThresholdSlider", "facedetailerSamMaskHintThresholdValueLabel", lambda v: f"{v / 100.0:.2f}")
 
         # 6-1. 네거티브 프롬프트 패널 초기 표시 상태 (SDXL 등 필요 모델 선택 시에만 표시)
         neg_frame = self.find(QFrame, "negativePromptFrame")
@@ -1633,11 +1670,12 @@ class MainController(QObject):
             else:
                 neg_frame.setVisible(False)
 
-        # 7. 접이식 고급 설정 토글
-        adv_btn = self.find(QPushButton, "advancedToggleBtn")
+        # 7. 접이식 고급 설정 토글 (얼굴 보정과 동일한 체크박스 방식으로 통일)
+        adv_check = self.find(QCheckBox, "advancedToggleBtn")
         adv_content = self.find(QWidget, "advancedContentWidget")
-        if adv_btn and adv_content:
-            adv_btn.clicked.connect(self._toggle_advanced_settings)
+        if adv_check and adv_content:
+            adv_content.setVisible(adv_check.isChecked())
+            adv_check.toggled.connect(lambda checked: adv_content.setVisible(checked))
 
         # 8. 연결 상태 배지 및 설정 버튼 다이얼로그 연동
         comfy_btn = self.find(QPushButton, "comfyStatusBtn")
@@ -1712,17 +1750,6 @@ class MainController(QObject):
                 self.append_log("결과 이미지가 클립보드에 복사되었습니다.")
         else:
             show_message_box(self.window, QMessageBox.Icon.Information, "알림", "복사할 이미지가 없습니다.")
-
-    def _toggle_advanced_settings(self):
-        content = self.find(QWidget, "advancedContentWidget")
-        btn = self.find(QPushButton, "advancedToggleBtn")
-        if content:
-            is_visible = content.isVisible()
-            content.setVisible(not is_visible)
-            if btn:
-                arrow = "▲" if not is_visible else "▼"
-                state = "접기" if not is_visible else "펼치기"
-                btn.setText(f"⚙️ 고급 설정 {state} (시드, 슬라이더, 샘플러)  {arrow}")
 
     def _show_settings_dialog(self):
         """연결 상태 배지 및 설정 버튼 클릭 시 모달 설정창 표시"""
@@ -1812,22 +1839,53 @@ class MainController(QObject):
         browser.setOpenExternalLinks(True)
 
         readme_path = BASE_DIR / "assets" / "help" / "README.md"
-        html_content = "<h2 style='color:#d0bcff;'>📖 ComfyCraft AI Easy Studio 안내</h2><hr style='border-color:#33343b;'>"
-        if readme_path.exists():
-            try:
-                with open(readme_path, "r", encoding="utf-8") as f:
-                    readme_text = f.read()
-                try:
-                    import markdown
-                    html_content += markdown.markdown(readme_text, extensions=["tables"])
-                except Exception:
-                    html_content += f"<pre style='color:#e2e2eb;'>{readme_text}</pre>"
-            except Exception as e:
-                html_content += f"<p style='color:red;'>도움말 로드 오류: {e}</p>"
-        else:
-            html_content += "<p>도움말 파일을 찾을 수 없습니다.</p>"
+        style_inject = """
+        <style>
+            h1 { font-size: 24px; font-weight: bold; margin-bottom: 14px; }
+            h2 { font-size: 20px; font-weight: bold; margin-top: 20px; margin-bottom: 10px; color: #d0bcff; }
+            h3 { font-size: 16px; font-weight: bold; margin-top: 15px; margin-bottom: 8px; color: #e8def8; }
+            p, li, td, th { font-size: 14px; line-height: 1.5; }
+            strong { font-weight: bold; font-size: 14px; color: #ffffff; }
+            hr { border-bottom: 1px solid #33343b; margin: 15px 0; }
+            pre, code { background-color: #1e1e1e; color: #e2e2eb; padding: 3px 5px; border-radius: 4px; font-family: Consolas, monospace; font-size: 13px; }
+            pre { padding: 10px; }
+        </style>
+        """
+        html_content = (
+            style_inject
+            + "<h2 style='color:#d0bcff; font-size:24px;'>📖 ComfyCraft AI Easy Studio 도움말</h2><hr>"
+            + self._render_markdown_file(readme_path)
+        )
 
         browser.setHtml(html_content)
+        layout.addWidget(browser)
+
+        close_btn = QPushButton("닫기", dlg)
+        close_btn.clicked.connect(dlg.accept)
+        layout.addWidget(close_btn)
+        dlg.exec()
+
+    def _show_facedetailer_guide(self):
+        """❓ 얼굴 보정(FaceDetailer) 초보자 가이드 다이얼로그"""
+        dlg = QDialog(self.window)
+        dlg.setWindowTitle("❓ 얼굴 보정(FaceDetailer) 쉬운 설명")
+        dlg.resize(760, 640)
+        dlg.setStyleSheet(self.window.styleSheet())
+        layout = QVBoxLayout(dlg)
+
+        browser = QTextBrowser(dlg)
+        browser.setOpenExternalLinks(True)
+
+        guide_file = BASE_DIR / "assets" / "help" / "facedetailer_guide.html"
+        if guide_file.exists():
+            try:
+                html = guide_file.read_text(encoding="utf-8")
+            except Exception:
+                html = "<p>설명서 파일을 불러올 수 없습니다.</p>"
+        else:
+            html = "<p>설명서 파일이 존재하지 않습니다.</p>"
+
+        browser.setHtml(html)
         layout.addWidget(browser)
 
         close_btn = QPushButton("닫기", dlg)
@@ -1861,15 +1919,18 @@ class MainController(QObject):
         if "width" in snap and "height" in snap:
             self.apply_preset(snap["width"], snap["height"])
         if "steps" in snap:
-            self.find(QSpinBox, "stepsSpinBox").setValue(snap["steps"])
+            self.set_steps_value(snap["steps"])
         if "cfg" in snap:
-            self.find(QDoubleSpinBox, "cfgSpinBox").setValue(snap["cfg"])
+            self.set_cfg_value(snap["cfg"])
         if "seed" in snap and snap["seed"] != -1:
             self.find(QSpinBox, "seedSpinBox").setValue(snap["seed"])
         if "sampler" in snap:
             self.find(QComboBox, "samplerComboBox").setCurrentText(snap["sampler"])
         if "scheduler" in snap:
             self.find(QComboBox, "schedulerComboBox").setCurrentText(snap["scheduler"])
+
+        # 4. FaceDetailer 옵션 복원
+        self._restore_facedetailer_from_snapshot(snap)
 
         self.append_log(f"최근 생성 기록 [{index + 1}번]의 설정 및 프롬프트를 성공적으로 복원했습니다.")
 

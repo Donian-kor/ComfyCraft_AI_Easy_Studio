@@ -44,6 +44,8 @@ animationDuration) - they show up in the Property Editor once promoted.
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from PySide6.QtCore import (
     Property,
     QEasingCurve,
@@ -64,7 +66,16 @@ class SplitTextButton(QPushButton):
     Extended from the `버튼샘플.py` sample: the optional QIcon is drawn
     left of the text (when the designer buttons had one), so buttons such
     as toggleLogButton / enhancePromptButton / exitButton keep their icons.
+
+    테마 색상 지원:
+        - setStatus(status) 메서드로 버튼 상태 설정 가능
+        - status 값: "none", "accent", "success", "error", "warning", "pending"
+        - updateThemeColors(theme_key)로 현재 테마 색상 테이블 갱신
     """
+
+    # 클래스 변수로 테마 색상 테이블 관리 (모든 인스턴스가 공유)
+    _theme_colors: ClassVar[dict[str, dict[str, str]]] = {}
+    _current_theme: ClassVar[str] = "fluent_dark"
 
     def __init__(self, text: str = "Button", parent: QWidget | None = None):
         super().__init__(text, parent)
@@ -81,6 +92,9 @@ class SplitTextButton(QPushButton):
         self._letter_delay_ms = 50  # i / 20 * 1000s -> 50ms/letter
         self._icon_gap_px = 8  # space between icon and text
 
+        # 상태 속성 (속성 변경 시 색상 업데이트)
+        self._status = "none"  # "none", "accent", "success", "error", "warning", "pending"
+
         self.setFont(self._make_font())
         self.setCursor(Qt.PointingHandCursor)
         self.setFlat(True)
@@ -92,6 +106,9 @@ class SplitTextButton(QPushButton):
         self._shadow.setBlurRadius(16)
         self._shadow.setOffset(0, 4)
         self.setGraphicsEffect(self._shadow)
+
+        # init 후 테마 색상 적용 (shadow 생성 후 호출)
+        self._apply_theme_color()
 
         # ---- animated state -------------------------------------------------
         self._hovered = False
@@ -189,6 +206,78 @@ class SplitTextButton(QPushButton):
             anim.setDuration(ms)
 
     animationDuration = Property(int, getAnimationDuration, setAnimationDuration)
+
+    # ------------------------------------------------------------------ #
+    # 테마 색상 지원
+    # ------------------------------------------------------------------ #
+
+    @classmethod
+    def updateThemeColors(
+        cls,
+        theme_key: str,
+        colors: dict[str, dict[str, str]],
+    ) -> None:
+        """테마 색상 테이블을 갱신하고 모든 인스턴스의 색상을 업데이트한다.
+
+        Args:
+            theme_key: 현재 테마 키 (예: "fluent_dark")
+            colors: 상태별 색상 딕셔너리
+                {
+                    "accent": {"bg": "#0078D4", "text": "#ffffff"},
+                    "success": {"bg": "#4edea3", "text": "#ffffff"},
+                    "error": {"bg": "#ffb4ab", "text": "#ffffff"},
+                    "warning": {"bg": "#fbbf24", "text": "#1a1a1a"},
+                    "pending": {"bg": "#b8c0cc", "text": "#ffffff"},
+                }
+        """
+        cls._theme_colors = colors
+        cls._current_theme = theme_key
+        try:
+            from PySide6.QtWidgets import QApplication
+            app = QApplication.instance()
+            if app is not None:
+                for widget in app.topLevelWidgets():
+                    for child in widget.findChildren(cls):
+                        child._apply_theme_color()
+        except Exception:
+            pass
+
+    def _apply_theme_color(self) -> None:
+        """현재 상태에 맞는 테마 색상을 적용한다."""
+        theme_colors = self._theme_colors
+        if not theme_colors:
+            return
+        status = self._status
+        if status not in theme_colors:
+            status = "accent"
+        colors = theme_colors.get(status, {})
+        bg_hex = colors.get("bg", "#275efe")
+        text_hex = colors.get("text", "#ffffff")
+        self._bg_color = QColor(bg_hex)
+        self._text_color = QColor(text_hex)
+        # 섀도우 색상도 배경색에 맞게 업데이트
+        self._shadow.setColor(QColor(self._bg_color.red(), self._bg_color.green(),
+                                       self._bg_color.blue(), 82))
+        self.update()
+
+    def getStatus(self) -> str:
+        """현재 버튼 상태 반환."""
+        return self._status
+
+    def setStatus(self, status: str) -> None:
+        """버튼 상태 설정 (테마 색상 적용).
+
+        Args:
+            status: "none", "accent", "success", "error", "warning", "pending"
+        """
+        valid = ("none", "accent", "success", "error", "warning", "pending")
+        if status not in valid:
+            status = "none"
+        if status != self._status:
+            self._status = status
+            self._apply_theme_color()
+
+    status = Property(str, getStatus, setStatus)
 
     # ------------------------------------------------------------------ #
     # sizing

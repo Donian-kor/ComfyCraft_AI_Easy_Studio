@@ -20,7 +20,7 @@ class ConnectionStatus:
     service: str
     url: str
     ok: bool = False
-    message: str = "未確認"
+    message: str = "미확인"
 
 
 def _normalize_url(url: str) -> str:
@@ -190,7 +190,7 @@ def scan_comfyui_model_names(model_root: Optional[str] = None, extra_candidates:
 def check_connection_silent(service: str, url: str, timeout: float = 0.3) -> bool:
     """조용하게 연결 확인 (자동 초기화용) - 매우 빠른 응답"""
     try:
-        from src import LMStudioApiClient, ComfyUIApiClient
+        from app.core.api_client import LMStudioApiClient, ComfyUIApiClient
         client = LMStudioApiClient(url) if service == "lm" else ComfyUIApiClient(url)
         response = client.get_models(timeout=timeout) if service == "lm" else client.get_system_stats(timeout=timeout)
         return bool(response is not None and getattr(response, "status_code", 500) < 400)

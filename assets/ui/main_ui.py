@@ -16,11 +16,11 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDoubleSpinBox,
-    QFrame, QGroupBox, QHBoxLayout, QLabel,
-    QLineEdit, QMainWindow, QPlainTextEdit, QProgressBar,
-    QPushButton, QScrollArea, QSizePolicy, QSlider,
-    QSpacerItem, QSpinBox, QTextBrowser, QVBoxLayout,
-    QWidget)
+    QFrame, QGridLayout, QGroupBox, QHBoxLayout,
+    QLabel, QLineEdit, QMainWindow, QPlainTextEdit,
+    QProgressBar, QPushButton, QScrollArea, QSizePolicy,
+    QSlider, QSpacerItem, QSpinBox, QTextBrowser,
+    QVBoxLayout, QWidget)
 
 from app.gui.play_stop_button import PlayStopButton
 
@@ -28,7 +28,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1360, 975)
+        MainWindow.resize(1360, 993)
         MainWindow.setMinimumSize(QSize(1100, 760))
         self.centralWidget = QWidget(MainWindow)
         self.centralWidget.setObjectName(u"centralWidget")
@@ -111,7 +111,7 @@ class Ui_MainWindow(object):
         self.leftScrollArea.setWidgetResizable(True)
         self.leftContentWidget = QWidget()
         self.leftContentWidget.setObjectName(u"leftContentWidget")
-        self.leftContentWidget.setGeometry(QRect(0, 0, 708, 1488))
+        self.leftContentWidget.setGeometry(QRect(0, -687, 647, 1414))
         self.leftContentLayout = QVBoxLayout(self.leftContentWidget)
         self.leftContentLayout.setSpacing(14)
         self.leftContentLayout.setObjectName(u"leftContentLayout")
@@ -384,11 +384,28 @@ class Ui_MainWindow(object):
         self.faceDetailerLayout.setSpacing(8)
         self.faceDetailerLayout.setObjectName(u"faceDetailerLayout")
         self.faceDetailerLayout.setContentsMargins(12, 10, 12, 10)
+        self.facedetailerHeadLayout = QHBoxLayout()
+        self.facedetailerHeadLayout.setSpacing(8)
+        self.facedetailerHeadLayout.setObjectName(u"facedetailerHeadLayout")
         self.facedetailerCheckBox = QCheckBox(self.faceDetailerCard)
         self.facedetailerCheckBox.setObjectName(u"facedetailerCheckBox")
         self.facedetailerCheckBox.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
-        self.faceDetailerLayout.addWidget(self.facedetailerCheckBox)
+        self.facedetailerHeadLayout.addWidget(self.facedetailerCheckBox)
+
+        self.spacerItem = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.facedetailerHeadLayout.addItem(self.spacerItem)
+
+        self.facedetailerHelpBtn = QPushButton(self.faceDetailerCard)
+        self.facedetailerHelpBtn.setObjectName(u"facedetailerHelpBtn")
+        self.facedetailerHelpBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        self.facedetailerHelpBtn.setAutoDefault(False)
+
+        self.facedetailerHeadLayout.addWidget(self.facedetailerHelpBtn)
+
+
+        self.faceDetailerLayout.addLayout(self.facedetailerHeadLayout)
 
         self.facedetailerPanel = QFrame(self.faceDetailerCard)
         self.facedetailerPanel.setObjectName(u"facedetailerPanel")
@@ -409,20 +426,14 @@ class Ui_MainWindow(object):
 
         self.fd_denoise_hdr.addWidget(self.facedetailerDenoiseLabel)
 
-        self.spacerItem = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.spacerItem1 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self.fd_denoise_hdr.addItem(self.spacerItem)
+        self.fd_denoise_hdr.addItem(self.spacerItem1)
 
-        self.facedetailerDenoiseSpinBox = QDoubleSpinBox(self.facedetailerPanel)
-        self.facedetailerDenoiseSpinBox.setObjectName(u"facedetailerDenoiseSpinBox")
-        self.facedetailerDenoiseSpinBox.setMinimumSize(QSize(60, 22))
-        self.facedetailerDenoiseSpinBox.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-        self.facedetailerDenoiseSpinBox.setMinimum(0.000000000000000)
-        self.facedetailerDenoiseSpinBox.setMaximum(1.000000000000000)
-        self.facedetailerDenoiseSpinBox.setSingleStep(0.010000000000000)
-        self.facedetailerDenoiseSpinBox.setValue(0.400000000000000)
+        self.facedetailerDenoiseValueLabel = QLabel(self.facedetailerPanel)
+        self.facedetailerDenoiseValueLabel.setObjectName(u"facedetailerDenoiseValueLabel")
 
-        self.fd_denoise_hdr.addWidget(self.facedetailerDenoiseSpinBox)
+        self.fd_denoise_hdr.addWidget(self.facedetailerDenoiseValueLabel)
 
 
         self.fd_denoise_vbox.addLayout(self.fd_denoise_hdr)
@@ -449,19 +460,14 @@ class Ui_MainWindow(object):
 
         self.fd_steps_hdr.addWidget(self.facedetailerStepsLabel)
 
-        self.spacerItem1 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.spacerItem2 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self.fd_steps_hdr.addItem(self.spacerItem1)
+        self.fd_steps_hdr.addItem(self.spacerItem2)
 
-        self.facedetailerStepsSpinBox = QSpinBox(self.facedetailerPanel)
-        self.facedetailerStepsSpinBox.setObjectName(u"facedetailerStepsSpinBox")
-        self.facedetailerStepsSpinBox.setMinimumSize(QSize(60, 22))
-        self.facedetailerStepsSpinBox.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-        self.facedetailerStepsSpinBox.setMinimum(1)
-        self.facedetailerStepsSpinBox.setMaximum(50)
-        self.facedetailerStepsSpinBox.setValue(20)
+        self.facedetailerStepsValueLabel = QLabel(self.facedetailerPanel)
+        self.facedetailerStepsValueLabel.setObjectName(u"facedetailerStepsValueLabel")
 
-        self.fd_steps_hdr.addWidget(self.facedetailerStepsSpinBox)
+        self.fd_steps_hdr.addWidget(self.facedetailerStepsValueLabel)
 
 
         self.fd_steps_vbox.addLayout(self.fd_steps_hdr)
@@ -488,20 +494,14 @@ class Ui_MainWindow(object):
 
         self.fd_cfg_hdr.addWidget(self.facedetailerCfgLabel)
 
-        self.spacerItem2 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.spacerItem3 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self.fd_cfg_hdr.addItem(self.spacerItem2)
+        self.fd_cfg_hdr.addItem(self.spacerItem3)
 
-        self.facedetailerCfgSpinBox = QDoubleSpinBox(self.facedetailerPanel)
-        self.facedetailerCfgSpinBox.setObjectName(u"facedetailerCfgSpinBox")
-        self.facedetailerCfgSpinBox.setMinimumSize(QSize(60, 22))
-        self.facedetailerCfgSpinBox.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-        self.facedetailerCfgSpinBox.setMinimum(0.000000000000000)
-        self.facedetailerCfgSpinBox.setMaximum(20.000000000000000)
-        self.facedetailerCfgSpinBox.setSingleStep(0.100000000000000)
-        self.facedetailerCfgSpinBox.setValue(4.000000000000000)
+        self.facedetailerCfgValueLabel = QLabel(self.facedetailerPanel)
+        self.facedetailerCfgValueLabel.setObjectName(u"facedetailerCfgValueLabel")
 
-        self.fd_cfg_hdr.addWidget(self.facedetailerCfgSpinBox)
+        self.fd_cfg_hdr.addWidget(self.facedetailerCfgValueLabel)
 
 
         self.fd_cfg_vbox.addLayout(self.fd_cfg_hdr)
@@ -528,19 +528,14 @@ class Ui_MainWindow(object):
 
         self.fd_feather_hdr.addWidget(self.facedetailerFeatherLabel)
 
-        self.spacerItem3 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.spacerItem4 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self.fd_feather_hdr.addItem(self.spacerItem3)
+        self.fd_feather_hdr.addItem(self.spacerItem4)
 
-        self.facedetailerFeatherSpinBox = QSpinBox(self.facedetailerPanel)
-        self.facedetailerFeatherSpinBox.setObjectName(u"facedetailerFeatherSpinBox")
-        self.facedetailerFeatherSpinBox.setMinimumSize(QSize(60, 22))
-        self.facedetailerFeatherSpinBox.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-        self.facedetailerFeatherSpinBox.setMinimum(0)
-        self.facedetailerFeatherSpinBox.setMaximum(20)
-        self.facedetailerFeatherSpinBox.setValue(5)
+        self.facedetailerFeatherValueLabel = QLabel(self.facedetailerPanel)
+        self.facedetailerFeatherValueLabel.setObjectName(u"facedetailerFeatherValueLabel")
 
-        self.fd_feather_hdr.addWidget(self.facedetailerFeatherSpinBox)
+        self.fd_feather_hdr.addWidget(self.facedetailerFeatherValueLabel)
 
 
         self.fd_feather_vbox.addLayout(self.fd_feather_hdr)
@@ -567,19 +562,14 @@ class Ui_MainWindow(object):
 
         self.fd_dropsize_hdr.addWidget(self.facedetailerDropSizeLabel)
 
-        self.spacerItem4 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.spacerItem5 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self.fd_dropsize_hdr.addItem(self.spacerItem4)
+        self.fd_dropsize_hdr.addItem(self.spacerItem5)
 
-        self.facedetailerDropSizeSpinBox = QSpinBox(self.facedetailerPanel)
-        self.facedetailerDropSizeSpinBox.setObjectName(u"facedetailerDropSizeSpinBox")
-        self.facedetailerDropSizeSpinBox.setMinimumSize(QSize(60, 22))
-        self.facedetailerDropSizeSpinBox.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-        self.facedetailerDropSizeSpinBox.setMinimum(1)
-        self.facedetailerDropSizeSpinBox.setMaximum(100)
-        self.facedetailerDropSizeSpinBox.setValue(10)
+        self.facedetailerDropSizeValueLabel = QLabel(self.facedetailerPanel)
+        self.facedetailerDropSizeValueLabel.setObjectName(u"facedetailerDropSizeValueLabel")
 
-        self.fd_dropsize_hdr.addWidget(self.facedetailerDropSizeSpinBox)
+        self.fd_dropsize_hdr.addWidget(self.facedetailerDropSizeValueLabel)
 
 
         self.fd_dropsize_vbox.addLayout(self.fd_dropsize_hdr)
@@ -596,83 +586,111 @@ class Ui_MainWindow(object):
 
         self.fdLeftCol.addLayout(self.fd_dropsize_vbox)
 
-        self.fd_guidesize_row = QHBoxLayout()
-        self.fd_guidesize_row.setObjectName(u"fd_guidesize_row")
+        self.fd_guidesize_vbox = QVBoxLayout()
+        self.fd_guidesize_vbox.setSpacing(2)
+        self.fd_guidesize_vbox.setObjectName(u"fd_guidesize_vbox")
+        self.fd_guidesize_hdr = QHBoxLayout()
+        self.fd_guidesize_hdr.setObjectName(u"fd_guidesize_hdr")
         self.facedetailerGuideSizeLabel = QLabel(self.facedetailerPanel)
         self.facedetailerGuideSizeLabel.setObjectName(u"facedetailerGuideSizeLabel")
 
-        self.fd_guidesize_row.addWidget(self.facedetailerGuideSizeLabel)
-
-        self.spacerItem5 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.fd_guidesize_row.addItem(self.spacerItem5)
-
-        self.facedetailerGuideSizeSpinBox = QSpinBox(self.facedetailerPanel)
-        self.facedetailerGuideSizeSpinBox.setObjectName(u"facedetailerGuideSizeSpinBox")
-        self.facedetailerGuideSizeSpinBox.setMinimumSize(QSize(75, 24))
-        self.facedetailerGuideSizeSpinBox.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-        self.facedetailerGuideSizeSpinBox.setMinimum(64)
-        self.facedetailerGuideSizeSpinBox.setMaximum(1024)
-        self.facedetailerGuideSizeSpinBox.setSingleStep(64)
-        self.facedetailerGuideSizeSpinBox.setValue(256)
-
-        self.fd_guidesize_row.addWidget(self.facedetailerGuideSizeSpinBox)
-
-
-        self.fdLeftCol.addLayout(self.fd_guidesize_row)
-
-        self.fd_maxsize_row = QHBoxLayout()
-        self.fd_maxsize_row.setObjectName(u"fd_maxsize_row")
-        self.facedetailerMaxSizeLabel = QLabel(self.facedetailerPanel)
-        self.facedetailerMaxSizeLabel.setObjectName(u"facedetailerMaxSizeLabel")
-
-        self.fd_maxsize_row.addWidget(self.facedetailerMaxSizeLabel)
+        self.fd_guidesize_hdr.addWidget(self.facedetailerGuideSizeLabel)
 
         self.spacerItem6 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self.fd_maxsize_row.addItem(self.spacerItem6)
+        self.fd_guidesize_hdr.addItem(self.spacerItem6)
 
-        self.facedetailerMaxSizeSpinBox = QSpinBox(self.facedetailerPanel)
-        self.facedetailerMaxSizeSpinBox.setObjectName(u"facedetailerMaxSizeSpinBox")
-        self.facedetailerMaxSizeSpinBox.setMinimumSize(QSize(75, 24))
-        self.facedetailerMaxSizeSpinBox.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-        self.facedetailerMaxSizeSpinBox.setMinimum(128)
-        self.facedetailerMaxSizeSpinBox.setMaximum(2048)
-        self.facedetailerMaxSizeSpinBox.setSingleStep(64)
-        self.facedetailerMaxSizeSpinBox.setValue(768)
+        self.facedetailerGuideSizeValueLabel = QLabel(self.facedetailerPanel)
+        self.facedetailerGuideSizeValueLabel.setObjectName(u"facedetailerGuideSizeValueLabel")
 
-        self.fd_maxsize_row.addWidget(self.facedetailerMaxSizeSpinBox)
+        self.fd_guidesize_hdr.addWidget(self.facedetailerGuideSizeValueLabel)
 
 
-        self.fdLeftCol.addLayout(self.fd_maxsize_row)
+        self.fd_guidesize_vbox.addLayout(self.fd_guidesize_hdr)
 
-        self.fd_cycle_row = QHBoxLayout()
-        self.fd_cycle_row.setObjectName(u"fd_cycle_row")
-        self.facedetailerCycleLabel = QLabel(self.facedetailerPanel)
-        self.facedetailerCycleLabel.setObjectName(u"facedetailerCycleLabel")
+        self.facedetailerGuideSizeSlider = QSlider(self.facedetailerPanel)
+        self.facedetailerGuideSizeSlider.setObjectName(u"facedetailerGuideSizeSlider")
+        self.facedetailerGuideSizeSlider.setMinimum(1)
+        self.facedetailerGuideSizeSlider.setMaximum(16)
+        self.facedetailerGuideSizeSlider.setValue(4)
+        self.facedetailerGuideSizeSlider.setOrientation(Qt.Orientation.Horizontal)
 
-        self.fd_cycle_row.addWidget(self.facedetailerCycleLabel)
+        self.fd_guidesize_vbox.addWidget(self.facedetailerGuideSizeSlider)
+
+
+        self.fdLeftCol.addLayout(self.fd_guidesize_vbox)
+
+        self.fd_maxsize_vbox = QVBoxLayout()
+        self.fd_maxsize_vbox.setSpacing(2)
+        self.fd_maxsize_vbox.setObjectName(u"fd_maxsize_vbox")
+        self.fd_maxsize_hdr = QHBoxLayout()
+        self.fd_maxsize_hdr.setObjectName(u"fd_maxsize_hdr")
+        self.facedetailerMaxSizeLabel = QLabel(self.facedetailerPanel)
+        self.facedetailerMaxSizeLabel.setObjectName(u"facedetailerMaxSizeLabel")
+
+        self.fd_maxsize_hdr.addWidget(self.facedetailerMaxSizeLabel)
 
         self.spacerItem7 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self.fd_cycle_row.addItem(self.spacerItem7)
+        self.fd_maxsize_hdr.addItem(self.spacerItem7)
 
-        self.facedetailerCycleSpinBox = QSpinBox(self.facedetailerPanel)
-        self.facedetailerCycleSpinBox.setObjectName(u"facedetailerCycleSpinBox")
-        self.facedetailerCycleSpinBox.setMinimumSize(QSize(75, 24))
-        self.facedetailerCycleSpinBox.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-        self.facedetailerCycleSpinBox.setMinimum(1)
-        self.facedetailerCycleSpinBox.setMaximum(10)
-        self.facedetailerCycleSpinBox.setValue(1)
+        self.facedetailerMaxSizeValueLabel = QLabel(self.facedetailerPanel)
+        self.facedetailerMaxSizeValueLabel.setObjectName(u"facedetailerMaxSizeValueLabel")
 
-        self.fd_cycle_row.addWidget(self.facedetailerCycleSpinBox)
+        self.fd_maxsize_hdr.addWidget(self.facedetailerMaxSizeValueLabel)
 
 
-        self.fdLeftCol.addLayout(self.fd_cycle_row)
+        self.fd_maxsize_vbox.addLayout(self.fd_maxsize_hdr)
 
-        self.spacerItem8 = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        self.facedetailerMaxSizeSlider = QSlider(self.facedetailerPanel)
+        self.facedetailerMaxSizeSlider.setObjectName(u"facedetailerMaxSizeSlider")
+        self.facedetailerMaxSizeSlider.setMinimum(2)
+        self.facedetailerMaxSizeSlider.setMaximum(32)
+        self.facedetailerMaxSizeSlider.setValue(12)
+        self.facedetailerMaxSizeSlider.setOrientation(Qt.Orientation.Horizontal)
 
-        self.fdLeftCol.addItem(self.spacerItem8)
+        self.fd_maxsize_vbox.addWidget(self.facedetailerMaxSizeSlider)
+
+
+        self.fdLeftCol.addLayout(self.fd_maxsize_vbox)
+
+        self.fd_cycle_vbox = QVBoxLayout()
+        self.fd_cycle_vbox.setSpacing(2)
+        self.fd_cycle_vbox.setObjectName(u"fd_cycle_vbox")
+        self.fd_cycle_hdr = QHBoxLayout()
+        self.fd_cycle_hdr.setObjectName(u"fd_cycle_hdr")
+        self.facedetailerCycleLabel = QLabel(self.facedetailerPanel)
+        self.facedetailerCycleLabel.setObjectName(u"facedetailerCycleLabel")
+
+        self.fd_cycle_hdr.addWidget(self.facedetailerCycleLabel)
+
+        self.spacerItem8 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.fd_cycle_hdr.addItem(self.spacerItem8)
+
+        self.facedetailerCycleValueLabel = QLabel(self.facedetailerPanel)
+        self.facedetailerCycleValueLabel.setObjectName(u"facedetailerCycleValueLabel")
+
+        self.fd_cycle_hdr.addWidget(self.facedetailerCycleValueLabel)
+
+
+        self.fd_cycle_vbox.addLayout(self.fd_cycle_hdr)
+
+        self.facedetailerCycleSlider = QSlider(self.facedetailerPanel)
+        self.facedetailerCycleSlider.setObjectName(u"facedetailerCycleSlider")
+        self.facedetailerCycleSlider.setMinimum(1)
+        self.facedetailerCycleSlider.setMaximum(10)
+        self.facedetailerCycleSlider.setValue(1)
+        self.facedetailerCycleSlider.setOrientation(Qt.Orientation.Horizontal)
+
+        self.fd_cycle_vbox.addWidget(self.facedetailerCycleSlider)
+
+
+        self.fdLeftCol.addLayout(self.fd_cycle_vbox)
+
+        self.spacerItem9 = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+
+        self.fdLeftCol.addItem(self.spacerItem9)
 
 
         self.facedetailerPanelHBox.addLayout(self.fdLeftCol)
@@ -697,20 +715,14 @@ class Ui_MainWindow(object):
 
         self.fd_bboxthresh_hdr.addWidget(self.facedetailerBboxThresholdLabel)
 
-        self.spacerItem9 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.spacerItem10 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self.fd_bboxthresh_hdr.addItem(self.spacerItem9)
+        self.fd_bboxthresh_hdr.addItem(self.spacerItem10)
 
-        self.facedetailerBboxThresholdSpinBox = QDoubleSpinBox(self.facedetailerPanel)
-        self.facedetailerBboxThresholdSpinBox.setObjectName(u"facedetailerBboxThresholdSpinBox")
-        self.facedetailerBboxThresholdSpinBox.setMinimumSize(QSize(60, 22))
-        self.facedetailerBboxThresholdSpinBox.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-        self.facedetailerBboxThresholdSpinBox.setMinimum(0.100000000000000)
-        self.facedetailerBboxThresholdSpinBox.setMaximum(1.000000000000000)
-        self.facedetailerBboxThresholdSpinBox.setSingleStep(0.010000000000000)
-        self.facedetailerBboxThresholdSpinBox.setValue(0.500000000000000)
+        self.facedetailerBboxThresholdValueLabel = QLabel(self.facedetailerPanel)
+        self.facedetailerBboxThresholdValueLabel.setObjectName(u"facedetailerBboxThresholdValueLabel")
 
-        self.fd_bboxthresh_hdr.addWidget(self.facedetailerBboxThresholdSpinBox)
+        self.fd_bboxthresh_hdr.addWidget(self.facedetailerBboxThresholdValueLabel)
 
 
         self.fd_bboxthresh_vbox.addLayout(self.fd_bboxthresh_hdr)
@@ -737,19 +749,14 @@ class Ui_MainWindow(object):
 
         self.fd_bboxdilate_hdr.addWidget(self.facedetailerBboxDilationLabel)
 
-        self.spacerItem10 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.spacerItem11 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self.fd_bboxdilate_hdr.addItem(self.spacerItem10)
+        self.fd_bboxdilate_hdr.addItem(self.spacerItem11)
 
-        self.facedetailerBboxDilationSpinBox = QSpinBox(self.facedetailerPanel)
-        self.facedetailerBboxDilationSpinBox.setObjectName(u"facedetailerBboxDilationSpinBox")
-        self.facedetailerBboxDilationSpinBox.setMinimumSize(QSize(60, 22))
-        self.facedetailerBboxDilationSpinBox.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-        self.facedetailerBboxDilationSpinBox.setMinimum(-20)
-        self.facedetailerBboxDilationSpinBox.setMaximum(100)
-        self.facedetailerBboxDilationSpinBox.setValue(10)
+        self.facedetailerBboxDilationValueLabel = QLabel(self.facedetailerPanel)
+        self.facedetailerBboxDilationValueLabel.setObjectName(u"facedetailerBboxDilationValueLabel")
 
-        self.fd_bboxdilate_hdr.addWidget(self.facedetailerBboxDilationSpinBox)
+        self.fd_bboxdilate_hdr.addWidget(self.facedetailerBboxDilationValueLabel)
 
 
         self.fd_bboxdilate_vbox.addLayout(self.fd_bboxdilate_hdr)
@@ -776,20 +783,14 @@ class Ui_MainWindow(object):
 
         self.fd_cropfactor_hdr.addWidget(self.facedetailerBboxCropFactorLabel)
 
-        self.spacerItem11 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.spacerItem12 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self.fd_cropfactor_hdr.addItem(self.spacerItem11)
+        self.fd_cropfactor_hdr.addItem(self.spacerItem12)
 
-        self.facedetailerBboxCropFactorSpinBox = QDoubleSpinBox(self.facedetailerPanel)
-        self.facedetailerBboxCropFactorSpinBox.setObjectName(u"facedetailerBboxCropFactorSpinBox")
-        self.facedetailerBboxCropFactorSpinBox.setMinimumSize(QSize(60, 22))
-        self.facedetailerBboxCropFactorSpinBox.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-        self.facedetailerBboxCropFactorSpinBox.setMinimum(1.000000000000000)
-        self.facedetailerBboxCropFactorSpinBox.setMaximum(5.000000000000000)
-        self.facedetailerBboxCropFactorSpinBox.setSingleStep(0.050000000000000)
-        self.facedetailerBboxCropFactorSpinBox.setValue(1.500000000000000)
+        self.facedetailerBboxCropFactorValueLabel = QLabel(self.facedetailerPanel)
+        self.facedetailerBboxCropFactorValueLabel.setObjectName(u"facedetailerBboxCropFactorValueLabel")
 
-        self.fd_cropfactor_hdr.addWidget(self.facedetailerBboxCropFactorSpinBox)
+        self.fd_cropfactor_hdr.addWidget(self.facedetailerBboxCropFactorValueLabel)
 
 
         self.fd_cropfactor_vbox.addLayout(self.fd_cropfactor_hdr)
@@ -816,20 +817,14 @@ class Ui_MainWindow(object):
 
         self.fd_samthresh_hdr.addWidget(self.facedetailerSamThresholdLabel)
 
-        self.spacerItem12 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.spacerItem13 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self.fd_samthresh_hdr.addItem(self.spacerItem12)
+        self.fd_samthresh_hdr.addItem(self.spacerItem13)
 
-        self.facedetailerSamThresholdSpinBox = QDoubleSpinBox(self.facedetailerPanel)
-        self.facedetailerSamThresholdSpinBox.setObjectName(u"facedetailerSamThresholdSpinBox")
-        self.facedetailerSamThresholdSpinBox.setMinimumSize(QSize(60, 22))
-        self.facedetailerSamThresholdSpinBox.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-        self.facedetailerSamThresholdSpinBox.setMinimum(0.100000000000000)
-        self.facedetailerSamThresholdSpinBox.setMaximum(1.000000000000000)
-        self.facedetailerSamThresholdSpinBox.setSingleStep(0.010000000000000)
-        self.facedetailerSamThresholdSpinBox.setValue(0.930000000000000)
+        self.facedetailerSamThresholdValueLabel = QLabel(self.facedetailerPanel)
+        self.facedetailerSamThresholdValueLabel.setObjectName(u"facedetailerSamThresholdValueLabel")
 
-        self.fd_samthresh_hdr.addWidget(self.facedetailerSamThresholdSpinBox)
+        self.fd_samthresh_hdr.addWidget(self.facedetailerSamThresholdValueLabel)
 
 
         self.fd_samthresh_vbox.addLayout(self.fd_samthresh_hdr)
@@ -856,19 +851,14 @@ class Ui_MainWindow(object):
 
         self.fd_samdilate_hdr.addWidget(self.facedetailerSamDilationLabel)
 
-        self.spacerItem13 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.spacerItem14 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self.fd_samdilate_hdr.addItem(self.spacerItem13)
+        self.fd_samdilate_hdr.addItem(self.spacerItem14)
 
-        self.facedetailerSamDilationSpinBox = QSpinBox(self.facedetailerPanel)
-        self.facedetailerSamDilationSpinBox.setObjectName(u"facedetailerSamDilationSpinBox")
-        self.facedetailerSamDilationSpinBox.setMinimumSize(QSize(60, 22))
-        self.facedetailerSamDilationSpinBox.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-        self.facedetailerSamDilationSpinBox.setMinimum(0)
-        self.facedetailerSamDilationSpinBox.setMaximum(100)
-        self.facedetailerSamDilationSpinBox.setValue(0)
+        self.facedetailerSamDilationValueLabel = QLabel(self.facedetailerPanel)
+        self.facedetailerSamDilationValueLabel.setObjectName(u"facedetailerSamDilationValueLabel")
 
-        self.fd_samdilate_hdr.addWidget(self.facedetailerSamDilationSpinBox)
+        self.fd_samdilate_hdr.addWidget(self.facedetailerSamDilationValueLabel)
 
 
         self.fd_samdilate_vbox.addLayout(self.fd_samdilate_hdr)
@@ -895,19 +885,14 @@ class Ui_MainWindow(object):
 
         self.fd_sambboxexp_hdr.addWidget(self.facedetailerSamBboxExpansionLabel)
 
-        self.spacerItem14 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.spacerItem15 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self.fd_sambboxexp_hdr.addItem(self.spacerItem14)
+        self.fd_sambboxexp_hdr.addItem(self.spacerItem15)
 
-        self.facedetailerSamBboxExpansionSpinBox = QSpinBox(self.facedetailerPanel)
-        self.facedetailerSamBboxExpansionSpinBox.setObjectName(u"facedetailerSamBboxExpansionSpinBox")
-        self.facedetailerSamBboxExpansionSpinBox.setMinimumSize(QSize(60, 22))
-        self.facedetailerSamBboxExpansionSpinBox.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-        self.facedetailerSamBboxExpansionSpinBox.setMinimum(0)
-        self.facedetailerSamBboxExpansionSpinBox.setMaximum(100)
-        self.facedetailerSamBboxExpansionSpinBox.setValue(0)
+        self.facedetailerSamBboxExpansionValueLabel = QLabel(self.facedetailerPanel)
+        self.facedetailerSamBboxExpansionValueLabel.setObjectName(u"facedetailerSamBboxExpansionValueLabel")
 
-        self.fd_sambboxexp_hdr.addWidget(self.facedetailerSamBboxExpansionSpinBox)
+        self.fd_sambboxexp_hdr.addWidget(self.facedetailerSamBboxExpansionValueLabel)
 
 
         self.fd_sambboxexp_vbox.addLayout(self.fd_sambboxexp_hdr)
@@ -934,20 +919,14 @@ class Ui_MainWindow(object):
 
         self.fd_maskhintthresh_hdr.addWidget(self.facedetailerSamMaskHintThresholdLabel)
 
-        self.spacerItem15 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.spacerItem16 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self.fd_maskhintthresh_hdr.addItem(self.spacerItem15)
+        self.fd_maskhintthresh_hdr.addItem(self.spacerItem16)
 
-        self.facedetailerSamMaskHintThresholdSpinBox = QDoubleSpinBox(self.facedetailerPanel)
-        self.facedetailerSamMaskHintThresholdSpinBox.setObjectName(u"facedetailerSamMaskHintThresholdSpinBox")
-        self.facedetailerSamMaskHintThresholdSpinBox.setMinimumSize(QSize(60, 22))
-        self.facedetailerSamMaskHintThresholdSpinBox.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-        self.facedetailerSamMaskHintThresholdSpinBox.setMinimum(0.100000000000000)
-        self.facedetailerSamMaskHintThresholdSpinBox.setMaximum(1.000000000000000)
-        self.facedetailerSamMaskHintThresholdSpinBox.setSingleStep(0.010000000000000)
-        self.facedetailerSamMaskHintThresholdSpinBox.setValue(0.700000000000000)
+        self.facedetailerSamMaskHintThresholdValueLabel = QLabel(self.facedetailerPanel)
+        self.facedetailerSamMaskHintThresholdValueLabel.setObjectName(u"facedetailerSamMaskHintThresholdValueLabel")
 
-        self.fd_maskhintthresh_hdr.addWidget(self.facedetailerSamMaskHintThresholdSpinBox)
+        self.fd_maskhintthresh_hdr.addWidget(self.facedetailerSamMaskHintThresholdValueLabel)
 
 
         self.fd_maskhintthresh_vbox.addLayout(self.fd_maskhintthresh_hdr)
@@ -971,9 +950,9 @@ class Ui_MainWindow(object):
 
         self.fd_samhint_row.addWidget(self.facedetailerSamDetectionHintLabel)
 
-        self.spacerItem16 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.spacerItem17 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self.fd_samhint_row.addItem(self.spacerItem16)
+        self.fd_samhint_row.addItem(self.spacerItem17)
 
         self.facedetailerSamDetectionHintComboBox = QComboBox(self.facedetailerPanel)
         self.facedetailerSamDetectionHintComboBox.setObjectName(u"facedetailerSamDetectionHintComboBox")
@@ -991,9 +970,9 @@ class Ui_MainWindow(object):
 
         self.fd_maskhintneg_row.addWidget(self.facedetailerSamMaskHintUseNegativeLabel)
 
-        self.spacerItem17 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.spacerItem18 = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self.fd_maskhintneg_row.addItem(self.spacerItem17)
+        self.fd_maskhintneg_row.addItem(self.spacerItem18)
 
         self.facedetailerSamMaskHintUseNegativeComboBox = QComboBox(self.facedetailerPanel)
         self.facedetailerSamMaskHintUseNegativeComboBox.setObjectName(u"facedetailerSamMaskHintUseNegativeComboBox")
@@ -1004,9 +983,9 @@ class Ui_MainWindow(object):
 
         self.fdRightCol.addLayout(self.fd_maskhintneg_row)
 
-        self.spacerItem18 = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        self.spacerItem19 = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
-        self.fdRightCol.addItem(self.spacerItem18)
+        self.fdRightCol.addItem(self.spacerItem19)
 
 
         self.facedetailerPanelHBox.addLayout(self.fdRightCol)
@@ -1023,7 +1002,7 @@ class Ui_MainWindow(object):
         self.advancedLayout.setSpacing(8)
         self.advancedLayout.setObjectName(u"advancedLayout")
         self.advancedLayout.setContentsMargins(10, 10, 10, 10)
-        self.advancedToggleBtn = QPushButton(self.advancedSettingsFrame)
+        self.advancedToggleBtn = QCheckBox(self.advancedSettingsFrame)
         self.advancedToggleBtn.setObjectName(u"advancedToggleBtn")
         self.advancedToggleBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
@@ -1031,10 +1010,8 @@ class Ui_MainWindow(object):
 
         self.advancedContentWidget = QWidget(self.advancedSettingsFrame)
         self.advancedContentWidget.setObjectName(u"advancedContentWidget")
-        self.advancedContentLayout = QVBoxLayout(self.advancedContentWidget)
-        self.advancedContentLayout.setSpacing(10)
-        self.advancedContentLayout.setObjectName(u"advancedContentLayout")
-        self.advancedContentLayout.setContentsMargins(0, 6, 0, 0)
+        self.gridLayout = QGridLayout(self.advancedContentWidget)
+        self.gridLayout.setObjectName(u"gridLayout")
         self.seedRowLayout = QHBoxLayout()
         self.seedRowLayout.setSpacing(6)
         self.seedRowLayout.setObjectName(u"seedRowLayout")
@@ -1063,53 +1040,10 @@ class Ui_MainWindow(object):
         self.seedRowLayout.addWidget(self.lockSeedButton)
 
 
-        self.advancedContentLayout.addLayout(self.seedRowLayout)
+        self.gridLayout.addLayout(self.seedRowLayout, 0, 0, 1, 1)
 
-        self.cfgSliderContainer = QVBoxLayout()
-        self.cfgSliderContainer.setSpacing(2)
-        self.cfgSliderContainer.setObjectName(u"cfgSliderContainer")
-        self.cfgHeaderRow = QHBoxLayout()
-        self.cfgHeaderRow.setObjectName(u"cfgHeaderRow")
-        self.cfgLabelTitle = QLabel(self.advancedContentWidget)
-        self.cfgLabelTitle.setObjectName(u"cfgLabelTitle")
-
-        self.cfgHeaderRow.addWidget(self.cfgLabelTitle)
-
-        self.cfgSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.cfgHeaderRow.addItem(self.cfgSpacer)
-
-        self.cfgValueLabel = QLabel(self.advancedContentWidget)
-        self.cfgValueLabel.setObjectName(u"cfgValueLabel")
-
-        self.cfgHeaderRow.addWidget(self.cfgValueLabel)
-
-
-        self.cfgSliderContainer.addLayout(self.cfgHeaderRow)
-
-        self.cfgControlRow = QHBoxLayout()
-        self.cfgControlRow.setObjectName(u"cfgControlRow")
-        self.cfgSlider = QSlider(self.advancedContentWidget)
-        self.cfgSlider.setObjectName(u"cfgSlider")
-        self.cfgSlider.setMinimum(10)
-        self.cfgSlider.setMaximum(150)
-        self.cfgSlider.setValue(35)
-        self.cfgSlider.setOrientation(Qt.Orientation.Horizontal)
-
-        self.cfgControlRow.addWidget(self.cfgSlider)
-
-        self.cfgSpinBox = QDoubleSpinBox(self.advancedContentWidget)
-        self.cfgSpinBox.setObjectName(u"cfgSpinBox")
-        self.cfgSpinBox.setMinimumSize(QSize(65, 24))
-
-        self.cfgControlRow.addWidget(self.cfgSpinBox)
-
-
-        self.cfgSliderContainer.addLayout(self.cfgControlRow)
-
-
-        self.advancedContentLayout.addLayout(self.cfgSliderContainer)
-
+        self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.stepsSliderContainer = QVBoxLayout()
         self.stepsSliderContainer.setSpacing(2)
         self.stepsSliderContainer.setObjectName(u"stepsSliderContainer")
@@ -1143,17 +1077,56 @@ class Ui_MainWindow(object):
 
         self.stepsControlRow.addWidget(self.stepsSlider)
 
-        self.stepsSpinBox = QSpinBox(self.advancedContentWidget)
-        self.stepsSpinBox.setObjectName(u"stepsSpinBox")
-        self.stepsSpinBox.setMinimumSize(QSize(65, 24))
-
-        self.stepsControlRow.addWidget(self.stepsSpinBox)
-
 
         self.stepsSliderContainer.addLayout(self.stepsControlRow)
 
 
-        self.advancedContentLayout.addLayout(self.stepsSliderContainer)
+        self.horizontalLayout.addLayout(self.stepsSliderContainer)
+
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout.addItem(self.horizontalSpacer)
+
+        self.verticalLayout = QVBoxLayout()
+        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.cfgHeaderRow = QHBoxLayout()
+        self.cfgHeaderRow.setObjectName(u"cfgHeaderRow")
+        self.cfgLabelTitle = QLabel(self.advancedContentWidget)
+        self.cfgLabelTitle.setObjectName(u"cfgLabelTitle")
+
+        self.cfgHeaderRow.addWidget(self.cfgLabelTitle)
+
+        self.cfgSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.cfgHeaderRow.addItem(self.cfgSpacer)
+
+        self.cfgValueLabel = QLabel(self.advancedContentWidget)
+        self.cfgValueLabel.setObjectName(u"cfgValueLabel")
+
+        self.cfgHeaderRow.addWidget(self.cfgValueLabel)
+
+
+        self.verticalLayout.addLayout(self.cfgHeaderRow)
+
+        self.cfgControlRow = QHBoxLayout()
+        self.cfgControlRow.setObjectName(u"cfgControlRow")
+        self.cfgSlider = QSlider(self.advancedContentWidget)
+        self.cfgSlider.setObjectName(u"cfgSlider")
+        self.cfgSlider.setMinimum(10)
+        self.cfgSlider.setMaximum(150)
+        self.cfgSlider.setValue(35)
+        self.cfgSlider.setOrientation(Qt.Orientation.Horizontal)
+
+        self.cfgControlRow.addWidget(self.cfgSlider)
+
+
+        self.verticalLayout.addLayout(self.cfgControlRow)
+
+
+        self.horizontalLayout.addLayout(self.verticalLayout)
+
+
+        self.gridLayout.addLayout(self.horizontalLayout, 1, 0, 1, 1)
 
         self.samplerRowLayout = QHBoxLayout()
         self.samplerRowLayout.setSpacing(8)
@@ -1207,7 +1180,7 @@ class Ui_MainWindow(object):
         self.samplerRowLayout.addLayout(self.denoiseCol)
 
 
-        self.advancedContentLayout.addLayout(self.samplerRowLayout)
+        self.gridLayout.addLayout(self.samplerRowLayout, 2, 0, 1, 1)
 
 
         self.advancedLayout.addWidget(self.advancedContentWidget)
@@ -1544,8 +1517,8 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"ComfyUI Craft AI Easy Studio", None))
-        self.appTitle.setText(QCoreApplication.translate("MainWindow", u"\u2728 ComfyUI Craft AI", None))
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"ComfyCraft AI Easy Studio", None))
+        self.appTitle.setText(QCoreApplication.translate("MainWindow", u"\u2728 ComfyCraft AI", None))
         self.badgeLabel.setText(QCoreApplication.translate("MainWindow", u"Easy Studio", None))
 #if QT_CONFIG(tooltip)
         self.comfyStatusBtn.setToolTip(QCoreApplication.translate("MainWindow", u"\ud074\ub9ad\ud558\uc5ec ComfyUI \uc11c\ubc84 \uc8fc\uc18c \ubc0f \ubaa8\ub378 \ud3f4\ub354\ub97c \uc124\uc815\ud569\ub2c8\ub2e4.", None))
@@ -1589,32 +1562,159 @@ class Ui_MainWindow(object):
 "1152\u00d7896", None))
         self.widthLabel.setText(QCoreApplication.translate("MainWindow", u"\uac00\ub85c \ud3ed:", None))
         self.heightLabel.setText(QCoreApplication.translate("MainWindow", u"\uc138\ub85c \ub192\uc774:", None))
-        self.facedetailerCheckBox.setText(QCoreApplication.translate("MainWindow", u"\U0001f464 FaceDetailer (\U0000c5bc\U0000ad74 \U0000c138\U0000bd80 \U0000bcf4\U0000c815 \U0000d65c\U0000c131\U0000d654)", None))
-        self.facedetailerDenoiseLabel.setText(QCoreApplication.translate("MainWindow", u"Denoise (\ubcc0\ud654 \uac15\ub3c4)", None))
-        self.facedetailerStepsLabel.setText(QCoreApplication.translate("MainWindow", u"Steps (\ubcf4\uc815 \uc2a4\ud15d)", None))
-        self.facedetailerCfgLabel.setText(QCoreApplication.translate("MainWindow", u"CFG (\ud504\ub86c\ud504\ud2b8 \ubc18\uc601\ub3c4)", None))
-        self.facedetailerFeatherLabel.setText(QCoreApplication.translate("MainWindow", u"Feather (\uacbd\uacc4 \ubd80\ub4dc\ub7ec\uc6c0)", None))
-        self.facedetailerDropSizeLabel.setText(QCoreApplication.translate("MainWindow", u"Drop Size (\ucd5c\uc18c \ud06c\uae30 \ud544\ud130)", None))
-        self.facedetailerGuideSizeLabel.setText(QCoreApplication.translate("MainWindow", u"Guide Size (\uac00\uc774\ub4dc \ud574\uc0c1\ub3c4)", None))
-        self.facedetailerMaxSizeLabel.setText(QCoreApplication.translate("MainWindow", u"Max Size (\ucd5c\ub300 \ud574\uc0c1\ub3c4)", None))
+#if QT_CONFIG(tooltip)
+        self.facedetailerCheckBox.setToolTip(QCoreApplication.translate("MainWindow", u"\uc5bc\uad74 \ubcf4\uc815(FaceDetailer)\uc744 \ucf1c\uace0 \ub055\ub2c8\ub2e4. \uc5bc\uad74\uc774 \ubb49\uac1c\uc9c8 \ub54c \ucf1c\uba74 \uc5bc\uad74\ub9cc \ub2e4\uc2dc \uadf8\ub824\uc90d\ub2c8\ub2e4. \ucc98\uc74c\uc5d0\ub294 \uaebc \ub450\ub294 \uac83\uc744 \ucd94\ucc9c\ud569\ub2c8\ub2e4.", None))
+#endif // QT_CONFIG(tooltip)
+        self.facedetailerCheckBox.setText(QCoreApplication.translate("MainWindow", u"\U0001f464 FaceDetailer (\U0000c5bc\U0000ad74 \U0000bcf4\U0000c815 \U0000cf1c\U0000ae30)", None))
+#if QT_CONFIG(tooltip)
+        self.facedetailerHelpBtn.setToolTip(QCoreApplication.translate("MainWindow", u"\ub20c\ub7ec\uc11c \uc5bc\uad74 \ubcf4\uc815 \uc635\uc158\uc744 \ucd08\ubcf4\uc790\ub3c4 \uc27d\uac8c \uc124\uba85\ud55c \uc804\uccb4 \uac00\uc774\ub4dc\ub97c \ubd05\ub2c8\ub2e4.", None))
+#endif // QT_CONFIG(tooltip)
+        self.facedetailerHelpBtn.setText(QCoreApplication.translate("MainWindow", u"\u2753 \ub3c4\uc6c0\ub9d0", None))
+#if QT_CONFIG(tooltip)
+        self.facedetailerDenoiseLabel.setToolTip(QCoreApplication.translate("MainWindow", u"\uc5bc\uad74\uc744 \uc5bc\ub9c8\ub098 \uc0c8\ub85c \uadf8\ub9b4\uc9c0 \uc815\ud569\ub2c8\ub2e4. \uae30\ubcf8\uac12 0.40 \ucd94\ucc9c. \ub192\uc73c\uba74 \uc5bc\uad74\uc774 \uc644\uc804\ud788 \ubc14\ub014 \uc218 \uc788\uc2b5\ub2c8\ub2e4.", None))
+#endif // QT_CONFIG(tooltip)
+        self.facedetailerDenoiseLabel.setText(QCoreApplication.translate("MainWindow", u"Denoise (\uc5bc\uad74 \ub2e4\uc2dc\uadf8\ub9ac\uae30 \uc815\ub3c4)", None))
+        self.facedetailerDenoiseValueLabel.setText(QCoreApplication.translate("MainWindow", u"0.40", None))
+#if QT_CONFIG(tooltip)
+        self.facedetailerDenoiseSlider.setToolTip(QCoreApplication.translate("MainWindow", u"\uc5bc\uad74\uc744 \uc5bc\ub9c8\ub098 \uc0c8\ub85c \uadf8\ub9b4\uc9c0 \uc815\ud569\ub2c8\ub2e4. \uae30\ubcf8\uac12 0.40 \ucd94\ucc9c. \uc5bc\uad74\uc774 \uacfc\ud558\uac8c \ubc14\ub00c\uba74 \uc774 \uac12\uc744 \ub0ae\ucd94\uc138\uc694.", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.facedetailerStepsLabel.setToolTip(QCoreApplication.translate("MainWindow", u"\uc5bc\uad74\uc744 \uace0\uce58\ub294 \uacc4\uc0b0 \ud69f\uc218\uc785\ub2c8\ub2e4. \uae30\ubcf8\uac12 20 \ucd94\ucc9c. \uc62c\ub9ac\uba74 \uc815\ubc00\ud574\uc9c0\uc9c0\ub9cc \ub290\ub824\uc9d1\ub2c8\ub2e4.", None))
+#endif // QT_CONFIG(tooltip)
+        self.facedetailerStepsLabel.setText(QCoreApplication.translate("MainWindow", u"Steps (\ubcf4\uc815 \uc815\ubc00\ub3c4)", None))
+        self.facedetailerStepsValueLabel.setText(QCoreApplication.translate("MainWindow", u"20", None))
+#if QT_CONFIG(tooltip)
+        self.facedetailerStepsSlider.setToolTip(QCoreApplication.translate("MainWindow", u"\uc5bc\uad74\uc744 \uace0\uce58\ub294 \uacc4\uc0b0 \ud69f\uc218\uc785\ub2c8\ub2e4. \uae30\ubcf8\uac12 20 \ucd94\ucc9c.", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.facedetailerCfgLabel.setToolTip(QCoreApplication.translate("MainWindow", u"\ud504\ub86c\ud504\ud2b8 \ub9d0\uc744 \uc5bc\ub9c8\ub098 \ub530\ub97c\uc9c0 \uc815\ud569\ub2c8\ub2e4. \uae30\ubcf8\uac12 4.0 \ucd94\ucc9c. \ub108\ubb34 \ub192\uc73c\uba74 \uc5bc\uad74\uc774 \ubd80\uc790\uc5f0\uc2a4\ub7ec\uc6cc\uc9d1\ub2c8\ub2e4.", None))
+#endif // QT_CONFIG(tooltip)
+        self.facedetailerCfgLabel.setText(QCoreApplication.translate("MainWindow", u"CFG (\ud504\ub86c\ud504\ud2b8 \ubc18\uc601 \uc138\uae30)", None))
+        self.facedetailerCfgValueLabel.setText(QCoreApplication.translate("MainWindow", u"4.0", None))
+#if QT_CONFIG(tooltip)
+        self.facedetailerCfgSlider.setToolTip(QCoreApplication.translate("MainWindow", u"\ud504\ub86c\ud504\ud2b8 \ubc18\uc601 \uc138\uae30\uc785\ub2c8\ub2e4. \uae30\ubcf8\uac12 4.0 \ucd94\ucc9c.", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.facedetailerFeatherLabel.setToolTip(QCoreApplication.translate("MainWindow", u"\uace0\uce5c \uc5bc\uad74\uacfc \uc8fc\ubcc0\uc744 \uc790\uc5f0\uc2a4\ub7fd\uac8c \uc774\uc5b4\uc8fc\ub294 \uc815\ub3c4\uc785\ub2c8\ub2e4. \uae30\ubcf8\uac12 5 \ucd94\ucc9c.", None))
+#endif // QT_CONFIG(tooltip)
+        self.facedetailerFeatherLabel.setText(QCoreApplication.translate("MainWindow", u"Feather (\uc5bc\uad74 \uacbd\uacc4 \uc790\uc5f0\uc2a4\ub7fd\uac8c)", None))
+        self.facedetailerFeatherValueLabel.setText(QCoreApplication.translate("MainWindow", u"5", None))
+#if QT_CONFIG(tooltip)
+        self.facedetailerFeatherSlider.setToolTip(QCoreApplication.translate("MainWindow", u"\uacbd\uacc4 \ubd80\ub4dc\ub7ec\uc6c0\uc785\ub2c8\ub2e4. \uae30\ubcf8\uac12 5 \ucd94\ucc9c.", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.facedetailerDropSizeLabel.setToolTip(QCoreApplication.translate("MainWindow", u"\uc774\ubcf4\ub2e4 \uc791\uac8c \uc7a1\ud78c \uc5bc\uad74\uc740 \ubb34\uc2dc\ud569\ub2c8\ub2e4. \uae30\ubcf8\uac12 10 \ucd94\ucc9c. \uc791\uc740 \uc5bc\uad74\uae4c\uc9c0 \uace0\uce58\ub824\uba74 \ub0ae\ucd94\uc138\uc694.", None))
+#endif // QT_CONFIG(tooltip)
+        self.facedetailerDropSizeLabel.setText(QCoreApplication.translate("MainWindow", u"Drop Size (\uc791\uc740 \uc5bc\uad74 \ubb34\uc2dc)", None))
+        self.facedetailerDropSizeValueLabel.setText(QCoreApplication.translate("MainWindow", u"10", None))
+#if QT_CONFIG(tooltip)
+        self.facedetailerDropSizeSlider.setToolTip(QCoreApplication.translate("MainWindow", u"\uc791\uc740 \uc5bc\uad74 \ubb34\uc2dc \uae30\uc900\uc785\ub2c8\ub2e4. \uae30\ubcf8\uac12 10 \ucd94\ucc9c.", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.facedetailerGuideSizeLabel.setToolTip(QCoreApplication.translate("MainWindow", u"\uc5bc\uad74\uc744 \ubd84\uc11d\ud560 \ud574\uc0c1\ub3c4\uc785\ub2c8\ub2e4. \ud45c\uc2dc \uac12 \uae30\uc900 \uae30\ubcf8 256 \ucd94\ucc9c.", None))
+#endif // QT_CONFIG(tooltip)
+        self.facedetailerGuideSizeLabel.setText(QCoreApplication.translate("MainWindow", u"Guide Size (\uc5bc\uad74 \ubd84\uc11d \ud06c\uae30)", None))
+        self.facedetailerGuideSizeValueLabel.setText(QCoreApplication.translate("MainWindow", u"256", None))
+#if QT_CONFIG(tooltip)
+        self.facedetailerGuideSizeSlider.setToolTip(QCoreApplication.translate("MainWindow", u"\uc5bc\uad74 \ubd84\uc11d \ud06c\uae30\uc785\ub2c8\ub2e4. \ud45c\uc2dc \uac12 \uae30\uc900 \uae30\ubcf8 256 \ucd94\ucc9c.", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.facedetailerMaxSizeLabel.setToolTip(QCoreApplication.translate("MainWindow", u"\ud55c \ubc88\uc5d0 \uace0\uce60 \uc218 \uc788\ub294 \ucd5c\ub300 \ud06c\uae30\uc785\ub2c8\ub2e4. \ud45c\uc2dc \uac12 \uae30\uc900 \uae30\ubcf8 768 \ucd94\ucc9c.", None))
+#endif // QT_CONFIG(tooltip)
+        self.facedetailerMaxSizeLabel.setText(QCoreApplication.translate("MainWindow", u"Max Size (\ubcf4\uc815 \ucd5c\ub300 \ud06c\uae30)", None))
+        self.facedetailerMaxSizeValueLabel.setText(QCoreApplication.translate("MainWindow", u"768", None))
+#if QT_CONFIG(tooltip)
+        self.facedetailerMaxSizeSlider.setToolTip(QCoreApplication.translate("MainWindow", u"\ubcf4\uc815 \ucd5c\ub300 \ud06c\uae30\uc785\ub2c8\ub2e4. \ud45c\uc2dc \uac12 \uae30\uc900 \uae30\ubcf8 768 \ucd94\ucc9c.", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.facedetailerCycleLabel.setToolTip(QCoreApplication.translate("MainWindow", u"\ubcf4\uc815\uc744 \uba87 \ubc88 \ubc18\ubcf5\ud560\uc9c0 \uc815\ud569\ub2c8\ub2e4. \uae30\ubcf8\uac12 1 \ucd94\ucc9c. 2 \uc774\uc0c1\uc740 \uc5bc\uad74\uc774 \ubcc0\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.", None))
+#endif // QT_CONFIG(tooltip)
         self.facedetailerCycleLabel.setText(QCoreApplication.translate("MainWindow", u"Cycle (\ubcf4\uc815 \ubc18\ubcf5 \ud69f\uc218)", None))
-        self.facedetailerBboxThresholdLabel.setText(QCoreApplication.translate("MainWindow", u"BBox Thresh (\uac10\uc9c0 \ubbfc\uac10\ub3c4)", None))
-        self.facedetailerBboxDilationLabel.setText(QCoreApplication.translate("MainWindow", u"BBox Dilate (\ubc15\uc2a4 \ud655\uc7a5)", None))
-        self.facedetailerBboxCropFactorLabel.setText(QCoreApplication.translate("MainWindow", u"Crop Factor (\ud06c\ub86d \uc5ec\ubc31)", None))
-        self.facedetailerSamThresholdLabel.setText(QCoreApplication.translate("MainWindow", u"SAM Thresh (\ub9c8\uc2a4\ud06c \uc815\ubc00\ub3c4)", None))
-        self.facedetailerSamDilationLabel.setText(QCoreApplication.translate("MainWindow", u"SAM Dilate (\ub9c8\uc2a4\ud06c \ud33d\ucc3d)", None))
-        self.facedetailerSamBboxExpansionLabel.setText(QCoreApplication.translate("MainWindow", u"SAM BBox Exp (SAM \uc601\uc5ed)", None))
-        self.facedetailerSamMaskHintThresholdLabel.setText(QCoreApplication.translate("MainWindow", u"Mask Hint Thresh (\ud78c\ud2b8 \uc784\uacc4)", None))
-        self.facedetailerSamDetectionHintLabel.setText(QCoreApplication.translate("MainWindow", u"SAM Hint (\ud0d0\uc9c0 \uc704\uce58)", None))
-        self.facedetailerSamMaskHintUseNegativeLabel.setText(QCoreApplication.translate("MainWindow", u"Mask Hint Neg (\uc5ed\ub9c8\uc2a4\ud06c)", None))
-        self.advancedToggleBtn.setText(QCoreApplication.translate("MainWindow", u"\u2699\ufe0f \uace0\uae09 \uc124\uc815 \uc811\uae30 / \ud3bc\uce58\uae30 (\uc2dc\ub4dc, \uc2ac\ub77c\uc774\ub354, \uc0d8\ud50c\ub7ec)  \u25bc", None))
+        self.facedetailerCycleValueLabel.setText(QCoreApplication.translate("MainWindow", u"1", None))
+#if QT_CONFIG(tooltip)
+        self.facedetailerCycleSlider.setToolTip(QCoreApplication.translate("MainWindow", u"\ubcf4\uc815 \ubc18\ubcf5 \ud69f\uc218\uc785\ub2c8\ub2e4. \uae30\ubcf8\uac12 1 \ucd94\ucc9c.", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.facedetailerBboxThresholdLabel.setToolTip(QCoreApplication.translate("MainWindow", u"\uc5bc\uad74\uc744 \ucc3e\ub294 \ubbfc\uac10\ub3c4\uc785\ub2c8\ub2e4. \uae30\ubcf8 0.50 \ucd94\ucc9c. \uc5bc\uad74\uc744 \ubabb \ucc3e\uc73c\uba74 \ub0ae\ucd94\uc138\uc694.", None))
+#endif // QT_CONFIG(tooltip)
+        self.facedetailerBboxThresholdLabel.setText(QCoreApplication.translate("MainWindow", u"BBox Thresh (\uc5bc\uad74 \ucc3e\uae30 \ubbfc\uac10\ub3c4)", None))
+        self.facedetailerBboxThresholdValueLabel.setText(QCoreApplication.translate("MainWindow", u"0.50", None))
+#if QT_CONFIG(tooltip)
+        self.facedetailerBboxThresholdSlider.setToolTip(QCoreApplication.translate("MainWindow", u"\uc5bc\uad74 \ucc3e\uae30 \ubbfc\uac10\ub3c4\uc785\ub2c8\ub2e4. \uae30\ubcf8 0.50 \ucd94\ucc9c.", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.facedetailerBboxDilationLabel.setToolTip(QCoreApplication.translate("MainWindow", u"\ucc3e\uc740 \uc5bc\uad74 \uc0c1\uc790(\ubc15\uc2a4)\ub97c \uc5bc\ub9c8\ub098 \ub113\ud790\uc9c0 \uc815\ud569\ub2c8\ub2e4. \uae30\ubcf8\uac12 10 \ucd94\ucc9c.", None))
+#endif // QT_CONFIG(tooltip)
+        self.facedetailerBboxDilationLabel.setText(QCoreApplication.translate("MainWindow", u"BBox Dilate (\uc5bc\uad74 \ubc15\uc2a4 \ub113\ud788\uae30)", None))
+        self.facedetailerBboxDilationValueLabel.setText(QCoreApplication.translate("MainWindow", u"10", None))
+#if QT_CONFIG(tooltip)
+        self.facedetailerBboxDilationSlider.setToolTip(QCoreApplication.translate("MainWindow", u"\uc5bc\uad74 \ubc15\uc2a4 \ub113\ud788\uae30\uc785\ub2c8\ub2e4. \uae30\ubcf8\uac12 10 \ucd94\ucc9c.", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.facedetailerBboxCropFactorLabel.setToolTip(QCoreApplication.translate("MainWindow", u"\uc5bc\uad74 \uc8fc\ubcc0\uc744 \uc5bc\ub9c8\ub098 \ud568\uaed8 \ubcfc\uc9c0 \uc815\ud569\ub2c8\ub2e4. \uae30\ubcf8 1.50 \ucd94\ucc9c.", None))
+#endif // QT_CONFIG(tooltip)
+        self.facedetailerBboxCropFactorLabel.setText(QCoreApplication.translate("MainWindow", u"Crop Factor (\uc5bc\uad74 \uc8fc\ubcc0 \uac19\uc774 \ubcf4\uae30)", None))
+        self.facedetailerBboxCropFactorValueLabel.setText(QCoreApplication.translate("MainWindow", u"1.50", None))
+#if QT_CONFIG(tooltip)
+        self.facedetailerBboxCropFactorSlider.setToolTip(QCoreApplication.translate("MainWindow", u"\uc5bc\uad74 \uc8fc\ubcc0 \uac19\uc774 \ubcf4\uae30\uc785\ub2c8\ub2e4. \uae30\ubcf8 1.50 \ucd94\ucc9c.", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.facedetailerSamThresholdLabel.setToolTip(QCoreApplication.translate("MainWindow", u"\uc5bc\uad74 \uc724\uacfd\uc120(\ub9c8\uc2a4\ud06c) \uc815\ubc00\ub3c4\uc785\ub2c8\ub2e4. \uae30\ubcf8 0.93 \ucd94\ucc9c. \uc9c0\uae08\uc740 SAM \ubbf8\uc0ac\uc6a9\uc73c\ub85c \ubd80\ubd84\ub9cc \uc801\uc6a9\ub429\ub2c8\ub2e4.", None))
+#endif // QT_CONFIG(tooltip)
+        self.facedetailerSamThresholdLabel.setText(QCoreApplication.translate("MainWindow", u"SAM Thresh (\uc724\uacfd\uc120 \uc815\ubc00\ub3c4)", None))
+        self.facedetailerSamThresholdValueLabel.setText(QCoreApplication.translate("MainWindow", u"0.93", None))
+#if QT_CONFIG(tooltip)
+        self.facedetailerSamThresholdSlider.setToolTip(QCoreApplication.translate("MainWindow", u"\uc724\uacfd\uc120 \uc815\ubc00\ub3c4\uc785\ub2c8\ub2e4. \uae30\ubcf8 0.93 \ucd94\ucc9c.", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.facedetailerSamDilationLabel.setToolTip(QCoreApplication.translate("MainWindow", u"\uc5bc\uad74 \uc724\uacfd\uc120(\ub9c8\uc2a4\ud06c)\uc744 \ub113\ud790\uc9c0 \uc815\ud569\ub2c8\ub2e4. \uae30\ubcf8 0 \ucd94\ucc9c. SAM \ubbf8\uc124\uc815 \uc2dc \uc77c\ubd80\ub9cc \uc801\uc6a9\ub429\ub2c8\ub2e4.", None))
+#endif // QT_CONFIG(tooltip)
+        self.facedetailerSamDilationLabel.setText(QCoreApplication.translate("MainWindow", u"SAM Dilate (\uc724\uacfd\uc120 \ub113\ud788\uae30)", None))
+        self.facedetailerSamDilationValueLabel.setText(QCoreApplication.translate("MainWindow", u"0", None))
+#if QT_CONFIG(tooltip)
+        self.facedetailerSamDilationSlider.setToolTip(QCoreApplication.translate("MainWindow", u"\uc724\uacfd\uc120 \ub113\ud788\uae30\uc785\ub2c8\ub2e4. \uae30\ubcf8 0 \ucd94\ucc9c.", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.facedetailerSamBboxExpansionLabel.setToolTip(QCoreApplication.translate("MainWindow", u"\uc724\uacfd\uc120(\ub9c8\uc2a4\ud06c) \uc601\uc5ed\uc744 \ub113\ud790\uc9c0 \uc815\ud569\ub2c8\ub2e4. \uae30\ubcf8 0 \ucd94\ucc9c. SAM \ubbf8\uc124\uc815 \uc2dc \uc77c\ubd80\ub9cc \uc801\uc6a9\ub429\ub2c8\ub2e4.", None))
+#endif // QT_CONFIG(tooltip)
+        self.facedetailerSamBboxExpansionLabel.setText(QCoreApplication.translate("MainWindow", u"SAM BBox Exp (\uc724\uacfd\uc120 \uc601\uc5ed \ub113\ud788\uae30)", None))
+        self.facedetailerSamBboxExpansionValueLabel.setText(QCoreApplication.translate("MainWindow", u"0", None))
+#if QT_CONFIG(tooltip)
+        self.facedetailerSamBboxExpansionSlider.setToolTip(QCoreApplication.translate("MainWindow", u"\uc724\uacfd\uc120 \uc601\uc5ed \ub113\ud788\uae30\uc785\ub2c8\ub2e4. \uae30\ubcf8 0 \ucd94\ucc9c.", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.facedetailerSamMaskHintThresholdLabel.setToolTip(QCoreApplication.translate("MainWindow", u"\ub9c8\uc2a4\ud06c \ud78c\ud2b8\ub97c \uc801\uc6a9\ud560\uc9c0 \ud310\uc815\ud558\ub294 \ubbfc\uac10\ub3c4\uc785\ub2c8\ub2e4. \uae30\ubcf8 0.70 \ucd94\ucc9c.", None))
+#endif // QT_CONFIG(tooltip)
+        self.facedetailerSamMaskHintThresholdLabel.setText(QCoreApplication.translate("MainWindow", u"Mask Hint Thresh (\ud78c\ud2b8 \ubbfc\uac10\ub3c4)", None))
+        self.facedetailerSamMaskHintThresholdValueLabel.setText(QCoreApplication.translate("MainWindow", u"0.70", None))
+#if QT_CONFIG(tooltip)
+        self.facedetailerSamMaskHintThresholdSlider.setToolTip(QCoreApplication.translate("MainWindow", u"\ud78c\ud2b8 \ubbfc\uac10\ub3c4\uc785\ub2c8\ub2e4. \uae30\ubcf8 0.70 \ucd94\ucc9c.", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.facedetailerSamDetectionHintLabel.setToolTip(QCoreApplication.translate("MainWindow", u"\uc5bc\uad74\uc744 \uc7a1\uc744 \uae30\uc900 \uc704\uce58\ub97c \uace0\ub985\ub2c8\ub2e4. center-1\uc774 \uae30\ubcf8\uc774\uace0 \uac00\uc7a5 \uc548\uc804\ud569\ub2c8\ub2e4.", None))
+#endif // QT_CONFIG(tooltip)
+        self.facedetailerSamDetectionHintLabel.setText(QCoreApplication.translate("MainWindow", u"SAM Hint (\uc5bc\uad74 \uc704\uce58 \ud78c\ud2b8)", None))
+#if QT_CONFIG(tooltip)
+        self.facedetailerSamDetectionHintComboBox.setToolTip(QCoreApplication.translate("MainWindow", u"\uc5bc\uad74 \uc704\uce58 \ud78c\ud2b8: center-1(\uac00\uc6b4\ub370 1\uc810, \uae30\ubcf8), horizontal-2/vertical-2(2\uc810), rect-4/diamond-4(4\uc810), mask-area/mask-points/mask-point-bbox(\ub9c8\uc2a4\ud06c \uae30\uc900, \uace0\uae09), none(\ud78c\ud2b8 \uc5c6\uc74c).", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.facedetailerSamMaskHintUseNegativeLabel.setToolTip(QCoreApplication.translate("MainWindow", u"\ubc18\ub300 \uc601\uc5ed(\ub9c8\uc2a4\ud06c \ubc14\uae65)\ub3c4 \uc4f8\uc9c0 \uc815\ud569\ub2c8\ub2e4. False\uac00 \uae30\ubcf8\uc774\uace0 \uac00\uc7a5 \uc548\uc804\ud569\ub2c8\ub2e4.", None))
+#endif // QT_CONFIG(tooltip)
+        self.facedetailerSamMaskHintUseNegativeLabel.setText(QCoreApplication.translate("MainWindow", u"Mask Hint Neg (\ubc18\ub300\uc601\uc5ed \uc81c\uc678)", None))
+#if QT_CONFIG(tooltip)
+        self.facedetailerSamMaskHintUseNegativeComboBox.setToolTip(QCoreApplication.translate("MainWindow", u"\ubc18\ub300 \uc601\uc5ed(\ub9c8\uc2a4\ud06c \ubc14\uae65) \uc0ac\uc6a9 \uc5ec\ubd80. False(\uae30\ubcf8, \uc548\uc804)\ub97c \ucd94\ucc9c\ud569\ub2c8\ub2e4.", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.advancedToggleBtn.setToolTip(QCoreApplication.translate("MainWindow", u"\uace0\uae09 \uc124\uc815(\uc2dc\ub4dc, \uc2ac\ub77c\uc774\ub354, \uc0d8\ud50c\ub7ec)\uc744 \uc5f4\uace0 \ub2eb\uc2b5\ub2c8\ub2e4. \uccb4\ud06c\ud558\uba74 \ud3bc\uccd0\uc9d1\ub2c8\ub2e4.", None))
+#endif // QT_CONFIG(tooltip)
+        self.advancedToggleBtn.setText(QCoreApplication.translate("MainWindow", u"\u2699\ufe0f \uace0\uae09 \uc124\uc815 (\uc2dc\ub4dc, \uc2ac\ub77c\uc774\ub354, \uc0d8\ud50c\ub7ec)", None))
         self.seedTitleLabel.setText(QCoreApplication.translate("MainWindow", u"\uc2dc\ub4dc \ubc88\ud638:", None))
         self.randomSeedButton.setText(QCoreApplication.translate("MainWindow", u"\U0001f3b2 \U0000b79c\U0000b364", None))
         self.lockSeedButton.setText(QCoreApplication.translate("MainWindow", u"\U0001f513 \U0000ace0\U0000c815 \U0000c548\U0000d568", None))
-        self.cfgLabelTitle.setText(QCoreApplication.translate("MainWindow", u"\ud504\ub86c\ud504\ud2b8 \ucda9\uc2e4\ub3c4 (CFG)", None))
-        self.cfgValueLabel.setText(QCoreApplication.translate("MainWindow", u"3.5", None))
         self.stepsLabelTitle.setText(QCoreApplication.translate("MainWindow", u"\uc0d8\ud50c\ub9c1 \uc2a4\ud15d (Steps)", None))
         self.stepsValueLabel.setText(QCoreApplication.translate("MainWindow", u"24", None))
+        self.cfgLabelTitle.setText(QCoreApplication.translate("MainWindow", u"\ud504\ub86c\ud504\ud2b8 \ucda9\uc2e4\ub3c4 (CFG)", None))
+        self.cfgValueLabel.setText(QCoreApplication.translate("MainWindow", u"3.5", None))
         self.samplerLabel.setText(QCoreApplication.translate("MainWindow", u"\uc0d8\ud50c\ub7ec", None))
         self.schedulerLabel.setText(QCoreApplication.translate("MainWindow", u"\uc2a4\ucf00\uc904\ub7ec", None))
         self.denoiseLabel.setText(QCoreApplication.translate("MainWindow", u"\ub514\ub178\uc774\uc988", None))

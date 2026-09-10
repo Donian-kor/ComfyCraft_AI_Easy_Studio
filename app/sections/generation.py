@@ -11,7 +11,6 @@ from typing import Any, Dict, Optional
 
 import requests
 from PySide6.QtCore import QObject, QThread, Signal
-from PySide6.QtWidgets import QApplication  # 🚀 여기를 QtWidgets로 올바르게 지정합니다!
 
 from app.core.api_client import ComfyUIApiClient, ComfyUIWebSocketClient
 from app.core.model_registry import get_model_registry
@@ -153,10 +152,8 @@ class GenerationWorker:
                 # 🚀 main.py에 연결된 이벤트를 통해 GUI 창(enhancePromptEdit)에 텍스트 주입
                 self.signals.enhanced_prompt.emit(prompt)
 
-                # QEventLoop가 GUI를 새로고침하고 텍스트를 완전히 반영할 수 있도록 안전하게 대기
-                for _ in range(5):
-                    time.sleep(0.05)
-                    QApplication.processEvents()
+                # GUI에 텍스트가 반영될 수 있도록 잠시 대기
+                time.sleep(0.2)
             else:
                 self.emit_log("LM Studio 응답이 올바르지 않아 원본 프롬프트를 사용합니다.")
         else:
@@ -191,7 +188,6 @@ class GenerationWorker:
 
         # 🌟 정리 후 잠시 대기하여 ComfyUI가 내부 상태를 정리할 시간 확보
         time.sleep(0.5)
-        QApplication.processEvents()
 
         # (이후 ComfyUI 큐 등록 및 웹소켓 통신 코드는 기존과 동일)
         workflow_json_str = json.dumps(workflow, indent=2, ensure_ascii=False)
@@ -241,7 +237,6 @@ class GenerationWorker:
             while not getattr(self.comfy_ws, "_connected", False) and connected_wait < 20:
                 time.sleep(0.1)
                 connected_wait += 1
-                QApplication.processEvents()
                 
             if getattr(self.comfy_ws, "_connected", False):
                 self.emit_log("ComfyUI WebSocket 연결 완벽 성공!")
@@ -351,6 +346,38 @@ class GenerationWorker:
         except Exception:
             return False
 
+    def _find_sam_model_name(self, comfy_url: str, preferred: str = "sam_vit_b_01ec64.pth") -> Optional[str]:
+        """SAMLoader가 사용할 SAM 모델 파일명을 서버에서 조회합니다.
+
+        - 서버에 SAMLoader 노드가 없으면 None 반환 (SAM 미연결 상태로 동작)
+        - 사용자가 설치한 sam_vit_b_01ec64.pth가 우선이고, 없으면 서버에 존재하는 첫 SAM 파일을 사용
+        """
+        try:
+            api = self._require_comfy_api()
+            response = api.get_object_info(
+                "SAMLoader",
+                timeout=(0.5, 1.0),
+            )
+            if response.status_code != 200:
+                return None
+            payload = response.json().get("SAMLoader", {})
+            required = (
+                payload.get("input", {}).get("required", {})
+                if isinstance(payload, dict)
+                else {}
+            )
+            model_name_spec = required.get("model_name")
+            if not (isinstance(model_name_spec, list) and model_name_spec and isinstance(model_name_spec[0], list)):
+                return None
+            candidates = [str(name) for name in model_name_spec[0] if name]
+            if not candidates:
+                return None
+            if preferred in candidates:
+                return preferred
+            return candidates[0]
+        except Exception:
+            return None
+
     def _validate_workflow(self, workflow: Dict[str, Any]):
         if not isinstance(workflow, dict) or not workflow:
             raise RuntimeError("생성 워크플로우가 비어 있습니다.")
@@ -390,13 +417,18 @@ class GenerationWorker:
         prefix = self.controller.build_filename_prefix()
         comfy_url = s["comfy_url"]
 
+        # 모델 종류별로 기본 워크플로우만 먼저 만든 뒤,
+        # 마지막에 FaceDetailer를 공통으로 1번 주입한다.
+        # (Checkpoint뿐 아니라 Flux/GGUF/ZImage에서도 얼굴 보정이 동작하도록)
+        base_wf = None
+
         # ZImage/Turbo 모델 처리
         if manager.is_zimage_model(model_name) or profile.workflow_type == "zimage":
             required_nodes = ["UnetLoaderGGUF", "CLIPLoaderGGUF", "VAELoader", "KSampler", "TextEncodeZImageOmni"]
             missing = [name for name in required_nodes if not self._comfyui_node_exists(name, comfy_url)]
             if missing:
                 self.emit_log(f"ZImage 전용 노드 누락: {', '.join(missing)}. 기본 checkpoint 경로로 대체합니다.")
-                return manager.render_checkpoint_workflow(
+                base_wf = manager.render_checkpoint_workflow(
                     model_name=model_name,
                     positive_prompt=prompt,
                     negative_prompt=negative,
@@ -407,35 +439,35 @@ class GenerationWorker:
                     cfg=s["cfg"],
                     filename_prefix=prefix
                 )
-
-            clips = self.controller.model_fetcher.get_comfyui_clips(comfy_url)
-            vaes = self.controller.model_fetcher.get_comfyui_vaes(comfy_url)
-            if not clips:
-                raise RuntimeError("ComfyUI CLIP 모델을 찾을 수 없습니다.")
-            return manager.render_zimage_workflow(
-                model_name=model_name,
-                positive_prompt=prompt,
-                negative_prompt=negative,
-                width=s["width"],
-                height=s["height"],
-                seed=seed,
-                steps=s["steps"],
-                cfg=s["cfg"],
-                clip_name=profile.select_clip(clips),
-                vae_name=profile.select_vae(vaes),
-                sampler_name=s["sampler"],
-                scheduler=s["scheduler"],
-                denoise=s["denoise"],
-                filename_prefix=prefix
-            )
+            else:
+                clips = self.controller.model_fetcher.get_comfyui_clips(comfy_url)
+                vaes = self.controller.model_fetcher.get_comfyui_vaes(comfy_url)
+                if not clips:
+                    raise RuntimeError("ComfyUI CLIP 모델을 찾을 수 없습니다.")
+                base_wf = manager.render_zimage_workflow(
+                    model_name=model_name,
+                    positive_prompt=prompt,
+                    negative_prompt=negative,
+                    width=s["width"],
+                    height=s["height"],
+                    seed=seed,
+                    steps=s["steps"],
+                    cfg=s["cfg"],
+                    clip_name=profile.select_clip(clips),
+                    vae_name=profile.select_vae(vaes),
+                    sampler_name=s["sampler"],
+                    scheduler=s["scheduler"],
+                    denoise=s["denoise"],
+                    filename_prefix=prefix
+                )
 
         # Flux 모델 처리
-        if profile.workflow_type == "flux_gguf" or manager.is_flux_model(model_name) or profile.family == "flux":
+        if base_wf is None and (profile.workflow_type == "flux_gguf" or manager.is_flux_model(model_name) or profile.family == "flux"):
             required_nodes = ["UnetLoaderGGUF", "DualCLIPLoaderGGUF", "FluxGuidance", "VAELoader"]
             missing = [name for name in required_nodes if not self._comfyui_node_exists(name, comfy_url)]
             if missing:
                 self.emit_log(f"Flux 전용 노드 누락: {', '.join(missing)}. 기본 checkpoint 경로로 대체합니다.")
-                return manager.render_checkpoint_workflow(
+                base_wf = manager.render_checkpoint_workflow(
                     model_name=model_name,
                     positive_prompt=prompt,
                     negative_prompt=negative,
@@ -446,38 +478,38 @@ class GenerationWorker:
                     cfg=s["cfg"],
                     filename_prefix=prefix
                 )
-
-            clips = self.controller.model_fetcher.get_comfyui_clips(comfy_url)
-            vaes = self.controller.model_fetcher.get_comfyui_vaes(comfy_url)
-            if len(clips) < 2:
-                raise RuntimeError("Flux 모델은 2개의 CLIP 모델이 필요합니다. ComfyUI에 Flux용 CLIP 2개를 로드해 주세요.")
-            clip1, clip2 = profile.select_clip_pair(clips)
-            return manager.render_flux_gguf_workflow(
-                model_name=model_name,
-                positive_prompt=prompt,
-                negative_prompt=negative,
-                width=s["width"],
-                height=s["height"],
-                seed=seed,
-                steps=s["steps"],
-                guidance=max(1.0, s["cfg"]),
-                clip_name1=clip1,
-                clip_name2=clip2,
-                clip_type="flux",
-                vae_name=profile.select_vae(vaes),
-                sampler_name=s["sampler"],
-                scheduler=s["scheduler"],
-                denoise=s["denoise"],
-                filename_prefix=prefix
-            )
+            else:
+                clips = self.controller.model_fetcher.get_comfyui_clips(comfy_url)
+                vaes = self.controller.model_fetcher.get_comfyui_vaes(comfy_url)
+                if len(clips) < 2:
+                    raise RuntimeError("Flux 모델은 2개의 CLIP 모델이 필요합니다. ComfyUI에 Flux용 CLIP 2개를 로드해 주세요.")
+                clip1, clip2 = profile.select_clip_pair(clips)
+                base_wf = manager.render_flux_gguf_workflow(
+                    model_name=model_name,
+                    positive_prompt=prompt,
+                    negative_prompt=negative,
+                    width=s["width"],
+                    height=s["height"],
+                    seed=seed,
+                    steps=s["steps"],
+                    guidance=max(1.0, s["cfg"]),
+                    clip_name1=clip1,
+                    clip_name2=clip2,
+                    clip_type="flux",
+                    vae_name=profile.select_vae(vaes),
+                    sampler_name=s["sampler"],
+                    scheduler=s["scheduler"],
+                    denoise=s["denoise"],
+                    filename_prefix=prefix
+                )
 
         # GGUF/UNET 모델 처리
-        if manager.is_gguf_model(model_name):
+        if base_wf is None and manager.is_gguf_model(model_name):
             clips = self.controller.model_fetcher.get_comfyui_clips(comfy_url)
             vaes = self.controller.model_fetcher.get_comfyui_vaes(comfy_url)
             if not clips:
                 raise RuntimeError("ComfyUI CLIP 모델을 찾을 수 없습니다.")
-            return manager.render_gguf_workflow(
+            base_wf = manager.render_gguf_workflow(
                 model_name=model_name,
                 positive_prompt=prompt,
                 negative_prompt=negative,
@@ -498,21 +530,22 @@ class GenerationWorker:
                 filename_prefix=prefix
             )
 
-        # Checkpoint 모델 처리
-        base_wf = manager.render_checkpoint_workflow(
-            model_name=model_name,
-            positive_prompt=prompt,
-            negative_prompt=negative,
-            width=s["width"],
-            height=s["height"],
-            seed=seed,
-            steps=s["steps"],
-            cfg=s["cfg"],
-            sampler_name=s["sampler"],
-            scheduler=s["scheduler"],
-            denoise=s["denoise"],
-            filename_prefix=prefix
-        )
+        # Checkpoint 모델 처리 (위에서 처리되지 않은 나머지 전부)
+        if base_wf is None:
+            base_wf = manager.render_checkpoint_workflow(
+                model_name=model_name,
+                positive_prompt=prompt,
+                negative_prompt=negative,
+                width=s["width"],
+                height=s["height"],
+                seed=seed,
+                steps=s["steps"],
+                cfg=s["cfg"],
+                sampler_name=s["sampler"],
+                scheduler=s["scheduler"],
+                denoise=s["denoise"],
+                filename_prefix=prefix
+            )
         
         # FaceDetailer 주입 (스냅샷에서 활성화 여부 확인)
         if s.get("facedetailer_enabled", False):
@@ -528,6 +561,9 @@ class GenerationWorker:
         """
         if not self._comfyui_node_exists("FaceDetailer", comfy_url):
             self.emit_log("[⚠️ 알림] ComfyUI 서버에 'Impact Pack(FaceDetailer)'이 설치되어 있지 않습니다. 기본 생성으로 진행합니다.")
+            return workflow
+        if not self._comfyui_node_exists("UltralyticsDetectorProvider", comfy_url):
+            self.emit_log("[⚠️ 알림] ComfyUI 서버에 'UltralyticsDetectorProvider(Impact Pack)'가 없습니다. 기본 생성으로 진행합니다.")
             return workflow
         
         try:
@@ -562,17 +598,45 @@ class GenerationWorker:
             if not vae_source: vae_source = [ksampler_node_id, 2]
 
             # 긍정 프롬프트(Conditioning) 링크에서 오리지널 CLIP 노드를 역추적 시도
+            # (Checkpoint/CLIPTextEncode뿐 아니라 FluxGuidance -> CLIPTextEncode 체인도 따라감)
             clip_source = None
+            def _clip_of(node_id):
+                try:
+                    n = workflow.get(str(node_id), {})
+                    return n.get("inputs", {}).get("clip")
+                except Exception:
+                    return None
             if positive_source and isinstance(positive_source, list) and len(positive_source) > 0:
                 pos_node_id = str(positive_source[0])
                 pos_node = workflow.get(pos_node_id, {})
-                clip_source = pos_node.get("inputs", {}).get("clip")
-            
+                pos_inputs = pos_node.get("inputs", {})
+                clip_source = pos_inputs.get("clip")
+                # FluxGuidance 등은 clip 대신 conditioning 링크를 가짐 -> 한 단계 더 추적
+                if not clip_source and isinstance(pos_inputs.get("conditioning"), list):
+                    try:
+                        cond_src_id = str(pos_inputs["conditioning"][0])
+                        clip_source = _clip_of(cond_src_id)
+                    except Exception:
+                        pass
+
             if not clip_source:
-                # 못 찾으면 기본 템플릿의 정석 배치 번호 백업 매핑
+                # 어떤 인코더 노드든 clip 링크를 빌려옴 (모든 워크플로우 종류 호환)
                 for node_id, node in workflow.items():
-                    if node.get("class_type") in ("CLIPLoader", "CheckpointLoaderSimple"):
+                    if node.get("class_type") in ("CLIPTextEncode", "TextEncodeZImageOmni"):
+                        cand = node.get("inputs", {}).get("clip")
+                        if isinstance(cand, list) and len(cand) > 0:
+                            clip_source = cand
+                            break
+            if not clip_source:
+                # 못 찾으면 로더 노드에서 정석 출력 인덱스로 백업 매핑
+                # (CheckpointLoaderSimple clip=출력1, CLIP 계열 clip=출력0)
+                for node_id, node in workflow.items():
+                    ctype = node.get("class_type", "")
+                    if ctype == "CheckpointLoaderSimple":
                         clip_source = [node_id, 1]
+                        break
+                    if ctype in ("CLIPLoader", "CLIPLoaderGGUF", "DualCLIPLoaderGGUF"):
+                        clip_source = [node_id, 0]
                         break
                 if not clip_source:
                     clip_source = [ksampler_node_id, 1]
@@ -585,7 +649,24 @@ class GenerationWorker:
                 },
                 "class_type": "UltralyticsDetectorProvider"
             }
-            
+
+            # SAMLoader 노드 추가 (SAM 모델이 서버에 있으면 SAM 세그멘테이션 활성화)
+            sam_loader_node_id = None
+            sam_model_name = self._find_sam_model_name(comfy_url)
+            if sam_model_name:
+                sam_loader_node_id = str(int(detector_node_id) + 1)
+                workflow[sam_loader_node_id] = {
+                    "inputs": {
+                        "model_name": sam_model_name,
+                        "device_mode": "AUTO",
+                    },
+                    "class_type": "SAMLoader"
+                }
+                self.emit_log(
+                    f"[AI 안면 보정] SAM 모델 연결 완료: {sam_model_name} "
+                    "(SAM 세그멘테이션 기반 정밀 마스크 활성화)"
+                )
+
             # UI 가변 값 취합 (스냅샷에서 가져오기, 기본값 제공)
             facedetailer_denoise = s.get("facedetailer_denoise", 0.4)
             facedetailer_steps = s.get("facedetailer_steps", 20)
@@ -598,6 +679,13 @@ class GenerationWorker:
             facedetailer_bbox_dilation = s.get("facedetailer_bbox_dilation", 10)
             facedetailer_bbox_crop_factor = s.get("facedetailer_bbox_crop_factor", 1.5)
             facedetailer_sam_detection_hint = s.get("facedetailer_sam_detection_hint", "center-1")
+            # 구버전 UI 값(center-2/center-3/center-4/all)이 히스토리에 남아 있어도
+            # 공식 FaceDetailer 옵션 9종이 아니면 기본값 center-1로 되돌림
+            if facedetailer_sam_detection_hint not in (
+                "center-1", "horizontal-2", "vertical-2", "rect-4",
+                "diamond-4", "mask-area", "mask-points", "mask-point-bbox", "none",
+            ):
+                facedetailer_sam_detection_hint = "center-1"
             facedetailer_sam_dilation = s.get("facedetailer_sam_dilation", 0)
             facedetailer_sam_threshold = s.get("facedetailer_sam_threshold", 0.93)
             facedetailer_sam_bbox_expansion = s.get("facedetailer_sam_bbox_expansion", 0)
@@ -611,11 +699,14 @@ class GenerationWorker:
                 f"Steps: {facedetailer_steps}, CFG: {facedetailer_cfg}, Denoise: {facedetailer_denoise}, "
                 f"BBoxThresh: {facedetailer_bbox_threshold}, SAMHint: {facedetailer_sam_detection_hint}"
             )
-            
+            # SAM 모델이 없는 경우에만 안내 (SAMLoader 연결 시 해당 로그 생략)
+            if not sam_loader_node_id:
+                self.emit_log("[FaceDetailer] SAM 모델 미연결 상태에서는 YOLO BBox 기준으로 동작합니다 (SAM 세부 옵션은 부분 적용).")
+
             # FaceDetailer 핵심 노드 조립 및 결합
             # 🌟 ComfyUI Impact Pack FaceDetailer 노드는 많은 필수 입력이 필요합니다.
             # 에러 메시지에 나온 모든 필수 입력값을 기본값과 함께 제공합니다.
-            facedetailer_node_id = str(int(detector_node_id) + 1)
+            facedetailer_node_id = str(int(detector_node_id) + (2 if sam_loader_node_id else 1))
             workflow[facedetailer_node_id] = {
                 "inputs": {
                     "image": [vae_decode_node_id, 0],      # 원본 완성 이미지 소스 연결
@@ -636,6 +727,7 @@ class GenerationWorker:
                     "noise_mask": True,
                     "force_inpaint": True,
                     "bbox_detector": [detector_node_id, 0],
+                    "sam_model_opt": [sam_loader_node_id, 0] if sam_loader_node_id else None,
                     # 🌟 아래는 ComfyUI Impact Pack FaceDetailer 필수 입력값들 (UI 설정값 사용)
                     "positive": [positive_source[0], 0] if positive_source and isinstance(positive_source, list) else clip_source,
                     "negative": [negative_source[0], 0] if (negative_source := ksampler_inputs.get("negative")) and isinstance(negative_source, list) else clip_source,

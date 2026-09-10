@@ -709,3 +709,84 @@ QSlider::handle:horizontal {
     margin-bottom: -5px;
     border-radius: 8px;
 }
+
+    
+/* ================================================
+   상태별 배지 버튼 스타일 (attribute selector)
+   setProperty("status", "success" | "error" | "warning" | "pending") 로 상태 변경
+   ================================================ */
+QPushButton#comfyStatusBtn[status="success"],
+QPushButton#lmStatusBtn[status="success"] {
+    background-color: #7ed9f5;
+    color: #ffffff;
+    border: 1px solid #4cc2ff;
+    font-weight: 600;
+}
+
+QPushButton#comfyStatusBtn[status="success"]:hover,
+QPushButton#lmStatusBtn[status="success"]:hover {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #7ed9f5, stop:1 #4cc2ff);
+    color: #ffffff;
+}
+
+QPushButton#comfyStatusBtn[status="error"],
+QPushButton#lmStatusBtn[status="error"] {
+    background-color: #ffb4ab;
+    color: #ffffff;
+    border: 1px solid #e05263;
+    font-weight: 600;
+}
+
+QPushButton#comfyStatusBtn[status="error"]:hover,
+QPushButton#lmStatusBtn[status="error"]:hover {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #ffb4ab, stop:1 #e05263);
+    color: #ffffff;
+}
+
+QPushButton#comfyStatusBtn[status="warning"],
+QPushButton#lmStatusBtn[status="warning"] {
+    background-color: #ffc97a;
+    color: #ffffff;
+    border: 1px solid #ffc97a;
+    font-weight: 600;
+}
+
+QPushButton#comfyStatusBtn[status="warning"]:hover,
+QPushButton#lmStatusBtn[status="warning"]:hover {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #ffc97a, stop:1 #ffc97a);
+    color: #ffffff;
+}
+
+QPushButton#comfyStatusBtn[status="pending"],
+QPushButton#lmStatusBtn[status="pending"] {
+    background-color: #d5ddf0;
+    color: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    font-weight: 500;
+}
+
+QPushButton#comfyStatusBtn[status="pending"]:hover,
+QPushButton#lmStatusBtn[status="pending"]:hover {
+    background-color: #d5ddf0;
+    color: #ffffff;
+}
+
+/* 상태별 라벨 스타일 */
+QLabel[status="success"] {
+    color: #7ed9f5;
+}
+
+QLabel[status="error"] {
+    color: #ffb4ab;
+}
+
+QLabel[status="warning"] {
+    color: #ffc97a;
+}
+
+QLabel[status="pending"] {
+    color: #d5ddf0;
+}

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1360</width>
-    <height>975</height>
+    <height>993</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -17,7 +17,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>ComfyUI Craft AI Easy Studio</string>
+   <string>ComfyCraft AI Easy Studio</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="mainVerticalLayout">
@@ -69,7 +69,7 @@
        <item>
         <widget class="QLabel" name="appTitle">
          <property name="text">
-          <string>✨ ComfyUI Craft AI</string>
+          <string>✨ ComfyCraft AI</string>
          </property>
         </widget>
        </item>
@@ -198,9 +198,9 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>0</y>
-            <width>708</width>
-            <height>1488</height>
+            <y>-687</y>
+            <width>647</width>
+            <height>1414</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="leftContentLayout">
@@ -446,6 +446,12 @@
                     <spacer name="negSpacer">
                      <property name="orientation">
                       <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
                      </property>
                     </spacer>
                    </item>
@@ -721,16 +727,56 @@
                  <property name="bottomMargin">
                   <number>10</number>
                  </property>
-                 <item>
-                  <widget class="QCheckBox" name="facedetailerCheckBox">
-                   <property name="cursor">
-                    <cursorShape>PointingHandCursor</cursorShape>
-                   </property>
-                   <property name="text">
-                    <string>👤 FaceDetailer (얼굴 세부 보정 활성화)</string>
-                   </property>
-                  </widget>
+                                  <item>
+                   <layout class="QHBoxLayout" name="facedetailerHeadLayout">
+                     <property name="spacing">
+                       <number>8</number>
+                     </property>
+                     <item>
+                       <widget class="QCheckBox" name="facedetailerCheckBox">
+                         <property name="toolTip">
+                           <string>얼굴 보정(FaceDetailer)을 켜고 끕니다. 얼굴이 뭉개질 때 켜면 얼굴만 다시 그려줍니다. 처음에는 꺼 두는 것을 추천합니다.</string>
+                         </property>
+                         <property name="cursor">
+                           <cursorShape>PointingHandCursor</cursorShape>
+                         </property>
+                         <property name="text">
+                           <string>👤 FaceDetailer (얼굴 보정 켜기)</string>
+                         </property>
+                       </widget>
+                     </item>
+                     <item>
+                       <spacer>
+                         <property name="orientation">
+                           <enum>Qt::Orientation::Horizontal</enum>
+                         </property>
+                         <property name="sizeHint" stdset="0">
+                           <size>
+                             <width>0</width>
+                             <height>0</height>
+                           </size>
+                         </property>
+                       </spacer>
+                     </item>
+                     <item>
+                       <widget class="QPushButton" name="facedetailerHelpBtn">
+                         <property name="toolTip">
+                           <string>눌러서 얼굴 보정 옵션을 초보자도 쉽게 설명한 전체 가이드를 봅니다.</string>
+                         </property>
+                         <property name="cursor">
+                           <cursorShape>PointingHandCursor</cursorShape>
+                         </property>
+                         <property name="autoDefault">
+                           <bool>false</bool>
+                         </property>
+                         <property name="text">
+                           <string>❓ 도움말</string>
+                         </property>
+                       </widget>
+                     </item>
+                   </layout>
                  </item>
+
                  <item>
                   <widget class="QFrame" name="facedetailerPanel">
                    <layout class="QHBoxLayout" name="facedetailerPanelHBox">
@@ -763,8 +809,11 @@
                          <layout class="QHBoxLayout" name="fd_denoise_hdr">
                           <item>
                            <widget class="QLabel" name="facedetailerDenoiseLabel">
+                            <property name="toolTip">
+                             <string>얼굴을 얼마나 새로 그릴지 정합니다. 기본값 0.40 추천. 높으면 얼굴이 완전히 바뀔 수 있습니다.</string>
+                            </property>
                             <property name="text">
-                             <string>Denoise (변화 강도)</string>
+                             <string>Denoise (얼굴 다시그리기 정도)</string>
                             </property>
                            </widget>
                           </item>
@@ -782,27 +831,9 @@
                            </spacer>
                           </item>
                           <item>
-                           <widget class="QDoubleSpinBox" name="facedetailerDenoiseSpinBox">
-                            <property name="minimumSize">
-                             <size>
-                              <width>60</width>
-                              <height>22</height>
-                             </size>
-                            </property>
-                            <property name="alignment">
-                             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                            </property>
-                            <property name="minimum">
-                             <double>0.000000000000000</double>
-                            </property>
-                            <property name="maximum">
-                             <double>1.000000000000000</double>
-                            </property>
-                            <property name="singleStep">
-                             <double>0.010000000000000</double>
-                            </property>
-                            <property name="value">
-                             <double>0.400000000000000</double>
+                           <widget class="QLabel" name="facedetailerDenoiseValueLabel">
+                            <property name="text">
+                             <string>0.40</string>
                             </property>
                            </widget>
                           </item>
@@ -810,6 +841,9 @@
                         </item>
                         <item>
                          <widget class="QSlider" name="facedetailerDenoiseSlider">
+                          <property name="toolTip">
+                           <string>얼굴을 얼마나 새로 그릴지 정합니다. 기본값 0.40 추천. 얼굴이 과하게 바뀌면 이 값을 낮추세요.</string>
+                          </property>
                           <property name="minimum">
                            <number>0</number>
                           </property>
@@ -835,8 +869,11 @@
                          <layout class="QHBoxLayout" name="fd_steps_hdr">
                           <item>
                            <widget class="QLabel" name="facedetailerStepsLabel">
+                            <property name="toolTip">
+                             <string>얼굴을 고치는 계산 횟수입니다. 기본값 20 추천. 올리면 정밀해지지만 느려집니다.</string>
+                            </property>
                             <property name="text">
-                             <string>Steps (보정 스텝)</string>
+                             <string>Steps (보정 정밀도)</string>
                             </property>
                            </widget>
                           </item>
@@ -854,24 +891,9 @@
                            </spacer>
                           </item>
                           <item>
-                           <widget class="QSpinBox" name="facedetailerStepsSpinBox">
-                            <property name="minimumSize">
-                             <size>
-                              <width>60</width>
-                              <height>22</height>
-                             </size>
-                            </property>
-                            <property name="alignment">
-                             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                            </property>
-                            <property name="minimum">
-                             <number>1</number>
-                            </property>
-                            <property name="maximum">
-                             <number>50</number>
-                            </property>
-                            <property name="value">
-                             <number>20</number>
+                           <widget class="QLabel" name="facedetailerStepsValueLabel">
+                            <property name="text">
+                             <string>20</string>
                             </property>
                            </widget>
                           </item>
@@ -879,6 +901,9 @@
                         </item>
                         <item>
                          <widget class="QSlider" name="facedetailerStepsSlider">
+                          <property name="toolTip">
+                           <string>얼굴을 고치는 계산 횟수입니다. 기본값 20 추천.</string>
+                          </property>
                           <property name="minimum">
                            <number>1</number>
                           </property>
@@ -904,8 +929,11 @@
                          <layout class="QHBoxLayout" name="fd_cfg_hdr">
                           <item>
                            <widget class="QLabel" name="facedetailerCfgLabel">
+                            <property name="toolTip">
+                             <string>프롬프트 말을 얼마나 따를지 정합니다. 기본값 4.0 추천. 너무 높으면 얼굴이 부자연스러워집니다.</string>
+                            </property>
                             <property name="text">
-                             <string>CFG (프롬프트 반영도)</string>
+                             <string>CFG (프롬프트 반영 세기)</string>
                             </property>
                            </widget>
                           </item>
@@ -923,27 +951,9 @@
                            </spacer>
                           </item>
                           <item>
-                           <widget class="QDoubleSpinBox" name="facedetailerCfgSpinBox">
-                            <property name="minimumSize">
-                             <size>
-                              <width>60</width>
-                              <height>22</height>
-                             </size>
-                            </property>
-                            <property name="alignment">
-                             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                            </property>
-                            <property name="minimum">
-                             <double>0.000000000000000</double>
-                            </property>
-                            <property name="maximum">
-                             <double>20.000000000000000</double>
-                            </property>
-                            <property name="singleStep">
-                             <double>0.100000000000000</double>
-                            </property>
-                            <property name="value">
-                             <double>4.000000000000000</double>
+                           <widget class="QLabel" name="facedetailerCfgValueLabel">
+                            <property name="text">
+                             <string>4.0</string>
                             </property>
                            </widget>
                           </item>
@@ -951,6 +961,9 @@
                         </item>
                         <item>
                          <widget class="QSlider" name="facedetailerCfgSlider">
+                          <property name="toolTip">
+                           <string>프롬프트 반영 세기입니다. 기본값 4.0 추천.</string>
+                          </property>
                           <property name="minimum">
                            <number>0</number>
                           </property>
@@ -976,8 +989,11 @@
                          <layout class="QHBoxLayout" name="fd_feather_hdr">
                           <item>
                            <widget class="QLabel" name="facedetailerFeatherLabel">
+                            <property name="toolTip">
+                             <string>고친 얼굴과 주변을 자연스럽게 이어주는 정도입니다. 기본값 5 추천.</string>
+                            </property>
                             <property name="text">
-                             <string>Feather (경계 부드러움)</string>
+                             <string>Feather (얼굴 경계 자연스럽게)</string>
                             </property>
                            </widget>
                           </item>
@@ -995,24 +1011,9 @@
                            </spacer>
                           </item>
                           <item>
-                           <widget class="QSpinBox" name="facedetailerFeatherSpinBox">
-                            <property name="minimumSize">
-                             <size>
-                              <width>60</width>
-                              <height>22</height>
-                             </size>
-                            </property>
-                            <property name="alignment">
-                             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                            </property>
-                            <property name="minimum">
-                             <number>0</number>
-                            </property>
-                            <property name="maximum">
-                             <number>20</number>
-                            </property>
-                            <property name="value">
-                             <number>5</number>
+                           <widget class="QLabel" name="facedetailerFeatherValueLabel">
+                            <property name="text">
+                             <string>5</string>
                             </property>
                            </widget>
                           </item>
@@ -1020,6 +1021,9 @@
                         </item>
                         <item>
                          <widget class="QSlider" name="facedetailerFeatherSlider">
+                          <property name="toolTip">
+                           <string>경계 부드러움입니다. 기본값 5 추천.</string>
+                          </property>
                           <property name="minimum">
                            <number>0</number>
                           </property>
@@ -1045,8 +1049,11 @@
                          <layout class="QHBoxLayout" name="fd_dropsize_hdr">
                           <item>
                            <widget class="QLabel" name="facedetailerDropSizeLabel">
+                            <property name="toolTip">
+                             <string>이보다 작게 잡힌 얼굴은 무시합니다. 기본값 10 추천. 작은 얼굴까지 고치려면 낮추세요.</string>
+                            </property>
                             <property name="text">
-                             <string>Drop Size (최소 크기 필터)</string>
+                             <string>Drop Size (작은 얼굴 무시)</string>
                             </property>
                            </widget>
                           </item>
@@ -1064,24 +1071,9 @@
                            </spacer>
                           </item>
                           <item>
-                           <widget class="QSpinBox" name="facedetailerDropSizeSpinBox">
-                            <property name="minimumSize">
-                             <size>
-                              <width>60</width>
-                              <height>22</height>
-                             </size>
-                            </property>
-                            <property name="alignment">
-                             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                            </property>
-                            <property name="minimum">
-                             <number>1</number>
-                            </property>
-                            <property name="maximum">
-                             <number>100</number>
-                            </property>
-                            <property name="value">
-                             <number>10</number>
+                           <widget class="QLabel" name="facedetailerDropSizeValueLabel">
+                            <property name="text">
+                             <string>10</string>
                             </property>
                            </widget>
                           </item>
@@ -1089,6 +1081,9 @@
                         </item>
                         <item>
                          <widget class="QSlider" name="facedetailerDropSizeSlider">
+                          <property name="toolTip">
+                           <string>작은 얼굴 무시 기준입니다. 기본값 10 추천.</string>
+                          </property>
                           <property name="minimum">
                            <number>1</number>
                           </property>
@@ -1106,135 +1101,168 @@
                        </layout>
                       </item>
                       <item>
-                       <layout class="QHBoxLayout" name="fd_guidesize_row">
+                       <layout class="QVBoxLayout" name="fd_guidesize_vbox">
+                        <property name="spacing">
+                         <number>2</number>
+                        </property>
                         <item>
-                         <widget class="QLabel" name="facedetailerGuideSizeLabel">
-                          <property name="text">
-                           <string>Guide Size (가이드 해상도)</string>
-                          </property>
-                         </widget>
+                         <layout class="QHBoxLayout" name="fd_guidesize_hdr">
+                          <item>
+                           <widget class="QLabel" name="facedetailerGuideSizeLabel">
+                            <property name="toolTip">
+                             <string>얼굴을 분석할 해상도입니다. 표시 값 기준 기본 256 추천.</string>
+                            </property>
+                            <property name="text">
+                             <string>Guide Size (얼굴 분석 크기)</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <spacer>
+                            <property name="orientation">
+                             <enum>Qt::Orientation::Horizontal</enum>
+                            </property>
+                            <property name="sizeHint" stdset="0">
+                             <size>
+                              <width>0</width>
+                              <height>0</height>
+                             </size>
+                            </property>
+                           </spacer>
+                          </item>
+                          <item>
+                           <widget class="QLabel" name="facedetailerGuideSizeValueLabel">
+                            <property name="text">
+                             <string>256</string>
+                            </property>
+                           </widget>
+                          </item>
+                         </layout>
                         </item>
                         <item>
-                         <spacer>
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>0</width>
-                            <height>0</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item>
-                         <widget class="QSpinBox" name="facedetailerGuideSizeSpinBox">
-                          <property name="minimumSize">
-                           <size>
-                            <width>75</width>
-                            <height>24</height>
-                           </size>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                         <widget class="QSlider" name="facedetailerGuideSizeSlider">
+                          <property name="toolTip">
+                           <string>얼굴 분석 크기입니다. 표시 값 기준 기본 256 추천.</string>
                           </property>
                           <property name="minimum">
-                           <number>64</number>
+                           <number>1</number>
                           </property>
                           <property name="maximum">
-                           <number>1024</number>
-                          </property>
-                          <property name="singleStep">
-                           <number>64</number>
+                           <number>16</number>
                           </property>
                           <property name="value">
-                           <number>256</number>
+                           <number>4</number>
+                          </property>
+                          <property name="orientation">
+                           <enum>Qt::Orientation::Horizontal</enum>
                           </property>
                          </widget>
                         </item>
                        </layout>
                       </item>
                       <item>
-                       <layout class="QHBoxLayout" name="fd_maxsize_row">
+                       <layout class="QVBoxLayout" name="fd_maxsize_vbox">
+                        <property name="spacing">
+                         <number>2</number>
+                        </property>
                         <item>
-                         <widget class="QLabel" name="facedetailerMaxSizeLabel">
-                          <property name="text">
-                           <string>Max Size (최대 해상도)</string>
-                          </property>
-                         </widget>
+                         <layout class="QHBoxLayout" name="fd_maxsize_hdr">
+                          <item>
+                           <widget class="QLabel" name="facedetailerMaxSizeLabel">
+                            <property name="toolTip">
+                             <string>한 번에 고칠 수 있는 최대 크기입니다. 표시 값 기준 기본 768 추천.</string>
+                            </property>
+                            <property name="text">
+                             <string>Max Size (보정 최대 크기)</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <spacer>
+                            <property name="orientation">
+                             <enum>Qt::Orientation::Horizontal</enum>
+                            </property>
+                            <property name="sizeHint" stdset="0">
+                             <size>
+                              <width>0</width>
+                              <height>0</height>
+                             </size>
+                            </property>
+                           </spacer>
+                          </item>
+                          <item>
+                           <widget class="QLabel" name="facedetailerMaxSizeValueLabel">
+                            <property name="text">
+                             <string>768</string>
+                            </property>
+                           </widget>
+                          </item>
+                         </layout>
                         </item>
                         <item>
-                         <spacer>
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>0</width>
-                            <height>0</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item>
-                         <widget class="QSpinBox" name="facedetailerMaxSizeSpinBox">
-                          <property name="minimumSize">
-                           <size>
-                            <width>75</width>
-                            <height>24</height>
-                           </size>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                         <widget class="QSlider" name="facedetailerMaxSizeSlider">
+                          <property name="toolTip">
+                           <string>보정 최대 크기입니다. 표시 값 기준 기본 768 추천.</string>
                           </property>
                           <property name="minimum">
-                           <number>128</number>
+                           <number>2</number>
                           </property>
                           <property name="maximum">
-                           <number>2048</number>
-                          </property>
-                          <property name="singleStep">
-                           <number>64</number>
+                           <number>32</number>
                           </property>
                           <property name="value">
-                           <number>768</number>
+                           <number>12</number>
+                          </property>
+                          <property name="orientation">
+                           <enum>Qt::Orientation::Horizontal</enum>
                           </property>
                          </widget>
                         </item>
                        </layout>
                       </item>
                       <item>
-                       <layout class="QHBoxLayout" name="fd_cycle_row">
+                       <layout class="QVBoxLayout" name="fd_cycle_vbox">
+                        <property name="spacing">
+                         <number>2</number>
+                        </property>
                         <item>
-                         <widget class="QLabel" name="facedetailerCycleLabel">
-                          <property name="text">
-                           <string>Cycle (보정 반복 횟수)</string>
-                          </property>
-                         </widget>
+                         <layout class="QHBoxLayout" name="fd_cycle_hdr">
+                          <item>
+                           <widget class="QLabel" name="facedetailerCycleLabel">
+                            <property name="toolTip">
+                             <string>보정을 몇 번 반복할지 정합니다. 기본값 1 추천. 2 이상은 얼굴이 변할 수 있습니다.</string>
+                            </property>
+                            <property name="text">
+                             <string>Cycle (보정 반복 횟수)</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <spacer>
+                            <property name="orientation">
+                             <enum>Qt::Orientation::Horizontal</enum>
+                            </property>
+                            <property name="sizeHint" stdset="0">
+                             <size>
+                              <width>0</width>
+                              <height>0</height>
+                             </size>
+                            </property>
+                           </spacer>
+                          </item>
+                          <item>
+                           <widget class="QLabel" name="facedetailerCycleValueLabel">
+                            <property name="text">
+                             <string>1</string>
+                            </property>
+                           </widget>
+                          </item>
+                         </layout>
                         </item>
                         <item>
-                         <spacer>
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>0</width>
-                            <height>0</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item>
-                         <widget class="QSpinBox" name="facedetailerCycleSpinBox">
-                          <property name="minimumSize">
-                           <size>
-                            <width>75</width>
-                            <height>24</height>
-                           </size>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                         <widget class="QSlider" name="facedetailerCycleSlider">
+                          <property name="toolTip">
+                           <string>보정 반복 횟수입니다. 기본값 1 추천.</string>
                           </property>
                           <property name="minimum">
                            <number>1</number>
@@ -1244,6 +1272,9 @@
                           </property>
                           <property name="value">
                            <number>1</number>
+                          </property>
+                          <property name="orientation">
+                           <enum>Qt::Orientation::Horizontal</enum>
                           </property>
                          </widget>
                         </item>
@@ -1285,8 +1316,11 @@
                          <layout class="QHBoxLayout" name="fd_bboxthresh_hdr">
                           <item>
                            <widget class="QLabel" name="facedetailerBboxThresholdLabel">
+                            <property name="toolTip">
+                             <string>얼굴을 찾는 민감도입니다. 기본 0.50 추천. 얼굴을 못 찾으면 낮추세요.</string>
+                            </property>
                             <property name="text">
-                             <string>BBox Thresh (감지 민감도)</string>
+                             <string>BBox Thresh (얼굴 찾기 민감도)</string>
                             </property>
                            </widget>
                           </item>
@@ -1304,27 +1338,9 @@
                            </spacer>
                           </item>
                           <item>
-                           <widget class="QDoubleSpinBox" name="facedetailerBboxThresholdSpinBox">
-                            <property name="minimumSize">
-                             <size>
-                              <width>60</width>
-                              <height>22</height>
-                             </size>
-                            </property>
-                            <property name="alignment">
-                             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                            </property>
-                            <property name="minimum">
-                             <double>0.100000000000000</double>
-                            </property>
-                            <property name="maximum">
-                             <double>1.000000000000000</double>
-                            </property>
-                            <property name="singleStep">
-                             <double>0.010000000000000</double>
-                            </property>
-                            <property name="value">
-                             <double>0.500000000000000</double>
+                           <widget class="QLabel" name="facedetailerBboxThresholdValueLabel">
+                            <property name="text">
+                             <string>0.50</string>
                             </property>
                            </widget>
                           </item>
@@ -1332,6 +1348,9 @@
                         </item>
                         <item>
                          <widget class="QSlider" name="facedetailerBboxThresholdSlider">
+                          <property name="toolTip">
+                           <string>얼굴 찾기 민감도입니다. 기본 0.50 추천.</string>
+                          </property>
                           <property name="minimum">
                            <number>10</number>
                           </property>
@@ -1357,8 +1376,11 @@
                          <layout class="QHBoxLayout" name="fd_bboxdilate_hdr">
                           <item>
                            <widget class="QLabel" name="facedetailerBboxDilationLabel">
+                            <property name="toolTip">
+                             <string>찾은 얼굴 상자(박스)를 얼마나 넓힐지 정합니다. 기본값 10 추천.</string>
+                            </property>
                             <property name="text">
-                             <string>BBox Dilate (박스 확장)</string>
+                             <string>BBox Dilate (얼굴 박스 넓히기)</string>
                             </property>
                            </widget>
                           </item>
@@ -1376,24 +1398,9 @@
                            </spacer>
                           </item>
                           <item>
-                           <widget class="QSpinBox" name="facedetailerBboxDilationSpinBox">
-                            <property name="minimumSize">
-                             <size>
-                              <width>60</width>
-                              <height>22</height>
-                             </size>
-                            </property>
-                            <property name="alignment">
-                             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                            </property>
-                            <property name="minimum">
-                             <number>-20</number>
-                            </property>
-                            <property name="maximum">
-                             <number>100</number>
-                            </property>
-                            <property name="value">
-                             <number>10</number>
+                           <widget class="QLabel" name="facedetailerBboxDilationValueLabel">
+                            <property name="text">
+                             <string>10</string>
                             </property>
                            </widget>
                           </item>
@@ -1401,6 +1408,9 @@
                         </item>
                         <item>
                          <widget class="QSlider" name="facedetailerBboxDilationSlider">
+                          <property name="toolTip">
+                           <string>얼굴 박스 넓히기입니다. 기본값 10 추천.</string>
+                          </property>
                           <property name="minimum">
                            <number>-20</number>
                           </property>
@@ -1426,8 +1436,11 @@
                          <layout class="QHBoxLayout" name="fd_cropfactor_hdr">
                           <item>
                            <widget class="QLabel" name="facedetailerBboxCropFactorLabel">
+                            <property name="toolTip">
+                             <string>얼굴 주변을 얼마나 함께 볼지 정합니다. 기본 1.50 추천.</string>
+                            </property>
                             <property name="text">
-                             <string>Crop Factor (크롭 여백)</string>
+                             <string>Crop Factor (얼굴 주변 같이 보기)</string>
                             </property>
                            </widget>
                           </item>
@@ -1445,27 +1458,9 @@
                            </spacer>
                           </item>
                           <item>
-                           <widget class="QDoubleSpinBox" name="facedetailerBboxCropFactorSpinBox">
-                            <property name="minimumSize">
-                             <size>
-                              <width>60</width>
-                              <height>22</height>
-                             </size>
-                            </property>
-                            <property name="alignment">
-                             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                            </property>
-                            <property name="minimum">
-                             <double>1.000000000000000</double>
-                            </property>
-                            <property name="maximum">
-                             <double>5.000000000000000</double>
-                            </property>
-                            <property name="singleStep">
-                             <double>0.050000000000000</double>
-                            </property>
-                            <property name="value">
-                             <double>1.500000000000000</double>
+                           <widget class="QLabel" name="facedetailerBboxCropFactorValueLabel">
+                            <property name="text">
+                             <string>1.50</string>
                             </property>
                            </widget>
                           </item>
@@ -1473,6 +1468,9 @@
                         </item>
                         <item>
                          <widget class="QSlider" name="facedetailerBboxCropFactorSlider">
+                          <property name="toolTip">
+                           <string>얼굴 주변 같이 보기입니다. 기본 1.50 추천.</string>
+                          </property>
                           <property name="minimum">
                            <number>100</number>
                           </property>
@@ -1498,8 +1496,11 @@
                          <layout class="QHBoxLayout" name="fd_samthresh_hdr">
                           <item>
                            <widget class="QLabel" name="facedetailerSamThresholdLabel">
+                            <property name="toolTip">
+                             <string>얼굴 윤곽선(마스크) 정밀도입니다. 기본 0.93 추천. 지금은 SAM 미사용으로 부분만 적용됩니다.</string>
+                            </property>
                             <property name="text">
-                             <string>SAM Thresh (마스크 정밀도)</string>
+                             <string>SAM Thresh (윤곽선 정밀도)</string>
                             </property>
                            </widget>
                           </item>
@@ -1517,27 +1518,9 @@
                            </spacer>
                           </item>
                           <item>
-                           <widget class="QDoubleSpinBox" name="facedetailerSamThresholdSpinBox">
-                            <property name="minimumSize">
-                             <size>
-                              <width>60</width>
-                              <height>22</height>
-                             </size>
-                            </property>
-                            <property name="alignment">
-                             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                            </property>
-                            <property name="minimum">
-                             <double>0.100000000000000</double>
-                            </property>
-                            <property name="maximum">
-                             <double>1.000000000000000</double>
-                            </property>
-                            <property name="singleStep">
-                             <double>0.010000000000000</double>
-                            </property>
-                            <property name="value">
-                             <double>0.930000000000000</double>
+                           <widget class="QLabel" name="facedetailerSamThresholdValueLabel">
+                            <property name="text">
+                             <string>0.93</string>
                             </property>
                            </widget>
                           </item>
@@ -1545,6 +1528,9 @@
                         </item>
                         <item>
                          <widget class="QSlider" name="facedetailerSamThresholdSlider">
+                          <property name="toolTip">
+                           <string>윤곽선 정밀도입니다. 기본 0.93 추천.</string>
+                          </property>
                           <property name="minimum">
                            <number>10</number>
                           </property>
@@ -1570,8 +1556,11 @@
                          <layout class="QHBoxLayout" name="fd_samdilate_hdr">
                           <item>
                            <widget class="QLabel" name="facedetailerSamDilationLabel">
+                            <property name="toolTip">
+                             <string>얼굴 윤곽선(마스크)을 넓힐지 정합니다. 기본 0 추천. SAM 미설정 시 일부만 적용됩니다.</string>
+                            </property>
                             <property name="text">
-                             <string>SAM Dilate (마스크 팽창)</string>
+                             <string>SAM Dilate (윤곽선 넓히기)</string>
                             </property>
                            </widget>
                           </item>
@@ -1589,24 +1578,9 @@
                            </spacer>
                           </item>
                           <item>
-                           <widget class="QSpinBox" name="facedetailerSamDilationSpinBox">
-                            <property name="minimumSize">
-                             <size>
-                              <width>60</width>
-                              <height>22</height>
-                             </size>
-                            </property>
-                            <property name="alignment">
-                             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                            </property>
-                            <property name="minimum">
-                             <number>0</number>
-                            </property>
-                            <property name="maximum">
-                             <number>100</number>
-                            </property>
-                            <property name="value">
-                             <number>0</number>
+                           <widget class="QLabel" name="facedetailerSamDilationValueLabel">
+                            <property name="text">
+                             <string>0</string>
                             </property>
                            </widget>
                           </item>
@@ -1614,6 +1588,9 @@
                         </item>
                         <item>
                          <widget class="QSlider" name="facedetailerSamDilationSlider">
+                          <property name="toolTip">
+                           <string>윤곽선 넓히기입니다. 기본 0 추천.</string>
+                          </property>
                           <property name="minimum">
                            <number>0</number>
                           </property>
@@ -1639,8 +1616,11 @@
                          <layout class="QHBoxLayout" name="fd_sambboxexp_hdr">
                           <item>
                            <widget class="QLabel" name="facedetailerSamBboxExpansionLabel">
+                            <property name="toolTip">
+                             <string>윤곽선(마스크) 영역을 넓힐지 정합니다. 기본 0 추천. SAM 미설정 시 일부만 적용됩니다.</string>
+                            </property>
                             <property name="text">
-                             <string>SAM BBox Exp (SAM 영역)</string>
+                             <string>SAM BBox Exp (윤곽선 영역 넓히기)</string>
                             </property>
                            </widget>
                           </item>
@@ -1658,24 +1638,9 @@
                            </spacer>
                           </item>
                           <item>
-                           <widget class="QSpinBox" name="facedetailerSamBboxExpansionSpinBox">
-                            <property name="minimumSize">
-                             <size>
-                              <width>60</width>
-                              <height>22</height>
-                             </size>
-                            </property>
-                            <property name="alignment">
-                             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                            </property>
-                            <property name="minimum">
-                             <number>0</number>
-                            </property>
-                            <property name="maximum">
-                             <number>100</number>
-                            </property>
-                            <property name="value">
-                             <number>0</number>
+                           <widget class="QLabel" name="facedetailerSamBboxExpansionValueLabel">
+                            <property name="text">
+                             <string>0</string>
                             </property>
                            </widget>
                           </item>
@@ -1683,6 +1648,9 @@
                         </item>
                         <item>
                          <widget class="QSlider" name="facedetailerSamBboxExpansionSlider">
+                          <property name="toolTip">
+                           <string>윤곽선 영역 넓히기입니다. 기본 0 추천.</string>
+                          </property>
                           <property name="minimum">
                            <number>0</number>
                           </property>
@@ -1708,8 +1676,11 @@
                          <layout class="QHBoxLayout" name="fd_maskhintthresh_hdr">
                           <item>
                            <widget class="QLabel" name="facedetailerSamMaskHintThresholdLabel">
+                            <property name="toolTip">
+                             <string>마스크 힌트를 적용할지 판정하는 민감도입니다. 기본 0.70 추천.</string>
+                            </property>
                             <property name="text">
-                             <string>Mask Hint Thresh (힌트 임계)</string>
+                             <string>Mask Hint Thresh (힌트 민감도)</string>
                             </property>
                            </widget>
                           </item>
@@ -1727,27 +1698,9 @@
                            </spacer>
                           </item>
                           <item>
-                           <widget class="QDoubleSpinBox" name="facedetailerSamMaskHintThresholdSpinBox">
-                            <property name="minimumSize">
-                             <size>
-                              <width>60</width>
-                              <height>22</height>
-                             </size>
-                            </property>
-                            <property name="alignment">
-                             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                            </property>
-                            <property name="minimum">
-                             <double>0.100000000000000</double>
-                            </property>
-                            <property name="maximum">
-                             <double>1.000000000000000</double>
-                            </property>
-                            <property name="singleStep">
-                             <double>0.010000000000000</double>
-                            </property>
-                            <property name="value">
-                             <double>0.700000000000000</double>
+                           <widget class="QLabel" name="facedetailerSamMaskHintThresholdValueLabel">
+                            <property name="text">
+                             <string>0.70</string>
                             </property>
                            </widget>
                           </item>
@@ -1755,6 +1708,9 @@
                         </item>
                         <item>
                          <widget class="QSlider" name="facedetailerSamMaskHintThresholdSlider">
+                          <property name="toolTip">
+                           <string>힌트 민감도입니다. 기본 0.70 추천.</string>
+                          </property>
                           <property name="minimum">
                            <number>10</number>
                           </property>
@@ -1775,8 +1731,11 @@
                        <layout class="QHBoxLayout" name="fd_samhint_row">
                         <item>
                          <widget class="QLabel" name="facedetailerSamDetectionHintLabel">
+                          <property name="toolTip">
+                           <string>얼굴을 잡을 기준 위치를 고릅니다. center-1이 기본이고 가장 안전합니다.</string>
+                          </property>
                           <property name="text">
-                           <string>SAM Hint (탐지 위치)</string>
+                           <string>SAM Hint (얼굴 위치 힌트)</string>
                           </property>
                          </widget>
                         </item>
@@ -1795,6 +1754,9 @@
                         </item>
                         <item>
                          <widget class="QComboBox" name="facedetailerSamDetectionHintComboBox">
+                          <property name="toolTip">
+                           <string>얼굴 위치 힌트: center-1(가운데 1점, 기본), horizontal-2/vertical-2(2점), rect-4/diamond-4(4점), mask-area/mask-points/mask-point-bbox(마스크 기준, 고급), none(힌트 없음).</string>
+                          </property>
                           <property name="minimumSize">
                            <size>
                             <width>105</width>
@@ -1809,8 +1771,11 @@
                        <layout class="QHBoxLayout" name="fd_maskhintneg_row">
                         <item>
                          <widget class="QLabel" name="facedetailerSamMaskHintUseNegativeLabel">
+                          <property name="toolTip">
+                           <string>반대 영역(마스크 바깥)도 쓸지 정합니다. False가 기본이고 가장 안전합니다.</string>
+                          </property>
                           <property name="text">
-                           <string>Mask Hint Neg (역마스크)</string>
+                           <string>Mask Hint Neg (반대영역 제외)</string>
                           </property>
                          </widget>
                         </item>
@@ -1829,6 +1794,9 @@
                         </item>
                         <item>
                          <widget class="QComboBox" name="facedetailerSamMaskHintUseNegativeComboBox">
+                          <property name="toolTip">
+                           <string>반대 영역(마스크 바깥) 사용 여부. False(기본, 안전)를 추천합니다.</string>
+                          </property>
                           <property name="minimumSize">
                            <size>
                             <width>105</width>
@@ -1879,34 +1847,22 @@
                   <number>10</number>
                  </property>
                  <item>
-                  <widget class="QPushButton" name="advancedToggleBtn">
+                  <widget class="QCheckBox" name="advancedToggleBtn">
+                   <property name="toolTip">
+                    <string>고급 설정(시드, 슬라이더, 샘플러)을 열고 닫습니다. 체크하면 펼쳐집니다.</string>
+                   </property>
                    <property name="cursor">
                     <cursorShape>PointingHandCursor</cursorShape>
                    </property>
                    <property name="text">
-                    <string>⚙️ 고급 설정 접기 / 펼치기 (시드, 슬라이더, 샘플러)  ▼</string>
+                    <string>⚙️ 고급 설정 (시드, 슬라이더, 샘플러)</string>
                    </property>
                   </widget>
                  </item>
                  <item>
                   <widget class="QWidget" name="advancedContentWidget" native="true">
-                   <layout class="QVBoxLayout" name="advancedContentLayout">
-                    <property name="spacing">
-                     <number>10</number>
-                    </property>
-                    <property name="leftMargin">
-                     <number>0</number>
-                    </property>
-                    <property name="topMargin">
-                     <number>6</number>
-                    </property>
-                    <property name="rightMargin">
-                     <number>0</number>
-                    </property>
-                    <property name="bottomMargin">
-                     <number>0</number>
-                    </property>
-                    <item>
+                   <layout class="QGridLayout" name="gridLayout">
+                    <item row="0" column="0">
                      <layout class="QHBoxLayout" name="seedRowLayout">
                       <property name="spacing">
                        <number>6</number>
@@ -1953,143 +1909,137 @@
                       </item>
                      </layout>
                     </item>
-                    <item>
-                     <layout class="QVBoxLayout" name="cfgSliderContainer">
-                      <property name="spacing">
-                       <number>2</number>
-                      </property>
+                    <item row="1" column="0">
+                     <layout class="QHBoxLayout" name="horizontalLayout">
                       <item>
-                       <layout class="QHBoxLayout" name="cfgHeaderRow">
+                       <layout class="QVBoxLayout" name="stepsSliderContainer">
+                        <property name="spacing">
+                         <number>2</number>
+                        </property>
                         <item>
-                         <widget class="QLabel" name="cfgLabelTitle">
-                          <property name="text">
-                           <string>프롬프트 충실도 (CFG)</string>
-                          </property>
-                         </widget>
+                         <layout class="QHBoxLayout" name="stepsHeaderRow">
+                          <item>
+                           <widget class="QLabel" name="stepsLabelTitle">
+                            <property name="text">
+                             <string>샘플링 스텝 (Steps)</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <spacer name="stepsSpacer">
+                            <property name="orientation">
+                             <enum>Qt::Orientation::Horizontal</enum>
+                            </property>
+                            <property name="sizeHint" stdset="0">
+                             <size>
+                              <width>0</width>
+                              <height>0</height>
+                             </size>
+                            </property>
+                           </spacer>
+                          </item>
+                          <item>
+                           <widget class="QLabel" name="stepsValueLabel">
+                            <property name="text">
+                             <string>24</string>
+                            </property>
+                           </widget>
+                          </item>
+                         </layout>
                         </item>
                         <item>
-                         <spacer name="cfgSpacer">
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>0</width>
-                            <height>0</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item>
-                         <widget class="QLabel" name="cfgValueLabel">
-                          <property name="text">
-                           <string>3.5</string>
-                          </property>
-                         </widget>
+                         <layout class="QHBoxLayout" name="stepsControlRow">
+                          <item>
+                           <widget class="QSlider" name="stepsSlider">
+                            <property name="minimum">
+                             <number>1</number>
+                            </property>
+                            <property name="maximum">
+                             <number>50</number>
+                            </property>
+                            <property name="value">
+                             <number>24</number>
+                            </property>
+                            <property name="orientation">
+                             <enum>Qt::Orientation::Horizontal</enum>
+                            </property>
+                           </widget>
+                          </item>
+                         </layout>
                         </item>
                        </layout>
                       </item>
                       <item>
-                       <layout class="QHBoxLayout" name="cfgControlRow">
-                        <item>
-                         <widget class="QSlider" name="cfgSlider">
-                          <property name="minimum">
-                           <number>10</number>
-                          </property>
-                          <property name="maximum">
-                           <number>150</number>
-                          </property>
-                          <property name="value">
-                           <number>35</number>
-                          </property>
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QDoubleSpinBox" name="cfgSpinBox">
-                          <property name="minimumSize">
-                           <size>
-                            <width>65</width>
-                            <height>24</height>
-                           </size>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                     </layout>
-                    </item>
-                    <item>
-                     <layout class="QVBoxLayout" name="stepsSliderContainer">
-                      <property name="spacing">
-                       <number>2</number>
-                      </property>
-                      <item>
-                       <layout class="QHBoxLayout" name="stepsHeaderRow">
-                        <item>
-                         <widget class="QLabel" name="stepsLabelTitle">
-                          <property name="text">
-                           <string>샘플링 스텝 (Steps)</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <spacer name="stepsSpacer">
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>0</width>
-                            <height>0</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item>
-                         <widget class="QLabel" name="stepsValueLabel">
-                          <property name="text">
-                           <string>24</string>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
+                       <spacer name="horizontalSpacer">
+                        <property name="orientation">
+                         <enum>Qt::Orientation::Horizontal</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>40</width>
+                          <height>20</height>
+                         </size>
+                        </property>
+                       </spacer>
                       </item>
                       <item>
-                       <layout class="QHBoxLayout" name="stepsControlRow">
+                       <layout class="QVBoxLayout" name="verticalLayout">
                         <item>
-                         <widget class="QSlider" name="stepsSlider">
-                          <property name="minimum">
-                           <number>1</number>
-                          </property>
-                          <property name="maximum">
-                           <number>50</number>
-                          </property>
-                          <property name="value">
-                           <number>24</number>
-                          </property>
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                         </widget>
+                         <layout class="QHBoxLayout" name="cfgHeaderRow">
+                          <item>
+                           <widget class="QLabel" name="cfgLabelTitle">
+                            <property name="text">
+                             <string>프롬프트 충실도 (CFG)</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <spacer name="cfgSpacer">
+                            <property name="orientation">
+                             <enum>Qt::Orientation::Horizontal</enum>
+                            </property>
+                            <property name="sizeHint" stdset="0">
+                             <size>
+                              <width>0</width>
+                              <height>0</height>
+                             </size>
+                            </property>
+                           </spacer>
+                          </item>
+                          <item>
+                           <widget class="QLabel" name="cfgValueLabel">
+                            <property name="text">
+                             <string>3.5</string>
+                            </property>
+                           </widget>
+                          </item>
+                         </layout>
                         </item>
                         <item>
-                         <widget class="QSpinBox" name="stepsSpinBox">
-                          <property name="minimumSize">
-                           <size>
-                            <width>65</width>
-                            <height>24</height>
-                           </size>
-                          </property>
-                         </widget>
+                         <layout class="QHBoxLayout" name="cfgControlRow">
+                          <item>
+                           <widget class="QSlider" name="cfgSlider">
+                            <property name="minimum">
+                             <number>10</number>
+                            </property>
+                            <property name="maximum">
+                             <number>150</number>
+                            </property>
+                            <property name="value">
+                             <number>35</number>
+                            </property>
+                            <property name="orientation">
+                             <enum>Qt::Orientation::Horizontal</enum>
+                            </property>
+                           </widget>
+                          </item>
+                         </layout>
                         </item>
                        </layout>
                       </item>
                      </layout>
                     </item>
-                    <item>
+                    <item row="2" column="0">
                      <layout class="QHBoxLayout" name="samplerRowLayout">
                       <property name="spacing">
                        <number>8</number>

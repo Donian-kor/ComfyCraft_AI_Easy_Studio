@@ -446,6 +446,20 @@ class ConfigManager:
         if self._config is None:
             return self.load()
         return self._config
+
+    def set_config(self, config: AppConfig) -> None:
+        """설정 객체를 안전하게 업데이트"""
+        self._config = config
+
+    @property
+    def config(self) -> AppConfig:
+        """현재 설정 반환"""
+        return self.get()
+
+    @config.setter
+    def config(self, config: AppConfig) -> None:
+        """설정 객체 설정"""
+        self.set_config(config)
     
     def update_from_legacy(self, legacy_config: Dict[str, Any]) -> AppConfig:
         """기존 설정 형식(lm_url, comfy_url 등)을 새 형식으로 마이그레이션"""
