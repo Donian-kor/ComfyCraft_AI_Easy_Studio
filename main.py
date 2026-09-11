@@ -54,9 +54,12 @@ from app.gui.theme_manager import (
     load_theme_choice,
     save_theme_choice,
 )
-from app.gui.ui_loader import load_ui
+from app.gui.ui_loader import load_dialog_ui, load_ui
 
 BASE_DIR = Path(__file__).resolve().parent
+
+SETTINGS_DIALOG_FILE = BASE_DIR / "assets" / "ui" / "settings_dialog.ui"
+HELP_DIALOG_FILE = BASE_DIR / "assets" / "ui" / "help_dialog.ui"
 
 from app import (
     SAMPLER_NAMES,
@@ -770,7 +773,7 @@ class MainController(QObject):
         label = self.find(QLabel, "lmStatusLabel")
         return bool(label and "연결 성공" in label.text())
 
-    def update_connection_label(self, which, ok):
+    def update_connection_label(self, which, ok, extra_label=None):
         """연결 상태를 라벨과 배지 버튼에 반영합니다 (속성 기반)."""
         from app.gui.split_text_button import SplitTextButton
 
@@ -780,17 +783,14 @@ class MainController(QObject):
         badge = self.find(
             QPushButton, "lmStatusBtn" if which == "lm" else "comfyStatusBtn"
         )
+        self._apply_status_label(
+            label, ok, "🟢연결 성공", "🔴연결 실패", "📡 연결 중..."
+        )
+        if extra_label is not None:
+            self._apply_status_label(
+                extra_label, ok, "🟢연결 성공", "🔴연결 실패", "📡 연결 중..."
+            )
         status = "pending" if ok is None else ("success" if ok else "error")
-
-        if label:
-            if ok is None:
-                label.setText("📡 연결 중...")
-            else:
-                label.setText("🟢연결 성공" if ok else "🔴연결 실패")
-            # 하드코딩된 색상 대신 속성 설정 (QSS에서 처리)
-            label.setProperty("status", status)
-            label.style().unpolish(label)
-            label.style().polish(label)
 
         if badge:
             if which == "comfy":
@@ -819,7 +819,20 @@ class MainController(QObject):
             self.find(QLineEdit, "comfyModelPathEdit").setText(folder)
             self.update_model_path_status(folder)
 
-    def update_model_path_status(self, path):
+    def _apply_status_label(self, label, ok: bool | None, ok_text: str, fail_text: str, pending_text: str) -> None:
+        """상태 라벨에 텍스트+속성을 한 번에 적용 (메인/다이얼로그 공용)."""
+        if label is None:
+            return
+        if ok is None:
+            label.setText(pending_text)
+        else:
+            label.setText(ok_text if ok else fail_text)
+        status = "pending" if ok is None else ("success" if ok else "error")
+        label.setProperty("status", status)
+        label.style().unpolish(label)
+        label.style().polish(label)
+
+    def update_model_path_status(self, path, label=None):
         path_obj = Path(path).expanduser()
         valid = path_obj.exists() and any(
             (path_obj / item).is_dir()
@@ -832,15 +845,16 @@ class MainController(QObject):
                 "loras",
             )
         )
-        label = self.find(QLabel, "modelPathStatusLabel")
-        if label:
-            label.setText(
-                "✓ ComfyUI 모델 폴더 확인됨" if valid else "✗ 올바른 모델 폴더가 아닙니다"
-            )
-            # 하드코딩된 색상 대신 속성 설정 (QSS에서 처리)
-            label.setProperty("status", "success" if valid else "error")
-            label.style().unpolish(label)
-            label.style().polish(label)
+        if label is None:
+            label = self.find(QLabel, "modelPathStatusLabel")
+        self._apply_status_label(
+            label,
+            valid,
+            "✓ ComfyUI 모델 폴더 확인됨",
+            "✗ 올바른 모델 폴더가 아닙니다",
+            "",
+        )
+        return valid
 
     def get_cfg_value(self) -> float:
         cfg_slider = self.find(QSlider, "cfgSlider")
@@ -1752,94 +1766,151 @@ class MainController(QObject):
             show_message_box(self.window, QMessageBox.Icon.Information, "알림", "복사할 이미지가 없습니다.")
 
     def _show_settings_dialog(self):
-        """연결 상태 배지 및 설정 버튼 클릭 시 모달 설정창 표시"""
-        dlg = QDialog(self.window)
-        dlg.setWindowTitle("서버 연결 및 모델 폴더 설정")
-        dlg.resize(480, 400)
-        dlg.setStyleSheet(self.window.styleSheet())
-        layout = QVBoxLayout(dlg)
-        layout.setSpacing(12)
+        """설정 다이얼로그(.ui 파일 기반)를 표시한다.
 
-        # ComfyUI 설정 그룹
-        comfy_group = QGroupBox("🎨 ComfyUI 설정", dlg)
-        comfy_layout = QVBoxLayout(comfy_group)
-        comfy_layout.setSpacing(8)
+        연결 버튼(comfyStatusBtn, lmStatusBtn), 사이드바 설정 버튼(settingsButton)
+        모두 이 창으로 연결된다.
+        """
+        try:
+            dlg = load_dialog_ui(SETTINGS_DIALOG_FILE, self.window)
+        except Exception as e:  # noqa: BLE001 (ui 로드 실패 시 사용자에게 알림)
+            show_message_box(
+                self.window,
+                QMessageBox.Icon.Warning,
+                "설정창 열기 실패",
+                f"설정 화면 파일을 열 수 없습니다.\n({SETTINGS_DIALOG_FILE.name}: {e})",
+            )
+            return
 
-        comfy_url_row = QHBoxLayout()
-        comfy_url_edit = QLineEdit(self.find(QLineEdit, "comfyUrlEdit").text(), comfy_group)
-        comfy_check_btn = QPushButton("연결 확인", comfy_group)
-        comfy_check_btn.clicked.connect(lambda: (
-            self.find(QLineEdit, "comfyUrlEdit").setText(comfy_url_edit.text()),
-            self.check_connection("comfy")
-        ))
-        comfy_url_row.addWidget(QLabel("서버 주소:"))
-        comfy_url_row.addWidget(comfy_url_edit)
-        comfy_url_row.addWidget(comfy_check_btn)
-        comfy_layout.addLayout(comfy_url_row)
+        def _child(widget_type, name):
+            return dlg.findChild(widget_type, name)
 
-        model_path_row = QHBoxLayout()
-        model_path_edit = QLineEdit(self.find(QLineEdit, "comfyModelPathEdit").text(), comfy_group)
-        browse_btn = QPushButton("찾아보기", comfy_group)
-        def on_browse():
-            folder = QFileDialog.getExistingDirectory(dlg, "ComfyUI 모델 폴더 선택")
-            if folder:
-                model_path_edit.setText(folder)
-                self.find(QLineEdit, "comfyModelPathEdit").setText(folder)
-                self.update_model_path_status(folder)
-        browse_btn.clicked.connect(on_browse)
-        model_path_row.addWidget(QLabel("모델 폴더:"))
-        model_path_row.addWidget(model_path_edit)
-        model_path_row.addWidget(browse_btn)
-        comfy_layout.addLayout(model_path_row)
-        layout.addWidget(comfy_group)
+        comfy_url_edit = _child(QLineEdit, "dlgComfyUrlEdit")
+        model_path_edit = _child(QLineEdit, "dlgModelPathEdit")
+        lm_url_edit = _child(QLineEdit, "dlgLmUrlEdit")
+        comfy_status_dlg_label = _child(QLabel, "dlgComfyStatusLabel")
+        model_path_dlg_label = _child(QLabel, "dlgModelPathStatusLabel")
+        lm_status_dlg_label = _child(QLabel, "dlgLmStatusLabel")
 
-        # LM Studio 설정 그룹
-        lm_group = QGroupBox("💬 LM Studio 설정", dlg)
-        lm_layout = QVBoxLayout(lm_group)
-        lm_layout.setSpacing(8)
+        # 다이얼로그에 현재 메인 화면 값 채우기
+        if comfy_url_edit is not None:
+            comfy_url_edit.setText(self.find(QLineEdit, "comfyUrlEdit").text())
+        if model_path_edit is not None:
+            model_path_edit.setText(self.find(QLineEdit, "comfyModelPathEdit").text())
+            # 모델 폴더 경로 체크 라벨을 설정창 안에서 바로 보여준다
+            self.update_model_path_status(model_path_edit.text(), model_path_dlg_label)
+        if lm_url_edit is not None:
+            lm_url_edit.setText(self.find(QLineEdit, "lmUrlEdit").text())
 
-        lm_url_row = QHBoxLayout()
-        lm_url_edit = QLineEdit(self.find(QLineEdit, "lmUrlEdit").text(), lm_group)
-        lm_check_btn = QPushButton("연결 확인", lm_group)
-        lm_check_btn.clicked.connect(lambda: (
-            self.find(QLineEdit, "lmUrlEdit").setText(lm_url_edit.text()),
-            self.check_connection("lm")
-        ))
-        lm_url_row.addWidget(QLabel("서버 주소:"))
-        lm_url_row.addWidget(lm_url_edit)
-        lm_url_row.addWidget(lm_check_btn)
-        lm_layout.addLayout(lm_url_row)
-        layout.addWidget(lm_group)
+        # 연결 확인 버튼 (설정창 라벨에도 결과를 함께 표시)
+        comfy_check_btn = _child(QPushButton, "dlgComfyCheckBtn")
+        if comfy_check_btn is not None and comfy_url_edit is not None:
+            def on_comfy_check():
+                self.find(QLineEdit, "comfyUrlEdit").setText(comfy_url_edit.text())
+                self.check_connection("comfy")
+                # 비동기 결과는 update_connection_label에서 배지/메인 라벨에 반영되고,
+                # 설정창 라벨은 "확인 중"으로 먼저 표시해 준다
+                self._apply_status_label(
+                    comfy_status_dlg_label, None, "", "", "📡 연결 중..."
+                )
+            comfy_check_btn.clicked.connect(on_comfy_check)
 
-        # 하단 닫기/저장 버튼
-        btn_box = QHBoxLayout()
-        save_btn = QPushButton("💾 설정 저장 후 닫기", dlg)
-        def on_save_close():
-            self.find(QLineEdit, "comfyUrlEdit").setText(comfy_url_edit.text())
-            self.find(QLineEdit, "comfyModelPathEdit").setText(model_path_edit.text())
-            self.find(QLineEdit, "lmUrlEdit").setText(lm_url_edit.text())
-            self.save_config()
-            dlg.accept()
-        save_btn.clicked.connect(on_save_close)
-        btn_box.addStretch()
-        btn_box.addWidget(save_btn)
-        layout.addLayout(btn_box)
+        lm_check_btn = _child(QPushButton, "dlgLmCheckBtn")
+        if lm_check_btn is not None and lm_url_edit is not None:
+            def on_lm_check():
+                self.find(QLineEdit, "lmUrlEdit").setText(lm_url_edit.text())
+                self.check_connection("lm")
+                self._apply_status_label(
+                    lm_status_dlg_label, None, "", "", "📡 연결 중..."
+                )
+            lm_check_btn.clicked.connect(on_lm_check)
+
+        # 찾아보기 버튼
+        browse_btn = _child(QPushButton, "dlgBrowseBtn")
+        if browse_btn is not None and model_path_edit is not None:
+            def on_browse():
+                folder = QFileDialog.getExistingDirectory(dlg, "ComfyUI 모델 폴더 선택")
+                if folder:
+                    model_path_edit.setText(folder)
+                    self.find(QLineEdit, "comfyModelPathEdit").setText(folder)
+                    self.update_model_path_status(folder, model_path_dlg_label)
+            browse_btn.clicked.connect(on_browse)
+
+        # 설정 불러오기 버튼 -> 기존 load_config() 재사용
+        load_btn = _child(QPushButton, "dlgLoadConfigBtn")
+        if load_btn is not None:
+            def on_load():
+                self.load_config()
+                # 불러온 값으로 다이얼로그 입력칸도 갱신
+                if comfy_url_edit is not None:
+                    comfy_url_edit.setText(self.find(QLineEdit, "comfyUrlEdit").text())
+                if model_path_edit is not None:
+                    model_path_edit.setText(
+                        self.find(QLineEdit, "comfyModelPathEdit").text()
+                    )
+                    self.update_model_path_status(
+                        model_path_edit.text(), model_path_dlg_label
+                    )
+                if lm_url_edit is not None:
+                    lm_url_edit.setText(self.find(QLineEdit, "lmUrlEdit").text())
+            load_btn.clicked.connect(on_load)
+
+        # 초기화 버튼 -> 프로그램 기본값으로 다이얼로그 입력칸 되돌리기
+        reset_btn = _child(QPushButton, "dlgResetDefaultsBtn")
+        if reset_btn is not None:
+            def on_reset():
+                from app.core.config_manager import ComfyUIConfig, LMStudioConfig
+                if comfy_url_edit is not None:
+                    comfy_url_edit.setText(ComfyUIConfig.url)
+                if lm_url_edit is not None:
+                    lm_url_edit.setText(LMStudioConfig.url)
+                if model_path_edit is not None:
+                    model_path_edit.setText("")
+                    self.update_model_path_status("", model_path_dlg_label)
+                self.append_log("설정 다이얼로그 값을 기본값으로 되돌렸습니다.")
+            reset_btn.clicked.connect(on_reset)
+
+        # 저장 후 닫기 버튼
+        save_btn = _child(QPushButton, "dlgSaveCloseBtn")
+        if save_btn is not None:
+            def on_save_close():
+                if comfy_url_edit is not None:
+                    self.find(QLineEdit, "comfyUrlEdit").setText(
+                        comfy_url_edit.text()
+                    )
+                if model_path_edit is not None:
+                    self.find(QLineEdit, "comfyModelPathEdit").setText(
+                        model_path_edit.text()
+                    )
+                    self.update_model_path_status(
+                        model_path_edit.text(), model_path_dlg_label
+                    )
+                if lm_url_edit is not None:
+                    self.find(QLineEdit, "lmUrlEdit").setText(lm_url_edit.text())
+                self.save_config()
+                dlg.accept()
+            save_btn.clicked.connect(on_save_close)
 
         dlg.exec()
 
     def _show_help_dialog(self):
-        """도움말 다이얼로그 표시"""
-        dlg = QDialog(self.window)
-        dlg.setWindowTitle("📖 ComfyCraft AI Easy Studio 도움말")
-        dlg.resize(750, 580)
-        dlg.setStyleSheet(self.window.styleSheet())
-        layout = QVBoxLayout(dlg)
+        """도움말 다이얼로그(.ui 파일 기반)를 표시한다."""
+        try:
+            dlg = load_dialog_ui(HELP_DIALOG_FILE, self.window)
+        except Exception as e:  # noqa: BLE001 (ui 로드 실패 시 알림)
+            show_message_box(
+                self.window,
+                QMessageBox.Icon.Warning,
+                "도움말 열기 실패",
+                f"도움말 화면 파일을 열 수 없습니다.\n({HELP_DIALOG_FILE.name}: {e})",
+            )
+            return
 
-        browser = QTextBrowser(dlg)
-        browser.setOpenExternalLinks(True)
-
-        readme_path = BASE_DIR / "assets" / "help" / "README.md"
-        style_inject = """
+        browser = dlg.findChild(QTextBrowser, "dlgHelpBrowser")
+        if browser is not None:
+            browser.setOpenExternalLinks(True)
+            readme_path = BASE_DIR / "assets" / "help" / "README.md"
+            style_inject = """
         <style>
             h1 { font-size: 24px; font-weight: bold; margin-bottom: 14px; }
             h2 { font-size: 20px; font-weight: bold; margin-top: 20px; margin-bottom: 10px; color: #d0bcff; }
@@ -1851,18 +1922,17 @@ class MainController(QObject):
             pre { padding: 10px; }
         </style>
         """
-        html_content = (
-            style_inject
-            + "<h2 style='color:#d0bcff; font-size:24px;'>📖 ComfyCraft AI Easy Studio 도움말</h2><hr>"
-            + self._render_markdown_file(readme_path)
-        )
+            html_content = (
+                style_inject
+                + "<h2 style='color:#d0bcff; font-size:24px;'>📖 ComfyCraft AI Easy Studio 도움말</h2><hr>"
+                + self._render_markdown_file(readme_path)
+            )
+            browser.setHtml(html_content)
 
-        browser.setHtml(html_content)
-        layout.addWidget(browser)
+        close_btn = dlg.findChild(QPushButton, "dlgHelpCloseBtn")
+        if close_btn is not None:
+            close_btn.clicked.connect(dlg.accept)
 
-        close_btn = QPushButton("닫기", dlg)
-        close_btn.clicked.connect(dlg.accept)
-        layout.addWidget(close_btn)
         dlg.exec()
 
     def _show_facedetailer_guide(self):

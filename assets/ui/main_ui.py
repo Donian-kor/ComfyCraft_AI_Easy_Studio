@@ -28,14 +28,95 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1360, 993)
-        MainWindow.setMinimumSize(QSize(1100, 760))
+        MainWindow.resize(1624, 1024)
+        MainWindow.setMinimumSize(QSize(1100, 160))
         self.centralWidget = QWidget(MainWindow)
         self.centralWidget.setObjectName(u"centralWidget")
-        self.mainVerticalLayout = QVBoxLayout(self.centralWidget)
-        self.mainVerticalLayout.setSpacing(8)
-        self.mainVerticalLayout.setObjectName(u"mainVerticalLayout")
-        self.mainVerticalLayout.setContentsMargins(16, 10, 16, 10)
+        self.hiddenSettingsContainer = QFrame(self.centralWidget)
+        self.hiddenSettingsContainer.setObjectName(u"hiddenSettingsContainer")
+        self.hiddenSettingsContainer.setGeometry(QRect(0, 0, 100, 30))
+        self.hiddenSettingsContainer.setVisible(False)
+        self.settingsLayout = QVBoxLayout(self.hiddenSettingsContainer)
+        self.settingsLayout.setSpacing(6)
+        self.settingsLayout.setObjectName(u"settingsLayout")
+        self.comfyUrlEdit = QLineEdit(self.hiddenSettingsContainer)
+        self.comfyUrlEdit.setObjectName(u"comfyUrlEdit")
+
+        self.settingsLayout.addWidget(self.comfyUrlEdit)
+
+        self.comfyCheckButton = QPushButton(self.hiddenSettingsContainer)
+        self.comfyCheckButton.setObjectName(u"comfyCheckButton")
+
+        self.settingsLayout.addWidget(self.comfyCheckButton)
+
+        self.comfyStatusLabel = QLabel(self.hiddenSettingsContainer)
+        self.comfyStatusLabel.setObjectName(u"comfyStatusLabel")
+
+        self.settingsLayout.addWidget(self.comfyStatusLabel)
+
+        self.comfyModelPathEdit = QLineEdit(self.hiddenSettingsContainer)
+        self.comfyModelPathEdit.setObjectName(u"comfyModelPathEdit")
+
+        self.settingsLayout.addWidget(self.comfyModelPathEdit)
+
+        self.browseModelFolderButton = QPushButton(self.hiddenSettingsContainer)
+        self.browseModelFolderButton.setObjectName(u"browseModelFolderButton")
+
+        self.settingsLayout.addWidget(self.browseModelFolderButton)
+
+        self.modelPathStatusLabel = QLabel(self.hiddenSettingsContainer)
+        self.modelPathStatusLabel.setObjectName(u"modelPathStatusLabel")
+
+        self.settingsLayout.addWidget(self.modelPathStatusLabel)
+
+        self.lmUrlEdit = QLineEdit(self.hiddenSettingsContainer)
+        self.lmUrlEdit.setObjectName(u"lmUrlEdit")
+
+        self.settingsLayout.addWidget(self.lmUrlEdit)
+
+        self.lmCheckButton = QPushButton(self.hiddenSettingsContainer)
+        self.lmCheckButton.setObjectName(u"lmCheckButton")
+
+        self.settingsLayout.addWidget(self.lmCheckButton)
+
+        self.lmStatusLabel = QLabel(self.hiddenSettingsContainer)
+        self.lmStatusLabel.setObjectName(u"lmStatusLabel")
+
+        self.settingsLayout.addWidget(self.lmStatusLabel)
+
+        self.loadConfigButton = QPushButton(self.hiddenSettingsContainer)
+        self.loadConfigButton.setObjectName(u"loadConfigButton")
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.loadConfigButton.sizePolicy().hasHeightForWidth())
+        self.loadConfigButton.setSizePolicy(sizePolicy)
+        self.loadConfigButton.setMinimumSize(QSize(111, 111))
+
+        self.settingsLayout.addWidget(self.loadConfigButton)
+
+        self.saveConfigButton = QPushButton(self.hiddenSettingsContainer)
+        self.saveConfigButton.setObjectName(u"saveConfigButton")
+
+        self.settingsLayout.addWidget(self.saveConfigButton)
+
+        self.restoreDefaultsButton = QPushButton(self.hiddenSettingsContainer)
+        self.restoreDefaultsButton.setObjectName(u"restoreDefaultsButton")
+
+        self.settingsLayout.addWidget(self.restoreDefaultsButton)
+
+        self.exitButton = QPushButton(self.hiddenSettingsContainer)
+        self.exitButton.setObjectName(u"exitButton")
+
+        self.settingsLayout.addWidget(self.exitButton)
+
+        self.helpBrowser = QTextBrowser(self.hiddenSettingsContainer)
+        self.helpBrowser.setObjectName(u"helpBrowser")
+
+        self.settingsLayout.addWidget(self.helpBrowser)
+
+        self.gridLayout_3 = QGridLayout(self.centralWidget)
+        self.gridLayout_3.setObjectName(u"gridLayout_3")
         self.headerFrame = QFrame(self.centralWidget)
         self.headerFrame.setObjectName(u"headerFrame")
         self.headerFrame.setMinimumSize(QSize(0, 50))
@@ -95,7 +176,7 @@ class Ui_MainWindow(object):
         self.headerLayout.addWidget(self.settingsButton)
 
 
-        self.mainVerticalLayout.addWidget(self.headerFrame)
+        self.gridLayout_3.addWidget(self.headerFrame, 0, 0, 1, 1)
 
         self.studioContainer = QFrame(self.centralWidget)
         self.studioContainer.setObjectName(u"studioContainer")
@@ -111,7 +192,7 @@ class Ui_MainWindow(object):
         self.leftScrollArea.setWidgetResizable(True)
         self.leftContentWidget = QWidget()
         self.leftContentWidget.setObjectName(u"leftContentWidget")
-        self.leftContentWidget.setGeometry(QRect(0, -687, 647, 1414))
+        self.leftContentWidget.setGeometry(QRect(0, 0, 783, 1416))
         self.leftContentLayout = QVBoxLayout(self.leftContentWidget)
         self.leftContentLayout.setSpacing(14)
         self.leftContentLayout.setObjectName(u"leftContentLayout")
@@ -1235,11 +1316,11 @@ class Ui_MainWindow(object):
 
         self.previewLabel = QLabel(self.viewerCard)
         self.previewLabel.setObjectName(u"previewLabel")
-        sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.previewLabel.sizePolicy().hasHeightForWidth())
-        self.previewLabel.setSizePolicy(sizePolicy)
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.previewLabel.sizePolicy().hasHeightForWidth())
+        self.previewLabel.setSizePolicy(sizePolicy1)
         self.previewLabel.setMinimumSize(QSize(380, 380))
         self.previewLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -1302,6 +1383,12 @@ class Ui_MainWindow(object):
         self.openOutputFolderButton.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
         self.viewerActionLayout.addWidget(self.openOutputFolderButton)
+
+        self.toggleLogButton = QPushButton(self.viewerCard)
+        self.toggleLogButton.setObjectName(u"toggleLogButton")
+        self.toggleLogButton.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+
+        self.viewerActionLayout.addWidget(self.toggleLogButton)
 
 
         self.viewerLayout.addLayout(self.viewerActionLayout)
@@ -1382,7 +1469,7 @@ class Ui_MainWindow(object):
         self.studioLayout.addWidget(self.rightContainer)
 
 
-        self.mainVerticalLayout.addWidget(self.studioContainer)
+        self.gridLayout_3.addWidget(self.studioContainer, 1, 0, 1, 1)
 
         self.logSectionFrame = QFrame(self.centralWidget)
         self.logSectionFrame.setObjectName(u"logSectionFrame")
@@ -1391,123 +1478,36 @@ class Ui_MainWindow(object):
         self.logSectionLayout.setSpacing(4)
         self.logSectionLayout.setObjectName(u"logSectionLayout")
         self.logSectionLayout.setContentsMargins(0, 0, 0, 0)
-        self.logToggleBar = QHBoxLayout()
-        self.logToggleBar.setObjectName(u"logToggleBar")
-        self.toggleLogButton = QPushButton(self.logSectionFrame)
-        self.toggleLogButton.setObjectName(u"toggleLogButton")
-        self.toggleLogButton.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
-        self.logToggleBar.addWidget(self.toggleLogButton)
+        self.gridLayout_3.addWidget(self.logSectionFrame, 2, 0, 1, 1)
 
-        self.logToggleSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.logGroupBox = QGroupBox(self.centralWidget)
+        self.logGroupBox.setObjectName(u"logGroupBox")
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.logGroupBox.sizePolicy().hasHeightForWidth())
+        self.logGroupBox.setSizePolicy(sizePolicy2)
+        self.logGroupBox.setMaximumSize(QSize(16777215, 500))
+        self.gridLayout_2 = QGridLayout(self.logGroupBox)
+        self.gridLayout_2.setObjectName(u"gridLayout_2")
+        self.logTextEdit = QPlainTextEdit(self.logGroupBox)
+        self.logTextEdit.setObjectName(u"logTextEdit")
+        sizePolicy1.setHeightForWidth(self.logTextEdit.sizePolicy().hasHeightForWidth())
+        self.logTextEdit.setSizePolicy(sizePolicy1)
+        self.logTextEdit.setMaximumSize(QSize(16777215, 11111111))
+        self.logTextEdit.setReadOnly(True)
 
-        self.logToggleBar.addItem(self.logToggleSpacer)
+        self.gridLayout_2.addWidget(self.logTextEdit, 1, 0, 1, 1)
 
-        self.resetButton = QPushButton(self.logSectionFrame)
+        self.resetButton = QPushButton(self.logGroupBox)
         self.resetButton.setObjectName(u"resetButton")
         self.resetButton.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
-        self.logToggleBar.addWidget(self.resetButton)
+        self.gridLayout_2.addWidget(self.resetButton, 0, 0, 1, 1)
 
 
-        self.logSectionLayout.addLayout(self.logToggleBar)
-
-        self.logGroupBox = QGroupBox(self.logSectionFrame)
-        self.logGroupBox.setObjectName(u"logGroupBox")
-        self.logGroupLayout = QVBoxLayout(self.logGroupBox)
-        self.logGroupLayout.setObjectName(u"logGroupLayout")
-        self.logGroupLayout.setContentsMargins(6, 6, 6, 6)
-        self.logTextEdit = QPlainTextEdit(self.logGroupBox)
-        self.logTextEdit.setObjectName(u"logTextEdit")
-        self.logTextEdit.setMaximumSize(QSize(16777215, 120))
-        self.logTextEdit.setReadOnly(True)
-
-        self.logGroupLayout.addWidget(self.logTextEdit)
-
-
-        self.logSectionLayout.addWidget(self.logGroupBox)
-
-
-        self.mainVerticalLayout.addWidget(self.logSectionFrame)
-
-        self.hiddenSettingsContainer = QFrame(self.centralWidget)
-        self.hiddenSettingsContainer.setObjectName(u"hiddenSettingsContainer")
-        self.hiddenSettingsContainer.setVisible(False)
-        self.settingsLayout = QVBoxLayout(self.hiddenSettingsContainer)
-        self.settingsLayout.setSpacing(6)
-        self.settingsLayout.setObjectName(u"settingsLayout")
-        self.comfyUrlEdit = QLineEdit(self.hiddenSettingsContainer)
-        self.comfyUrlEdit.setObjectName(u"comfyUrlEdit")
-
-        self.settingsLayout.addWidget(self.comfyUrlEdit)
-
-        self.comfyCheckButton = QPushButton(self.hiddenSettingsContainer)
-        self.comfyCheckButton.setObjectName(u"comfyCheckButton")
-
-        self.settingsLayout.addWidget(self.comfyCheckButton)
-
-        self.comfyStatusLabel = QLabel(self.hiddenSettingsContainer)
-        self.comfyStatusLabel.setObjectName(u"comfyStatusLabel")
-
-        self.settingsLayout.addWidget(self.comfyStatusLabel)
-
-        self.comfyModelPathEdit = QLineEdit(self.hiddenSettingsContainer)
-        self.comfyModelPathEdit.setObjectName(u"comfyModelPathEdit")
-
-        self.settingsLayout.addWidget(self.comfyModelPathEdit)
-
-        self.browseModelFolderButton = QPushButton(self.hiddenSettingsContainer)
-        self.browseModelFolderButton.setObjectName(u"browseModelFolderButton")
-
-        self.settingsLayout.addWidget(self.browseModelFolderButton)
-
-        self.modelPathStatusLabel = QLabel(self.hiddenSettingsContainer)
-        self.modelPathStatusLabel.setObjectName(u"modelPathStatusLabel")
-
-        self.settingsLayout.addWidget(self.modelPathStatusLabel)
-
-        self.lmUrlEdit = QLineEdit(self.hiddenSettingsContainer)
-        self.lmUrlEdit.setObjectName(u"lmUrlEdit")
-
-        self.settingsLayout.addWidget(self.lmUrlEdit)
-
-        self.lmCheckButton = QPushButton(self.hiddenSettingsContainer)
-        self.lmCheckButton.setObjectName(u"lmCheckButton")
-
-        self.settingsLayout.addWidget(self.lmCheckButton)
-
-        self.lmStatusLabel = QLabel(self.hiddenSettingsContainer)
-        self.lmStatusLabel.setObjectName(u"lmStatusLabel")
-
-        self.settingsLayout.addWidget(self.lmStatusLabel)
-
-        self.loadConfigButton = QPushButton(self.hiddenSettingsContainer)
-        self.loadConfigButton.setObjectName(u"loadConfigButton")
-
-        self.settingsLayout.addWidget(self.loadConfigButton)
-
-        self.saveConfigButton = QPushButton(self.hiddenSettingsContainer)
-        self.saveConfigButton.setObjectName(u"saveConfigButton")
-
-        self.settingsLayout.addWidget(self.saveConfigButton)
-
-        self.restoreDefaultsButton = QPushButton(self.hiddenSettingsContainer)
-        self.restoreDefaultsButton.setObjectName(u"restoreDefaultsButton")
-
-        self.settingsLayout.addWidget(self.restoreDefaultsButton)
-
-        self.exitButton = QPushButton(self.hiddenSettingsContainer)
-        self.exitButton.setObjectName(u"exitButton")
-
-        self.settingsLayout.addWidget(self.exitButton)
-
-        self.helpBrowser = QTextBrowser(self.hiddenSettingsContainer)
-        self.helpBrowser.setObjectName(u"helpBrowser")
-
-        self.settingsLayout.addWidget(self.helpBrowser)
-
-
-        self.mainVerticalLayout.addWidget(self.hiddenSettingsContainer)
+        self.gridLayout_3.addWidget(self.logGroupBox, 3, 0, 1, 1)
 
         MainWindow.setCentralWidget(self.centralWidget)
 
@@ -1727,14 +1727,14 @@ class Ui_MainWindow(object):
         self.saveImageButton.setText(QCoreApplication.translate("MainWindow", u"\U0001f4be \U0000b2e4\U0000b978 \U0000c774\U0000b984\U0000c73c\U0000b85c \U0000c800\U0000c7a5", None))
         self.copyImageButton.setText(QCoreApplication.translate("MainWindow", u"\U0001f4cb \U0000d074\U0000b9bd\U0000bcf4\U0000b4dc \U0000bcf5\U0000c0ac", None))
         self.openOutputFolderButton.setText(QCoreApplication.translate("MainWindow", u"\U0001f4c1 \U0000d3f4\U0000b354 \U0000c5f4\U0000ae30", None))
+        self.toggleLogButton.setText(QCoreApplication.translate("MainWindow", u"\U0001f4dc \U0000cf58\U0000c194 \U0000b85c\U0000adf8 \U0000bcf4\U0000ae30 / \U0000c811\U0000ae30  \U000025bc", None))
         self.generateButton.setText(QCoreApplication.translate("MainWindow", u"\U0001f680 \U0000c774\U0000bbf8\U0000c9c0 \U0000c0dd\U0000c131\U0000d558\U0000ae30 (ComfyUI \U0000c804\U0000c1a1)", None))
         self.historyTitle.setText(QCoreApplication.translate("MainWindow", u"\ucd5c\uadfc \uc0dd\uc131 \uae30\ub85d (\ud074\ub9ad \uc2dc \uc774\ubbf8\uc9c0 & \uc124\uc815 \ubcf5\uc6d0)", None))
         self.thumbBtn_0.setText(QCoreApplication.translate("MainWindow", u"\ub300\uae30 \uc911", None))
         self.thumbBtn_1.setText(QCoreApplication.translate("MainWindow", u"\ub300\uae30 \uc911", None))
         self.thumbBtn_2.setText(QCoreApplication.translate("MainWindow", u"\ub300\uae30 \uc911", None))
         self.thumbBtn_3.setText(QCoreApplication.translate("MainWindow", u"\ub300\uae30 \uc911", None))
-        self.toggleLogButton.setText(QCoreApplication.translate("MainWindow", u"\U0001f4dc \U0000cf58\U0000c194 \U0000b85c\U0000adf8 \U0000bcf4\U0000ae30 / \U0000c811\U0000ae30  \U000025bc", None))
-        self.resetButton.setText(QCoreApplication.translate("MainWindow", u"\ub85c\uadf8 \uc9c0\uc6b0\uae30", None))
         self.logGroupBox.setTitle("")
+        self.resetButton.setText(QCoreApplication.translate("MainWindow", u"\ub85c\uadf8 \uc9c0\uc6b0\uae30", None))
     # retranslateUi
 

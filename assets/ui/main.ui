@@ -6,37 +6,22 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1360</width>
-    <height>993</height>
+    <width>1624</width>
+    <height>1024</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>1100</width>
-    <height>760</height>
+    <height>160</height>
    </size>
   </property>
   <property name="windowTitle">
    <string>ComfyCraft AI Easy Studio</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="mainVerticalLayout">
-    <property name="spacing">
-     <number>8</number>
-    </property>
-    <property name="leftMargin">
-     <number>16</number>
-    </property>
-    <property name="topMargin">
-     <number>10</number>
-    </property>
-    <property name="rightMargin">
-     <number>16</number>
-    </property>
-    <property name="bottomMargin">
-     <number>10</number>
-    </property>
-    <item>
+   <layout class="QGridLayout" name="gridLayout_3">
+    <item row="0" column="0">
      <widget class="QFrame" name="headerFrame">
       <property name="minimumSize">
        <size>
@@ -162,7 +147,7 @@
       </layout>
      </widget>
     </item>
-    <item>
+    <item row="1" column="0">
      <widget class="QFrame" name="studioContainer">
       <property name="frameShape">
        <enum>QFrame::Shape::NoFrame</enum>
@@ -198,9 +183,9 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>-687</y>
-            <width>647</width>
-            <height>1414</height>
+            <y>0</y>
+            <width>783</width>
+            <height>1416</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="leftContentLayout">
@@ -727,56 +712,55 @@
                  <property name="bottomMargin">
                   <number>10</number>
                  </property>
-                                  <item>
-                   <layout class="QHBoxLayout" name="facedetailerHeadLayout">
-                     <property name="spacing">
-                       <number>8</number>
+                 <item>
+                  <layout class="QHBoxLayout" name="facedetailerHeadLayout">
+                   <property name="spacing">
+                    <number>8</number>
+                   </property>
+                   <item>
+                    <widget class="QCheckBox" name="facedetailerCheckBox">
+                     <property name="cursor">
+                      <cursorShape>PointingHandCursor</cursorShape>
                      </property>
-                     <item>
-                       <widget class="QCheckBox" name="facedetailerCheckBox">
-                         <property name="toolTip">
-                           <string>얼굴 보정(FaceDetailer)을 켜고 끕니다. 얼굴이 뭉개질 때 켜면 얼굴만 다시 그려줍니다. 처음에는 꺼 두는 것을 추천합니다.</string>
-                         </property>
-                         <property name="cursor">
-                           <cursorShape>PointingHandCursor</cursorShape>
-                         </property>
-                         <property name="text">
-                           <string>👤 FaceDetailer (얼굴 보정 켜기)</string>
-                         </property>
-                       </widget>
-                     </item>
-                     <item>
-                       <spacer>
-                         <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                         </property>
-                         <property name="sizeHint" stdset="0">
-                           <size>
-                             <width>0</width>
-                             <height>0</height>
-                           </size>
-                         </property>
-                       </spacer>
-                     </item>
-                     <item>
-                       <widget class="QPushButton" name="facedetailerHelpBtn">
-                         <property name="toolTip">
-                           <string>눌러서 얼굴 보정 옵션을 초보자도 쉽게 설명한 전체 가이드를 봅니다.</string>
-                         </property>
-                         <property name="cursor">
-                           <cursorShape>PointingHandCursor</cursorShape>
-                         </property>
-                         <property name="autoDefault">
-                           <bool>false</bool>
-                         </property>
-                         <property name="text">
-                           <string>❓ 도움말</string>
-                         </property>
-                       </widget>
-                     </item>
-                   </layout>
+                     <property name="toolTip">
+                      <string>얼굴 보정(FaceDetailer)을 켜고 끕니다. 얼굴이 뭉개질 때 켜면 얼굴만 다시 그려줍니다. 처음에는 꺼 두는 것을 추천합니다.</string>
+                     </property>
+                     <property name="text">
+                      <string>👤 FaceDetailer (얼굴 보정 켜기)</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer>
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="facedetailerHelpBtn">
+                     <property name="cursor">
+                      <cursorShape>PointingHandCursor</cursorShape>
+                     </property>
+                     <property name="toolTip">
+                      <string>눌러서 얼굴 보정 옵션을 초보자도 쉽게 설명한 전체 가이드를 봅니다.</string>
+                     </property>
+                     <property name="text">
+                      <string>❓ 도움말</string>
+                     </property>
+                     <property name="autoDefault">
+                      <bool>false</bool>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
                  </item>
-
                  <item>
                   <widget class="QFrame" name="facedetailerPanel">
                    <layout class="QHBoxLayout" name="facedetailerPanelHBox">
@@ -1754,14 +1738,14 @@
                         </item>
                         <item>
                          <widget class="QComboBox" name="facedetailerSamDetectionHintComboBox">
-                          <property name="toolTip">
-                           <string>얼굴 위치 힌트: center-1(가운데 1점, 기본), horizontal-2/vertical-2(2점), rect-4/diamond-4(4점), mask-area/mask-points/mask-point-bbox(마스크 기준, 고급), none(힌트 없음).</string>
-                          </property>
                           <property name="minimumSize">
                            <size>
                             <width>105</width>
                             <height>26</height>
                            </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>얼굴 위치 힌트: center-1(가운데 1점, 기본), horizontal-2/vertical-2(2점), rect-4/diamond-4(4점), mask-area/mask-points/mask-point-bbox(마스크 기준, 고급), none(힌트 없음).</string>
                           </property>
                          </widget>
                         </item>
@@ -1794,14 +1778,14 @@
                         </item>
                         <item>
                          <widget class="QComboBox" name="facedetailerSamMaskHintUseNegativeComboBox">
-                          <property name="toolTip">
-                           <string>반대 영역(마스크 바깥) 사용 여부. False(기본, 안전)를 추천합니다.</string>
-                          </property>
                           <property name="minimumSize">
                            <size>
                             <width>105</width>
                             <height>26</height>
                            </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>반대 영역(마스크 바깥) 사용 여부. False(기본, 안전)를 추천합니다.</string>
                           </property>
                          </widget>
                         </item>
@@ -1848,11 +1832,11 @@
                  </property>
                  <item>
                   <widget class="QCheckBox" name="advancedToggleBtn">
-                   <property name="toolTip">
-                    <string>고급 설정(시드, 슬라이더, 샘플러)을 열고 닫습니다. 체크하면 펼쳐집니다.</string>
-                   </property>
                    <property name="cursor">
                     <cursorShape>PointingHandCursor</cursorShape>
+                   </property>
+                   <property name="toolTip">
+                    <string>고급 설정(시드, 슬라이더, 샘플러)을 열고 닫습니다. 체크하면 펼쳐집니다.</string>
                    </property>
                    <property name="text">
                     <string>⚙️ 고급 설정 (시드, 슬라이더, 샘플러)</string>
@@ -2325,6 +2309,16 @@
                  </property>
                 </widget>
                </item>
+               <item>
+                <widget class="QPushButton" name="toggleLogButton">
+                 <property name="cursor">
+                  <cursorShape>PointingHandCursor</cursorShape>
+                 </property>
+                 <property name="text">
+                  <string>📜 콘솔 로그 보기 / 접기  ▼</string>
+                 </property>
+                </widget>
+               </item>
               </layout>
              </item>
             </layout>
@@ -2495,7 +2489,7 @@
       </layout>
      </widget>
     </item>
-    <item>
+    <item row="2" column="0">
      <widget class="QFrame" name="logSectionFrame">
       <property name="frameShape">
        <enum>QFrame::Shape::NoFrame</enum>
@@ -2516,135 +2510,133 @@
        <property name="bottomMargin">
         <number>0</number>
        </property>
-       <item>
-        <layout class="QHBoxLayout" name="logToggleBar">
-         <item>
-          <widget class="QPushButton" name="toggleLogButton">
-           <property name="cursor">
-            <cursorShape>PointingHandCursor</cursorShape>
-           </property>
-           <property name="text">
-            <string>📜 콘솔 로그 보기 / 접기  ▼</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="logToggleSpacer">
-           <property name="orientation">
-            <enum>Qt::Orientation::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>0</width>
-             <height>0</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QPushButton" name="resetButton">
-           <property name="cursor">
-            <cursorShape>PointingHandCursor</cursorShape>
-           </property>
-           <property name="text">
-            <string>로그 지우기</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="logGroupBox">
-         <property name="title">
-          <string/>
+      </layout>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QGroupBox" name="logGroupBox">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>500</height>
+       </size>
+      </property>
+      <property name="title">
+       <string/>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="1" column="0">
+        <widget class="QPlainTextEdit" name="logTextEdit">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-         <layout class="QVBoxLayout" name="logGroupLayout">
-          <property name="leftMargin">
-           <number>6</number>
-          </property>
-          <property name="topMargin">
-           <number>6</number>
-          </property>
-          <property name="rightMargin">
-           <number>6</number>
-          </property>
-          <property name="bottomMargin">
-           <number>6</number>
-          </property>
-          <item>
-           <widget class="QPlainTextEdit" name="logTextEdit">
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>120</height>
-             </size>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>11111111</height>
+          </size>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QPushButton" name="resetButton">
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="text">
+          <string>로그 지우기</string>
+         </property>
         </widget>
        </item>
       </layout>
      </widget>
     </item>
-    <item>
-     <widget class="QFrame" name="hiddenSettingsContainer">
-      <property name="visible">
-       <bool>false</bool>
-      </property>
-      <layout class="QVBoxLayout" name="settingsLayout">
-       <property name="spacing">
-        <number>6</number>
-       </property>
-       <item>
-        <widget class="QLineEdit" name="comfyUrlEdit"/>
-       </item>
-       <item>
-        <widget class="QPushButton" name="comfyCheckButton"/>
-       </item>
-       <item>
-        <widget class="QLabel" name="comfyStatusLabel"/>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="comfyModelPathEdit"/>
-       </item>
-       <item>
-        <widget class="QPushButton" name="browseModelFolderButton"/>
-       </item>
-       <item>
-        <widget class="QLabel" name="modelPathStatusLabel"/>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="lmUrlEdit"/>
-       </item>
-       <item>
-        <widget class="QPushButton" name="lmCheckButton"/>
-       </item>
-       <item>
-        <widget class="QLabel" name="lmStatusLabel"/>
-       </item>
-       <item>
-        <widget class="QPushButton" name="loadConfigButton"/>
-       </item>
-       <item>
-        <widget class="QPushButton" name="saveConfigButton"/>
-       </item>
-       <item>
-        <widget class="QPushButton" name="restoreDefaultsButton"/>
-       </item>
-       <item>
-        <widget class="QPushButton" name="exitButton"/>
-       </item>
-       <item>
-        <widget class="QTextBrowser" name="helpBrowser"/>
-       </item>
-      </layout>
-     </widget>
-    </item>
    </layout>
+   <widget class="QFrame" name="hiddenSettingsContainer">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>100</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="visible">
+     <bool>false</bool>
+    </property>
+    <layout class="QVBoxLayout" name="settingsLayout">
+     <property name="spacing">
+      <number>6</number>
+     </property>
+     <item>
+      <widget class="QLineEdit" name="comfyUrlEdit"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="comfyCheckButton"/>
+     </item>
+     <item>
+      <widget class="QLabel" name="comfyStatusLabel"/>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="comfyModelPathEdit"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="browseModelFolderButton"/>
+     </item>
+     <item>
+      <widget class="QLabel" name="modelPathStatusLabel"/>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lmUrlEdit"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="lmCheckButton"/>
+     </item>
+     <item>
+      <widget class="QLabel" name="lmStatusLabel"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="loadConfigButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>111</width>
+         <height>111</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="saveConfigButton"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="restoreDefaultsButton"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="exitButton"/>
+     </item>
+     <item>
+      <widget class="QTextBrowser" name="helpBrowser"/>
+     </item>
+    </layout>
+   </widget>
   </widget>
  </widget>
  <customwidgets>

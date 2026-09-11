@@ -91,6 +91,24 @@ def _upgrade_buttons(root) -> None:
         old.deleteLater()
 
 
+def load_dialog_ui(path: Path, parent=None):
+    """QDialog용 .ui 파일을 로드한다 (버튼 업그레이드 없이 그대로 반환).
+
+    설정/도움말 다이얼로그처럼 레이아웃을 그대로 유지해야 하는 경우 사용.
+    """
+    loader = QUiLoader()
+    file = QFile(str(path))
+    if not file.open(QIODevice.ReadOnly):
+        raise RuntimeError(f"UI 파일을 열 수 없습니다: {path}")
+    try:
+        obj = loader.load(file, parent)
+    finally:
+        file.close()
+    if obj is None:
+        raise RuntimeError(f"Qt가 UI 파일을 읽지 못했습니다: {path}")
+    return obj
+
+
 def load_ui(path: Path):
     loader = QUiLoader()
     loader.registerCustomWidget(PlayStopButton)
