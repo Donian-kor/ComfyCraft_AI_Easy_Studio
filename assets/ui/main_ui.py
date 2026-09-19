@@ -192,7 +192,7 @@ class Ui_MainWindow(object):
         self.leftScrollArea.setWidgetResizable(True)
         self.leftContentWidget = QWidget()
         self.leftContentWidget.setObjectName(u"leftContentWidget")
-        self.leftContentWidget.setGeometry(QRect(0, 0, 783, 1416))
+        self.leftContentWidget.setGeometry(QRect(0, -173, 783, 1412))
         self.leftContentLayout = QVBoxLayout(self.leftContentWidget)
         self.leftContentLayout.setSpacing(14)
         self.leftContentLayout.setObjectName(u"leftContentLayout")
@@ -458,7 +458,196 @@ class Ui_MainWindow(object):
 
         self.step2Layout.addWidget(self.dimensionContainer)
 
-        self.faceDetailerCard = QFrame(self.step2Card)
+        self.advancedSettingsFrame = QFrame(self.step2Card)
+        self.advancedSettingsFrame.setObjectName(u"advancedSettingsFrame")
+        self.advancedLayout = QVBoxLayout(self.advancedSettingsFrame)
+        self.advancedLayout.setSpacing(8)
+        self.advancedLayout.setObjectName(u"advancedLayout")
+        self.advancedLayout.setContentsMargins(10, 10, 10, 10)
+        self.advancedToggleBtn = QCheckBox(self.advancedSettingsFrame)
+        self.advancedToggleBtn.setObjectName(u"advancedToggleBtn")
+        self.advancedToggleBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+
+        self.advancedLayout.addWidget(self.advancedToggleBtn)
+
+        self.advancedContentWidget = QWidget(self.advancedSettingsFrame)
+        self.advancedContentWidget.setObjectName(u"advancedContentWidget")
+        self.gridLayout = QGridLayout(self.advancedContentWidget)
+        self.gridLayout.setObjectName(u"gridLayout")
+        self.seedRowLayout = QHBoxLayout()
+        self.seedRowLayout.setSpacing(6)
+        self.seedRowLayout.setObjectName(u"seedRowLayout")
+        self.seedTitleLabel = QLabel(self.advancedContentWidget)
+        self.seedTitleLabel.setObjectName(u"seedTitleLabel")
+
+        self.seedRowLayout.addWidget(self.seedTitleLabel)
+
+        self.seedSpinBox = QSpinBox(self.advancedContentWidget)
+        self.seedSpinBox.setObjectName(u"seedSpinBox")
+        self.seedSpinBox.setMinimumSize(QSize(120, 28))
+
+        self.seedRowLayout.addWidget(self.seedSpinBox)
+
+        self.randomSeedButton = QPushButton(self.advancedContentWidget)
+        self.randomSeedButton.setObjectName(u"randomSeedButton")
+        self.randomSeedButton.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+
+        self.seedRowLayout.addWidget(self.randomSeedButton)
+
+        self.lockSeedButton = QPushButton(self.advancedContentWidget)
+        self.lockSeedButton.setObjectName(u"lockSeedButton")
+        self.lockSeedButton.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        self.lockSeedButton.setCheckable(True)
+
+        self.seedRowLayout.addWidget(self.lockSeedButton)
+
+
+        self.gridLayout.addLayout(self.seedRowLayout, 0, 0, 1, 1)
+
+        self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.stepsSliderContainer = QVBoxLayout()
+        self.stepsSliderContainer.setSpacing(2)
+        self.stepsSliderContainer.setObjectName(u"stepsSliderContainer")
+        self.stepsHeaderRow = QHBoxLayout()
+        self.stepsHeaderRow.setObjectName(u"stepsHeaderRow")
+        self.stepsLabelTitle = QLabel(self.advancedContentWidget)
+        self.stepsLabelTitle.setObjectName(u"stepsLabelTitle")
+
+        self.stepsHeaderRow.addWidget(self.stepsLabelTitle)
+
+        self.stepsSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.stepsHeaderRow.addItem(self.stepsSpacer)
+
+        self.stepsValueLabel = QLabel(self.advancedContentWidget)
+        self.stepsValueLabel.setObjectName(u"stepsValueLabel")
+
+        self.stepsHeaderRow.addWidget(self.stepsValueLabel)
+
+
+        self.stepsSliderContainer.addLayout(self.stepsHeaderRow)
+
+        self.stepsControlRow = QHBoxLayout()
+        self.stepsControlRow.setObjectName(u"stepsControlRow")
+        self.stepsSlider = QSlider(self.advancedContentWidget)
+        self.stepsSlider.setObjectName(u"stepsSlider")
+        self.stepsSlider.setMinimum(1)
+        self.stepsSlider.setMaximum(50)
+        self.stepsSlider.setValue(24)
+        self.stepsSlider.setOrientation(Qt.Orientation.Horizontal)
+
+        self.stepsControlRow.addWidget(self.stepsSlider)
+
+
+        self.stepsSliderContainer.addLayout(self.stepsControlRow)
+
+
+        self.horizontalLayout.addLayout(self.stepsSliderContainer)
+
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout.addItem(self.horizontalSpacer)
+
+        self.verticalLayout = QVBoxLayout()
+        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.cfgHeaderRow = QHBoxLayout()
+        self.cfgHeaderRow.setObjectName(u"cfgHeaderRow")
+        self.cfgLabelTitle = QLabel(self.advancedContentWidget)
+        self.cfgLabelTitle.setObjectName(u"cfgLabelTitle")
+
+        self.cfgHeaderRow.addWidget(self.cfgLabelTitle)
+
+        self.cfgSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.cfgHeaderRow.addItem(self.cfgSpacer)
+
+        self.cfgValueLabel = QLabel(self.advancedContentWidget)
+        self.cfgValueLabel.setObjectName(u"cfgValueLabel")
+
+        self.cfgHeaderRow.addWidget(self.cfgValueLabel)
+
+
+        self.verticalLayout.addLayout(self.cfgHeaderRow)
+
+        self.cfgControlRow = QHBoxLayout()
+        self.cfgControlRow.setObjectName(u"cfgControlRow")
+        self.cfgSlider = QSlider(self.advancedContentWidget)
+        self.cfgSlider.setObjectName(u"cfgSlider")
+        self.cfgSlider.setMinimum(10)
+        self.cfgSlider.setMaximum(150)
+        self.cfgSlider.setValue(35)
+        self.cfgSlider.setOrientation(Qt.Orientation.Horizontal)
+
+        self.cfgControlRow.addWidget(self.cfgSlider)
+
+
+        self.verticalLayout.addLayout(self.cfgControlRow)
+
+
+        self.horizontalLayout.addLayout(self.verticalLayout)
+
+
+        self.gridLayout.addLayout(self.horizontalLayout, 1, 0, 1, 1)
+
+        self.samplerRowLayout = QHBoxLayout()
+        self.samplerRowLayout.setSpacing(8)
+        self.samplerRowLayout.setObjectName(u"samplerRowLayout")
+        self.samplerCol = QVBoxLayout()
+        self.samplerCol.setSpacing(2)
+        self.samplerCol.setObjectName(u"samplerCol")
+        self.samplerLabel = QLabel(self.advancedContentWidget)
+        self.samplerLabel.setObjectName(u"samplerLabel")
+
+        self.samplerCol.addWidget(self.samplerLabel)
+
+        self.samplerComboBox = QComboBox(self.advancedContentWidget)
+        self.samplerComboBox.setObjectName(u"samplerComboBox")
+
+        self.samplerCol.addWidget(self.samplerComboBox)
+
+
+        self.samplerRowLayout.addLayout(self.samplerCol)
+
+        self.schedulerCol = QVBoxLayout()
+        self.schedulerCol.setSpacing(2)
+        self.schedulerCol.setObjectName(u"schedulerCol")
+        self.schedulerLabel = QLabel(self.advancedContentWidget)
+        self.schedulerLabel.setObjectName(u"schedulerLabel")
+
+        self.schedulerCol.addWidget(self.schedulerLabel)
+
+        self.schedulerComboBox = QComboBox(self.advancedContentWidget)
+        self.schedulerComboBox.setObjectName(u"schedulerComboBox")
+
+        self.schedulerCol.addWidget(self.schedulerComboBox)
+
+
+        self.samplerRowLayout.addLayout(self.schedulerCol)
+
+        self.denoiseCol = QVBoxLayout()
+        self.denoiseCol.setSpacing(2)
+        self.denoiseCol.setObjectName(u"denoiseCol")
+        self.denoiseLabel = QLabel(self.advancedContentWidget)
+        self.denoiseLabel.setObjectName(u"denoiseLabel")
+
+        self.denoiseCol.addWidget(self.denoiseLabel)
+
+        self.denoiseSpinBox = QDoubleSpinBox(self.advancedContentWidget)
+        self.denoiseSpinBox.setObjectName(u"denoiseSpinBox")
+
+        self.denoiseCol.addWidget(self.denoiseSpinBox)
+
+
+        self.samplerRowLayout.addLayout(self.denoiseCol)
+
+
+        self.gridLayout.addLayout(self.samplerRowLayout, 2, 0, 1, 1)
+
+
+        self.advancedLayout.addWidget(self.advancedContentWidget)
+
+        self.faceDetailerCard = QFrame(self.advancedSettingsFrame)
         self.faceDetailerCard.setObjectName(u"faceDetailerCard")
         self.faceDetailerCard.setFrameShape(QFrame.Shape.StyledPanel)
         self.faceDetailerLayout = QVBoxLayout(self.faceDetailerCard)
@@ -1075,196 +1264,7 @@ class Ui_MainWindow(object):
         self.faceDetailerLayout.addWidget(self.facedetailerPanel)
 
 
-        self.step2Layout.addWidget(self.faceDetailerCard)
-
-        self.advancedSettingsFrame = QFrame(self.step2Card)
-        self.advancedSettingsFrame.setObjectName(u"advancedSettingsFrame")
-        self.advancedLayout = QVBoxLayout(self.advancedSettingsFrame)
-        self.advancedLayout.setSpacing(8)
-        self.advancedLayout.setObjectName(u"advancedLayout")
-        self.advancedLayout.setContentsMargins(10, 10, 10, 10)
-        self.advancedToggleBtn = QCheckBox(self.advancedSettingsFrame)
-        self.advancedToggleBtn.setObjectName(u"advancedToggleBtn")
-        self.advancedToggleBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-
-        self.advancedLayout.addWidget(self.advancedToggleBtn)
-
-        self.advancedContentWidget = QWidget(self.advancedSettingsFrame)
-        self.advancedContentWidget.setObjectName(u"advancedContentWidget")
-        self.gridLayout = QGridLayout(self.advancedContentWidget)
-        self.gridLayout.setObjectName(u"gridLayout")
-        self.seedRowLayout = QHBoxLayout()
-        self.seedRowLayout.setSpacing(6)
-        self.seedRowLayout.setObjectName(u"seedRowLayout")
-        self.seedTitleLabel = QLabel(self.advancedContentWidget)
-        self.seedTitleLabel.setObjectName(u"seedTitleLabel")
-
-        self.seedRowLayout.addWidget(self.seedTitleLabel)
-
-        self.seedSpinBox = QSpinBox(self.advancedContentWidget)
-        self.seedSpinBox.setObjectName(u"seedSpinBox")
-        self.seedSpinBox.setMinimumSize(QSize(120, 28))
-
-        self.seedRowLayout.addWidget(self.seedSpinBox)
-
-        self.randomSeedButton = QPushButton(self.advancedContentWidget)
-        self.randomSeedButton.setObjectName(u"randomSeedButton")
-        self.randomSeedButton.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-
-        self.seedRowLayout.addWidget(self.randomSeedButton)
-
-        self.lockSeedButton = QPushButton(self.advancedContentWidget)
-        self.lockSeedButton.setObjectName(u"lockSeedButton")
-        self.lockSeedButton.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        self.lockSeedButton.setCheckable(True)
-
-        self.seedRowLayout.addWidget(self.lockSeedButton)
-
-
-        self.gridLayout.addLayout(self.seedRowLayout, 0, 0, 1, 1)
-
-        self.horizontalLayout = QHBoxLayout()
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.stepsSliderContainer = QVBoxLayout()
-        self.stepsSliderContainer.setSpacing(2)
-        self.stepsSliderContainer.setObjectName(u"stepsSliderContainer")
-        self.stepsHeaderRow = QHBoxLayout()
-        self.stepsHeaderRow.setObjectName(u"stepsHeaderRow")
-        self.stepsLabelTitle = QLabel(self.advancedContentWidget)
-        self.stepsLabelTitle.setObjectName(u"stepsLabelTitle")
-
-        self.stepsHeaderRow.addWidget(self.stepsLabelTitle)
-
-        self.stepsSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.stepsHeaderRow.addItem(self.stepsSpacer)
-
-        self.stepsValueLabel = QLabel(self.advancedContentWidget)
-        self.stepsValueLabel.setObjectName(u"stepsValueLabel")
-
-        self.stepsHeaderRow.addWidget(self.stepsValueLabel)
-
-
-        self.stepsSliderContainer.addLayout(self.stepsHeaderRow)
-
-        self.stepsControlRow = QHBoxLayout()
-        self.stepsControlRow.setObjectName(u"stepsControlRow")
-        self.stepsSlider = QSlider(self.advancedContentWidget)
-        self.stepsSlider.setObjectName(u"stepsSlider")
-        self.stepsSlider.setMinimum(1)
-        self.stepsSlider.setMaximum(50)
-        self.stepsSlider.setValue(24)
-        self.stepsSlider.setOrientation(Qt.Orientation.Horizontal)
-
-        self.stepsControlRow.addWidget(self.stepsSlider)
-
-
-        self.stepsSliderContainer.addLayout(self.stepsControlRow)
-
-
-        self.horizontalLayout.addLayout(self.stepsSliderContainer)
-
-        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout.addItem(self.horizontalSpacer)
-
-        self.verticalLayout = QVBoxLayout()
-        self.verticalLayout.setObjectName(u"verticalLayout")
-        self.cfgHeaderRow = QHBoxLayout()
-        self.cfgHeaderRow.setObjectName(u"cfgHeaderRow")
-        self.cfgLabelTitle = QLabel(self.advancedContentWidget)
-        self.cfgLabelTitle.setObjectName(u"cfgLabelTitle")
-
-        self.cfgHeaderRow.addWidget(self.cfgLabelTitle)
-
-        self.cfgSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.cfgHeaderRow.addItem(self.cfgSpacer)
-
-        self.cfgValueLabel = QLabel(self.advancedContentWidget)
-        self.cfgValueLabel.setObjectName(u"cfgValueLabel")
-
-        self.cfgHeaderRow.addWidget(self.cfgValueLabel)
-
-
-        self.verticalLayout.addLayout(self.cfgHeaderRow)
-
-        self.cfgControlRow = QHBoxLayout()
-        self.cfgControlRow.setObjectName(u"cfgControlRow")
-        self.cfgSlider = QSlider(self.advancedContentWidget)
-        self.cfgSlider.setObjectName(u"cfgSlider")
-        self.cfgSlider.setMinimum(10)
-        self.cfgSlider.setMaximum(150)
-        self.cfgSlider.setValue(35)
-        self.cfgSlider.setOrientation(Qt.Orientation.Horizontal)
-
-        self.cfgControlRow.addWidget(self.cfgSlider)
-
-
-        self.verticalLayout.addLayout(self.cfgControlRow)
-
-
-        self.horizontalLayout.addLayout(self.verticalLayout)
-
-
-        self.gridLayout.addLayout(self.horizontalLayout, 1, 0, 1, 1)
-
-        self.samplerRowLayout = QHBoxLayout()
-        self.samplerRowLayout.setSpacing(8)
-        self.samplerRowLayout.setObjectName(u"samplerRowLayout")
-        self.samplerCol = QVBoxLayout()
-        self.samplerCol.setSpacing(2)
-        self.samplerCol.setObjectName(u"samplerCol")
-        self.samplerLabel = QLabel(self.advancedContentWidget)
-        self.samplerLabel.setObjectName(u"samplerLabel")
-
-        self.samplerCol.addWidget(self.samplerLabel)
-
-        self.samplerComboBox = QComboBox(self.advancedContentWidget)
-        self.samplerComboBox.setObjectName(u"samplerComboBox")
-
-        self.samplerCol.addWidget(self.samplerComboBox)
-
-
-        self.samplerRowLayout.addLayout(self.samplerCol)
-
-        self.schedulerCol = QVBoxLayout()
-        self.schedulerCol.setSpacing(2)
-        self.schedulerCol.setObjectName(u"schedulerCol")
-        self.schedulerLabel = QLabel(self.advancedContentWidget)
-        self.schedulerLabel.setObjectName(u"schedulerLabel")
-
-        self.schedulerCol.addWidget(self.schedulerLabel)
-
-        self.schedulerComboBox = QComboBox(self.advancedContentWidget)
-        self.schedulerComboBox.setObjectName(u"schedulerComboBox")
-
-        self.schedulerCol.addWidget(self.schedulerComboBox)
-
-
-        self.samplerRowLayout.addLayout(self.schedulerCol)
-
-        self.denoiseCol = QVBoxLayout()
-        self.denoiseCol.setSpacing(2)
-        self.denoiseCol.setObjectName(u"denoiseCol")
-        self.denoiseLabel = QLabel(self.advancedContentWidget)
-        self.denoiseLabel.setObjectName(u"denoiseLabel")
-
-        self.denoiseCol.addWidget(self.denoiseLabel)
-
-        self.denoiseSpinBox = QDoubleSpinBox(self.advancedContentWidget)
-        self.denoiseSpinBox.setObjectName(u"denoiseSpinBox")
-
-        self.denoiseCol.addWidget(self.denoiseSpinBox)
-
-
-        self.samplerRowLayout.addLayout(self.denoiseCol)
-
-
-        self.gridLayout.addLayout(self.samplerRowLayout, 2, 0, 1, 1)
-
-
-        self.advancedLayout.addWidget(self.advancedContentWidget)
+        self.advancedLayout.addWidget(self.faceDetailerCard)
 
 
         self.step2Layout.addWidget(self.advancedSettingsFrame)
@@ -1563,6 +1563,20 @@ class Ui_MainWindow(object):
         self.widthLabel.setText(QCoreApplication.translate("MainWindow", u"\uac00\ub85c \ud3ed:", None))
         self.heightLabel.setText(QCoreApplication.translate("MainWindow", u"\uc138\ub85c \ub192\uc774:", None))
 #if QT_CONFIG(tooltip)
+        self.advancedToggleBtn.setToolTip(QCoreApplication.translate("MainWindow", u"\uace0\uae09 \uc124\uc815(\uc2dc\ub4dc, \uc2ac\ub77c\uc774\ub354, \uc0d8\ud50c\ub7ec)\uc744 \uc5f4\uace0 \ub2eb\uc2b5\ub2c8\ub2e4. \uccb4\ud06c\ud558\uba74 \ud3bc\uccd0\uc9d1\ub2c8\ub2e4.", None))
+#endif // QT_CONFIG(tooltip)
+        self.advancedToggleBtn.setText(QCoreApplication.translate("MainWindow", u"\u2699\ufe0f \uace0\uae09 \uc124\uc815 (\uc2dc\ub4dc, \uc2ac\ub77c\uc774\ub354, \uc0d8\ud50c\ub7ec)", None))
+        self.seedTitleLabel.setText(QCoreApplication.translate("MainWindow", u"\uc2dc\ub4dc \ubc88\ud638:", None))
+        self.randomSeedButton.setText(QCoreApplication.translate("MainWindow", u"\U0001f3b2 \U0000b79c\U0000b364", None))
+        self.lockSeedButton.setText(QCoreApplication.translate("MainWindow", u"\U0001f513 \U0000ace0\U0000c815 \U0000c548\U0000d568", None))
+        self.stepsLabelTitle.setText(QCoreApplication.translate("MainWindow", u"\uc0d8\ud50c\ub9c1 \uc2a4\ud15d (Steps)", None))
+        self.stepsValueLabel.setText(QCoreApplication.translate("MainWindow", u"24", None))
+        self.cfgLabelTitle.setText(QCoreApplication.translate("MainWindow", u"\ud504\ub86c\ud504\ud2b8 \ucda9\uc2e4\ub3c4 (CFG)", None))
+        self.cfgValueLabel.setText(QCoreApplication.translate("MainWindow", u"3.5", None))
+        self.samplerLabel.setText(QCoreApplication.translate("MainWindow", u"\uc0d8\ud50c\ub7ec", None))
+        self.schedulerLabel.setText(QCoreApplication.translate("MainWindow", u"\uc2a4\ucf00\uc904\ub7ec", None))
+        self.denoiseLabel.setText(QCoreApplication.translate("MainWindow", u"\ub514\ub178\uc774\uc988", None))
+#if QT_CONFIG(tooltip)
         self.facedetailerCheckBox.setToolTip(QCoreApplication.translate("MainWindow", u"\uc5bc\uad74 \ubcf4\uc815(FaceDetailer)\uc744 \ucf1c\uace0 \ub055\ub2c8\ub2e4. \uc5bc\uad74\uc774 \ubb49\uac1c\uc9c8 \ub54c \ucf1c\uba74 \uc5bc\uad74\ub9cc \ub2e4\uc2dc \uadf8\ub824\uc90d\ub2c8\ub2e4. \ucc98\uc74c\uc5d0\ub294 \uaebc \ub450\ub294 \uac83\uc744 \ucd94\ucc9c\ud569\ub2c8\ub2e4.", None))
 #endif // QT_CONFIG(tooltip)
         self.facedetailerCheckBox.setText(QCoreApplication.translate("MainWindow", u"\U0001f464 FaceDetailer (\U0000c5bc\U0000ad74 \U0000bcf4\U0000c815 \U0000cf1c\U0000ae30)", None))
@@ -1704,20 +1718,6 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.facedetailerSamMaskHintUseNegativeComboBox.setToolTip(QCoreApplication.translate("MainWindow", u"\ubc18\ub300 \uc601\uc5ed(\ub9c8\uc2a4\ud06c \ubc14\uae65) \uc0ac\uc6a9 \uc5ec\ubd80. False(\uae30\ubcf8, \uc548\uc804)\ub97c \ucd94\ucc9c\ud569\ub2c8\ub2e4.", None))
 #endif // QT_CONFIG(tooltip)
-#if QT_CONFIG(tooltip)
-        self.advancedToggleBtn.setToolTip(QCoreApplication.translate("MainWindow", u"\uace0\uae09 \uc124\uc815(\uc2dc\ub4dc, \uc2ac\ub77c\uc774\ub354, \uc0d8\ud50c\ub7ec)\uc744 \uc5f4\uace0 \ub2eb\uc2b5\ub2c8\ub2e4. \uccb4\ud06c\ud558\uba74 \ud3bc\uccd0\uc9d1\ub2c8\ub2e4.", None))
-#endif // QT_CONFIG(tooltip)
-        self.advancedToggleBtn.setText(QCoreApplication.translate("MainWindow", u"\u2699\ufe0f \uace0\uae09 \uc124\uc815 (\uc2dc\ub4dc, \uc2ac\ub77c\uc774\ub354, \uc0d8\ud50c\ub7ec)", None))
-        self.seedTitleLabel.setText(QCoreApplication.translate("MainWindow", u"\uc2dc\ub4dc \ubc88\ud638:", None))
-        self.randomSeedButton.setText(QCoreApplication.translate("MainWindow", u"\U0001f3b2 \U0000b79c\U0000b364", None))
-        self.lockSeedButton.setText(QCoreApplication.translate("MainWindow", u"\U0001f513 \U0000ace0\U0000c815 \U0000c548\U0000d568", None))
-        self.stepsLabelTitle.setText(QCoreApplication.translate("MainWindow", u"\uc0d8\ud50c\ub9c1 \uc2a4\ud15d (Steps)", None))
-        self.stepsValueLabel.setText(QCoreApplication.translate("MainWindow", u"24", None))
-        self.cfgLabelTitle.setText(QCoreApplication.translate("MainWindow", u"\ud504\ub86c\ud504\ud2b8 \ucda9\uc2e4\ub3c4 (CFG)", None))
-        self.cfgValueLabel.setText(QCoreApplication.translate("MainWindow", u"3.5", None))
-        self.samplerLabel.setText(QCoreApplication.translate("MainWindow", u"\uc0d8\ud50c\ub7ec", None))
-        self.schedulerLabel.setText(QCoreApplication.translate("MainWindow", u"\uc2a4\ucf00\uc904\ub7ec", None))
-        self.denoiseLabel.setText(QCoreApplication.translate("MainWindow", u"\ub514\ub178\uc774\uc988", None))
         self.viewerStatusDot.setText(QCoreApplication.translate("MainWindow", u"\u25cf", None))
         self.viewerTitle.setText(QCoreApplication.translate("MainWindow", u"\uc0dd\uc131 \uacb0\uacfc \ubdf0\uc5b4", None))
         self.elapsedLabel.setText(QCoreApplication.translate("MainWindow", u"0.0\ucd08", None))

@@ -238,3 +238,89 @@ _PLAY_STOP_BUTTON_COLORS: dict[str, dict[str, dict[str, str]]] = {
         "stop": {"bg": "#c42b1c"},
     },
 }
+
+
+# Z-ANIME 스타일 버튼용 테마 색상 테이블
+# selected_*: 선택된 버튼(눌린 상태), unselected_*: 선택되지 않은 버튼
+_ZANIME_STYLE_BUTTON_COLORS: dict[str, dict[str, str]] = {
+    "fluent_dark": {
+        "selected_bg": "#0078D4",
+        "selected_border": "#4cc2ff",
+        "selected_text": "#ffffff",
+        "unselected_bg": "#3a3a3a",
+        "unselected_border": "#5a5a5a",
+        "unselected_text": "#f0f0f0",
+    },
+    "midnight_navy": {
+        "selected_bg": "#4cc2ff",
+        "selected_border": "#a6e3ff",
+        "selected_text": "#0b1b2b",
+        "unselected_bg": "#2b3a4d",
+        "unselected_border": "#46586e",
+        "unselected_text": "#eaf2fb",
+    },
+    "emerald_forest": {
+        "selected_bg": "#34d399",
+        "selected_border": "#a7f3d0",
+        "selected_text": "#0d2b1f",
+        "unselected_bg": "#2c4437",
+        "unselected_border": "#476b56",
+        "unselected_text": "#eaf7f0",
+    },
+    "purple_nebula": {
+        "selected_bg": "#a78bfa",
+        "selected_border": "#ddd6fe",
+        "selected_text": "#241a3d",
+        "unselected_bg": "#3a3350",
+        "unselected_border": "#574d75",
+        "unselected_text": "#f1ecff",
+    },
+    "warm_cocoa": {
+        "selected_bg": "#f0a13e",
+        "selected_border": "#ffd9a8",
+        "selected_text": "#3a2408",
+        "unselected_bg": "#4a3a2c",
+        "unselected_border": "#6b5745",
+        "unselected_text": "#f7efe6",
+    },
+    "slate_amber": {
+        "selected_bg": "#e8a33d",
+        "selected_border": "#ffdc9e",
+        "selected_text": "#38260a",
+        "unselected_bg": "#3f4652",
+        "unselected_border": "#5b6472",
+        "unselected_text": "#eef1f6",
+    },
+    "midnight_coral": {
+        "selected_bg": "#e8637a",
+        "selected_border": "#ffb3c0",
+        "selected_text": "#ffffff",
+        "unselected_bg": "#463043",
+        "unselected_border": "#66485f",
+        "unselected_text": "#f9eef4",
+    },
+    "plum_sage": {
+        "selected_bg": "#7a3b69",
+        "selected_border": "#b58aa8",
+        "selected_text": "#ffffff",
+        "unselected_bg": "#e6dfe4",
+        "unselected_border": "#b9a9b6",
+        "unselected_text": "#33232f",
+    },
+    "fluent_light": {
+        "selected_bg": "#0078d4",
+        "selected_border": "#005a9e",
+        "selected_text": "#ffffff",
+        "unselected_bg": "#e2e2e2",
+        "unselected_border": "#b8b8b8",
+        "unselected_text": "#1a1a1a",
+    },
+}
+
+
+def zanime_style_button_colors(key: str) -> dict[str, str]:
+    """Z-ANIME 스타일 버튼에 쓸 테마 색상 사전을 반환한다."""
+    colors = _ZANIME_STYLE_BUTTON_COLORS.get(key)
+    if colors is None:
+        colors = _ZANIME_STYLE_BUTTON_COLORS.get(DEFAULT_THEME)
+    return dict(colors or {})

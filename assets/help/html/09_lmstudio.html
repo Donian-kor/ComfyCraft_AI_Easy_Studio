@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LM Studio 연동</title>
+    
+<style>
+:root { 
+    --text: #1a1a1a; 
+    --text-muted: #555; 
+    --primary: #0078d4; 
+    --bg: #ffffff; 
+    --code-bg: #f4f4f4; 
+    --border: #e0e0e0; 
+    --header-border: #e0e0e0;
+}
+[data-theme="dark"] { 
+    --text: #e0e0e0; 
+    --text-muted: #aaa; 
+    --primary: #60a5fa;
+    --bg: #1e1e1e; 
+    --code-bg: #2d2d2d; 
+    --border: #333; 
+    --header-border: #333;
+}
+body { 
+    font-family: 'Pretendard', 'Noto Sans KR', system-ui; 
+    font-size: 14px; 
+    line-height: 1.6; 
+    color: var(--text); 
+    background: var(--bg); 
+    padding: 24px; 
+    max-width: 720px; 
+    margin: 0 auto; 
+}
+h1 { 
+    font-size: 24px; 
+    font-weight: 700; 
+    margin: 0 0 16px; 
+    padding-bottom: 8px; 
+    border-bottom: 1px solid var(--header-border); 
+}
+h2 { 
+    font-size: 20px; 
+    font-weight: 700; 
+    margin: 24px 0 12px; 
+    color: var(--primary); 
+}
+h3 { 
+    font-size: 16px; 
+    font-weight: 600; 
+    margin: 18px 0 8px; 
+}
+p { 
+    margin: 0 0 12px; 
+}
+code { 
+    background: var(--code-bg); 
+    padding: 2px 6px; 
+    border-radius: 4px; 
+    font-family: 'JetBrains Mono', 'Consolas', monospace; 
+    font-size: 13px; 
+}
+pre { 
+    background: var(--code-bg); 
+    padding: 12px; 
+    border-radius: 6px; 
+    overflow-x: auto; 
+    margin: 16px 0; 
+}
+pre code { 
+    background: none; 
+    padding: 0; 
+}
+table { 
+    border-collapse: collapse; 
+    width: 100%; 
+    margin: 16px 0; 
+}
+th, td { 
+    border: 1px solid var(--border); 
+    padding: 8px 12px; 
+    text-align: left; 
+}
+th { 
+    background: var(--code-bg); 
+    font-weight: 600; 
+}
+a { 
+    color: var(--primary); 
+    text-decoration: none; 
+}
+a:hover { 
+    text-decoration: underline; 
+}
+img { 
+    max-width: 100%; 
+    height: auto; 
+    border-radius: 4px; 
+    display: block; 
+    margin: 16px auto; 
+}
+ul, ol { 
+    padding-left: 24px; 
+    margin: 8px 0; 
+}
+li { 
+    margin: 4px 0; 
+}
+hr { 
+    border: none; 
+    border-top: 1px solid var(--border); 
+    margin: 24px 0; 
+}
+blockquote { 
+    border-left: 3px solid var(--primary); 
+    padding-left: 16px; 
+    margin: 16px 0; 
+    color: var(--text-muted); 
+}
+.toc {
+    background: var(--code-bg);
+    padding: 16px;
+    border-radius: 6px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+}
+.toc ul {
+    list-style: none;
+    padding-left: 0;
+}
+.toc li {
+    margin: 4px 0;
+}
+.toc a {
+    text-decoration: none;
+    color: var(--text);
+}
+.toc a:hover {
+    color: var(--primary);
+}
+</style>
+
+</head>
+<body>
+    <div class="toc"><div class="toc">
+<ul>
+<li><a href="#lm-studio">LM Studio 연동</a><ul>
+<li><a href="#lm-studio_1">왜 LM Studio인가?</a></li>
+<li><a href="#_1">설치 및 기본 설정</a><ul>
+<li><a href="#1">1. 다운로드</a></li>
+<li><a href="#2">2. 모델 선택 가이드</a></li>
+<li><a href="#3">3. 모델 로드 설정</a></li>
+</ul>
+</li>
+<li><a href="#_2">로컬 서버 실행</a><ul>
+<li><a href="#_3">서버 시작 단계</a></li>
+<li><a href="#_4">서버 설정 옵션</a></li>
+</ul>
+</li>
+<li><a href="#_5">프로그램에서 연동 설정</a><ul>
+<li><a href="#1_1">1. 서버 주소 입력</a></li>
+<li><a href="#2_1">2. 연결 확인</a></li>
+<li><a href="#3_1">3. 모델 선택</a></li>
+</ul>
+</li>
+<li><a href="#_6">프롬프트 확장 프롬프트 (시스템 프롬프트)</a></li>
+<li><a href="#_7">추천 모델별 특성</a><ul>
+<li><a href="#qwen-25-1">Qwen 2.5 시리즈 (추천 1순위)</a></li>
+<li><a href="#llama-31">Llama 3.1 시리즈</a></li>
+<li><a href="#gemma-2">Gemma 2 시리즈</a></li>
+<li><a href="#eeve-koalpaca">한국어 특화 모델 (EEVE, KoAlpaca 등)</a></li>
+</ul>
+</li>
+<li><a href="#_8">성능 최적화</a><ul>
+<li><a href="#gpu">GPU 레이어 수 조절</a></li>
+<li><a href="#_9">컨텍스트 길이</a></li>
+<li><a href="#_10">병렬 요청</a></li>
+</ul>
+</li>
+<li><a href="#_11">문제 해결</a></li>
+<li><a href="#_12">고급: 커스텀 프롬프트 템플릿</a></li>
+<li><a href="#_13">다음 단계</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+    <h2 id="lm-studio"><a class="toclink" href="#lm-studio">LM Studio 연동</a><a class="headerlink" href="#lm-studio" title="Permanent link">&para;</a></h2>
+<p>LM Studio는 로컬에서 LLM(대규모 언어 모델)을 실행하고, OpenAI 호환 API 서버로 제공해주는 프로그램입니다. 이 프로그램에서는 <strong>한국어 아이디어를 영문 프롬프트로 확장</strong>하는 용도로 사용합니다.</p>
+<h3 id="lm-studio_1"><a class="toclink" href="#lm-studio_1">왜 LM Studio인가?</a><a class="headerlink" href="#lm-studio_1" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>장점</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>완전 로컬</strong></td>
+<td>데이터 외부 전송 없음, 프라이버시 보장</td>
+</tr>
+<tr>
+<td><strong>무료</strong></td>
+<td>라이선스 비용 없음, 모델만 다운로드하면 사용 가능</td>
+</tr>
+<tr>
+<td><strong>다양한 모델</strong></td>
+<td>HuggingFace 수천 개 모델 지원 (GGUF 양자화)</td>
+</tr>
+<tr>
+<td><strong>OpenAI 호환</strong></td>
+<td>표준 API로 쉬운 연동</td>
+</tr>
+<tr>
+<td><strong>GPU 가속</strong></td>
+<td>Metal(CUDA/ROCm) 지원으로 빠른 추론</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="_1"><a class="toclink" href="#_1">설치 및 기본 설정</a><a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<h4 id="1"><a class="toclink" href="#1">1. 다운로드</a><a class="headerlink" href="#1" title="Permanent link">&para;</a></h4>
+<ul>
+<li><a href="https://lmstudio.ai/">lmstudio.ai</a> → OS 선택 → 다운로드 → 설치</li>
+</ul>
+<h4 id="2"><a class="toclink" href="#2">2. 모델 선택 가이드</a><a class="headerlink" href="#2" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>용도</th>
+<th>추천 모델</th>
+<th>양자화</th>
+<th>VRAM 필요</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>균형 (추천)</strong></td>
+<td><code>qwen2.5-7b-instruct</code></td>
+<td>Q4_K_M</td>
+<td>~6 GB</td>
+</tr>
+<tr>
+<td><strong>고품질</strong></td>
+<td><code>llama-3.1-8b-instruct</code></td>
+<td>Q4_K_M</td>
+<td>~6 GB</td>
+</tr>
+<tr>
+<td><strong>한국어 강함</strong></td>
+<td><code>eeve-korean-instruct-10.8b</code></td>
+<td>Q4_K_M</td>
+<td>~8 GB</td>
+</tr>
+<tr>
+<td><strong>경량/빠름</strong></td>
+<td><code>gemma-2-2b-it</code></td>
+<td>Q4_K_M</td>
+<td>~3 GB</td>
+</tr>
+<tr>
+<td><strong>최고 품질</strong></td>
+<td><code>qwen2.5-14b-instruct</code></td>
+<td>Q4_K_M</td>
+<td>~10 GB</td>
+</tr>
+</tbody>
+</table>
+<p><strong>양자화 선택 팁</strong>:
+- <code>Q4_K_M</code>: 품질/속도/용량 최적 균형 (기본 추천)
+- <code>Q5_K_M</code>: 조금 더 품질, 조금 더 용량
+- <code>Q8_0</code>: 고품질, 큰 용량
+- <code>Q2_K</code>: 최대 압축, 품질 저하 감수</p>
+<h4 id="3"><a class="toclink" href="#3">3. 모델 로드 설정</a><a class="headerlink" href="#3" title="Permanent link">&para;</a></h4>
+<pre><code>모델 선택 → 우측 설정 패널:
+- GPU Layers: -1 (전체 GPU) 또는 VRAM에 맞게 조정 (예: 35)
+- Context Length: 4096 이상 (프롬프트 길이에 따라)
+- Flash Attention: ON (지원 시)
+</code></pre>
+<hr />
+<h3 id="_2"><a class="toclink" href="#_2">로컬 서버 실행</a><a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<h4 id="_3"><a class="toclink" href="#_3">서버 시작 단계</a><a class="headerlink" href="#_3" title="Permanent link">&para;</a></h4>
+<pre><code>1. 좌측 사이드바 ↔ (Local Server) 아이콘 클릭
+2. 포트: 1234 (기본값, 변경 가능)
+3. 모델: 드롭다운에서 로드된 모델 선택
+4. ▶ Start Server 클릭
+5. 상태: &quot;Server started at http://localhost:1234&quot; 확인
+</code></pre>
+<h4 id="_4"><a class="toclink" href="#_4">서버 설정 옵션</a><a class="headerlink" href="#_4" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>설정</th>
+<th>추천값</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Port</strong></td>
+<td>1234</td>
+<td>다른 앱과 충돌 시 변경 (프로그램 설정에서도 동일하게 변경)</td>
+</tr>
+<tr>
+<td><strong>Host</strong></td>
+<td>localhost</td>
+<td>외부 접속 필요 시 <code>0.0.0.0</code> (보안 주의)</td>
+</tr>
+<tr>
+<td><strong>CORS</strong></td>
+<td>ON</td>
+<td>웹에서 호출 시 필요, 로컬 프로그램이면 OFF 해도 됨</td>
+</tr>
+<tr>
+<td><strong>API Key</strong></td>
+<td>비워둠</td>
+<td>인증 불필요</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="_5"><a class="toclink" href="#_5">프로그램에서 연동 설정</a><a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<h4 id="1_1"><a class="toclink" href="#1_1">1. 서버 주소 입력</a><a class="headerlink" href="#1_1" title="Permanent link">&para;</a></h4>
+<ul>
+<li>메인 화면 <code>LM Studio 서버 주소</code> 입력란: <code>http://localhost:1234</code></li>
+<li>또는 <code>⚙️ 설정</code> 대화상자에서 동일하게 설정</li>
+</ul>
+<h4 id="2_1"><a class="toclink" href="#2_1">2. 연결 확인</a><a class="headerlink" href="#2_1" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>LM Studio 연결 확인</code> 버튼 클릭</li>
+<li>🟢 준비 완료 뜨면 성공</li>
+<li>🔴 미연결 시: 서버 시작 여부, 포트, 방화벽 확인</li>
+</ul>
+<h4 id="3_1"><a class="toclink" href="#3_1">3. 모델 선택</a><a class="headerlink" href="#3_1" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>언어 모델 (LM Studio AI)</code> 드롭다운에서 사용 모델 선택</li>
+<li>목록 안 뜨면: LM Studio에서 모델 Load 후 서버 재시작 → 프로그램에서 새로고침</li>
+</ul>
+<hr />
+<h3 id="_6"><a class="toclink" href="#_6">프롬프트 확장 프롬프트 (시스템 프롬프트)</a><a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<p>프로그램은 내부적으로 다음 같은 시스템 프롬프트를 사용해 한국어를 영문으로 확장합니다:</p>
+<pre><code>You are an expert prompt engineer for Stable Diffusion/FLUX image generation.
+Convert the user's Korean idea into a detailed, high-quality English prompt.
+Include: subject, style, lighting, composition, quality tags, technical details.
+Output ONLY the English prompt, no explanations.
+</code></pre>
+<p><strong>사용자 커스터마이징</strong>: <code>workflows/prompt.json</code> 파일에서 시스템 프롬프트 수정 가능</p>
+<hr />
+<h3 id="_7"><a class="toclink" href="#_7">추천 모델별 특성</a><a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<h4 id="qwen-25-1"><a class="toclink" href="#qwen-25-1">Qwen 2.5 시리즈 (추천 1순위)</a><a class="headerlink" href="#qwen-25-1" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>한국어 이해도 최상급</strong> (한국어 벤치마크 1위)</li>
+<li>지시 따르기 능력 우수</li>
+<li>7B/14B/32B 크기 선택 가능</li>
+</ul>
+<h4 id="llama-31"><a class="toclink" href="#llama-31">Llama 3.1 시리즈</a><a class="headerlink" href="#llama-31" title="Permanent link">&para;</a></h4>
+<ul>
+<li>영어 프롬프트 품질 매우 높음</li>
+<li>한국어 입력도 잘 이해하지만 Qwen보다 약간 떨어짐</li>
+<li>커뮤니티 지원 활발</li>
+</ul>
+<h4 id="gemma-2"><a class="toclink" href="#gemma-2">Gemma 2 시리즈</a><a class="headerlink" href="#gemma-2" title="Permanent link">&para;</a></h4>
+<ul>
+<li>구글 개발, 경량화 우수</li>
+<li>2B/9B/27B, 작은 모델도 성능 좋음</li>
+<li>한국어 지원 양호</li>
+</ul>
+<h4 id="eeve-koalpaca"><a class="toclink" href="#eeve-koalpaca">한국어 특화 모델 (EEVE, KoAlpaca 등)</a><a class="headerlink" href="#eeve-koalpaca" title="Permanent link">&para;</a></h4>
+<ul>
+<li>한국어 이해 특화</li>
+<li>영문 프롬프트 생성 품질은 범용 모델보다 낮을 수 있음</li>
+<li>한국어 아이디어 입력 시 유리</li>
+</ul>
+<hr />
+<h3 id="_8"><a class="toclink" href="#_8">성능 최적화</a><a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
+<h4 id="gpu"><a class="toclink" href="#gpu">GPU 레이어 수 조절</a><a class="headerlink" href="#gpu" title="Permanent link">&para;</a></h4>
+<pre><code>VRAM 8GB  이하: GPU Layers 20~30
+VRAM 10~12GB: GPU Layers 35~40 (전체 -1 추천)
+VRAM 16GB 이상: GPU Layers -1 (전체)
+</code></pre>
+<ul>
+<li>CPU 오프로드 시 속도 저하, VRAM 절약</li>
+<li><code>gguf</code> 모델 로드 시 자동으로 레이어 분할</li>
+</ul>
+<h4 id="_9"><a class="toclink" href="#_9">컨텍스트 길이</a><a class="headerlink" href="#_9" title="Permanent link">&para;</a></h4>
+<ul>
+<li>기본 4096 토큰 충분 (프롬프트 확장용)</li>
+<li>긴 대화/복잡한 지시 필요 시 8192로 증가</li>
+</ul>
+<h4 id="_10"><a class="toclink" href="#_10">병렬 요청</a><a class="headerlink" href="#_10" title="Permanent link">&para;</a></h4>
+<ul>
+<li>이 프로그램은 단일 요청 순차 처리</li>
+<li>동시 생성 시 LM Studio 큐잉 처리</li>
+</ul>
+<hr />
+<h3 id="_11"><a class="toclink" href="#_11">문제 해결</a><a class="headerlink" href="#_11" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>증상</th>
+<th>원인</th>
+<th>해결</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>서버 시작 안 됨</td>
+<td>포트 1234 충돌</td>
+<td>다른 프로세스 종료 또는 포트 변경</td>
+</tr>
+<tr>
+<td>모델 목록 안 뜸</td>
+<td>모델 미로드 / 서버 미시작</td>
+<td>모델 Load → Server Start 순서 확인</td>
+</tr>
+<tr>
+<td>연결 실패 (프로그램)</td>
+<td>방화벽 / 주소 오타</td>
+<td><code>http://localhost:1234</code> 정확 입력, 방화벽 허용</td>
+</tr>
+<tr>
+<td>프롬프트 품질 낮음</td>
+<td>모델 크기 작음 / 양자화 과도</td>
+<td>7B 이상, Q4_K_M 이상 모델 사용</td>
+</tr>
+<tr>
+<td>응답 느림</td>
+<td>GPU 레이어 부족 / CPU 오프로드</td>
+<td>GPU Layers 늘리기, 더 작은 모델 사용</td>
+</tr>
+<tr>
+<td>메모리 부족</td>
+<td>모델이 VRAM 초과</td>
+<td>더 작은 모델, 더 높은 양자화(Q4→Q3)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="_12"><a class="toclink" href="#_12">고급: 커스텀 프롬프트 템플릿</a><a class="headerlink" href="#_12" title="Permanent link">&para;</a></h3>
+<p><code>workflows/prompt.json</code> 파일 구조:</p>
+<pre><code class="language-json">{
+  &quot;system_prompt&quot;: &quot;You are an expert prompt engineer...&quot;,
+  &quot;user_template&quot;: &quot;{korean_idea}\n\nConvert to English prompt:&quot;,
+  &quot;negative_template&quot;: &quot;ugly, deformed, blurry, low quality...&quot;
+}
+</code></pre>
+<p>수정 후 프로그램 재시작 시 적용됨.</p>
+<hr />
+<h3 id="_13"><a class="toclink" href="#_13">다음 단계</a><a class="headerlink" href="#_13" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="01_getting_started.html">시작하기</a> - 전체 워크플로우</li>
+<li><a href="04_prompt_writing.html">프롬프트 작성</a> - 효과적인 프롬프트 기법</li>
+<li><a href="03_model_settings.html">모델 설정</a> - 생성 모델과 연동</li>
+<li><a href="10_faq.html">자주 묻는 질문</a> - 트러블슈팅</li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프롬프트 작성</title>
+    
+<style>
+:root { 
+    --text: #1a1a1a; 
+    --text-muted: #555; 
+    --primary: #0078d4; 
+    --bg: #ffffff; 
+    --code-bg: #f4f4f4; 
+    --border: #e0e0e0; 
+    --header-border: #e0e0e0;
+}
+[data-theme="dark"] { 
+    --text: #e0e0e0; 
+    --text-muted: #aaa; 
+    --primary: #60a5fa;
+    --bg: #1e1e1e; 
+    --code-bg: #2d2d2d; 
+    --border: #333; 
+    --header-border: #333;
+}
+body { 
+    font-family: 'Pretendard', 'Noto Sans KR', system-ui; 
+    font-size: 14px; 
+    line-height: 1.6; 
+    color: var(--text); 
+    background: var(--bg); 
+    padding: 24px; 
+    max-width: 720px; 
+    margin: 0 auto; 
+}
+h1 { 
+    font-size: 24px; 
+    font-weight: 700; 
+    margin: 0 0 16px; 
+    padding-bottom: 8px; 
+    border-bottom: 1px solid var(--header-border); 
+}
+h2 { 
+    font-size: 20px; 
+    font-weight: 700; 
+    margin: 24px 0 12px; 
+    color: var(--primary); 
+}
+h3 { 
+    font-size: 16px; 
+    font-weight: 600; 
+    margin: 18px 0 8px; 
+}
+p { 
+    margin: 0 0 12px; 
+}
+code { 
+    background: var(--code-bg); 
+    padding: 2px 6px; 
+    border-radius: 4px; 
+    font-family: 'JetBrains Mono', 'Consolas', monospace; 
+    font-size: 13px; 
+}
+pre { 
+    background: var(--code-bg); 
+    padding: 12px; 
+    border-radius: 6px; 
+    overflow-x: auto; 
+    margin: 16px 0; 
+}
+pre code { 
+    background: none; 
+    padding: 0; 
+}
+table { 
+    border-collapse: collapse; 
+    width: 100%; 
+    margin: 16px 0; 
+}
+th, td { 
+    border: 1px solid var(--border); 
+    padding: 8px 12px; 
+    text-align: left; 
+}
+th { 
+    background: var(--code-bg); 
+    font-weight: 600; 
+}
+a { 
+    color: var(--primary); 
+    text-decoration: none; 
+}
+a:hover { 
+    text-decoration: underline; 
+}
+img { 
+    max-width: 100%; 
+    height: auto; 
+    border-radius: 4px; 
+    display: block; 
+    margin: 16px auto; 
+}
+ul, ol { 
+    padding-left: 24px; 
+    margin: 8px 0; 
+}
+li { 
+    margin: 4px 0; 
+}
+hr { 
+    border: none; 
+    border-top: 1px solid var(--border); 
+    margin: 24px 0; 
+}
+blockquote { 
+    border-left: 3px solid var(--primary); 
+    padding-left: 16px; 
+    margin: 16px 0; 
+    color: var(--text-muted); 
+}
+.toc {
+    background: var(--code-bg);
+    padding: 16px;
+    border-radius: 6px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+}
+.toc ul {
+    list-style: none;
+    padding-left: 0;
+}
+.toc li {
+    margin: 4px 0;
+}
+.toc a {
+    text-decoration: none;
+    color: var(--text);
+}
+.toc a:hover {
+    color: var(--primary);
+}
+</style>
+
+</head>
+<body>
+    <div class="toc"><div class="toc">
+<ul>
+<li><a href="#_1">프롬프트 작성</a><ul>
+<li><a href="#_2">프롬프트 구조</a><ul>
+<li><a href="#_3">기본 공식</a></li>
+<li><a href="#_4">구성 요소별 예시</a></li>
+</ul>
+</li>
+<li><a href="#_5">한국어 입력 팁</a><ul>
+<li><a href="#_6">잘 되는 입력 패턴</a></li>
+<li><a href="#_7">피해야 할 패턴</a></li>
+</ul>
+</li>
+<li><a href="#ai">AI 프롬프트 마법사 활용</a><ul>
+<li><a href="#_8">기본 동작</a></li>
+<li><a href="#_9">생성된 프롬프트 수정</a></li>
+<li><a href="#_10">모델별 프롬프트 특성</a></li>
+</ul>
+</li>
+<li><a href="#_11">고급 프롬프트 기법</a><ul>
+<li><a href="#sdxl">가중치 조절 (SDXL 계열)</a></li>
+<li><a href="#sdxl_1">부정 프롬프트 (SDXL 필수)</a></li>
+<li><a href="#_12">프롬프트 템플릿 저장</a></li>
+</ul>
+</li>
+<li><a href="#_13">모델별 추천 프롬프트 패턴</a><ul>
+<li><a href="#flux-zimage">FLUX / ZImage (자연어 친화적)</a></li>
+<li><a href="#z-anime">Z-ANIME 웹툰 스타일</a></li>
+<li><a href="#z-anime_1">Z-ANIME 일본애니 스타일</a></li>
+<li><a href="#sdxl_2">SDXL (태그형)</a></li>
+</ul>
+</li>
+<li><a href="#_14">프롬프트 엔지니어링 체크리스트</a></li>
+<li><a href="#_15">자주 하는 실수</a></li>
+<li><a href="#_16">다음 단계</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+    <h2 id="_1"><a class="toclink" href="#_1">프롬프트 작성</a><a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>좋은 이미지의 핵심은 <strong>좋은 프롬프트</strong>입니다. 이 프로그램은 한국어 아이디어를 AI가 영문 최적 프롬프트로 변환해 주지만, 원리를 알면 더 좋은 결과를 얻을 수 있습니다.</p>
+<h3 id="_2"><a class="toclink" href="#_2">프롬프트 구조</a><a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<h4 id="_3"><a class="toclink" href="#_3">기본 공식</a><a class="headerlink" href="#_3" title="Permanent link">&para;</a></h4>
+<pre><code>[무엇을 그릴지] + [어떤 스타일로] + [분위기/조명/구도/품질 키워드]
+</code></pre>
+<h4 id="_4"><a class="toclink" href="#_4">구성 요소별 예시</a><a class="headerlink" href="#_4" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>요소</th>
+<th>키워드 예시</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>주제</strong></td>
+<td><code>beautiful woman</code>, <code>cyberpunk city</code>, <code>cute cat</code></td>
+<td>핵심 피사체</td>
+</tr>
+<tr>
+<td><strong>스타일</strong></td>
+<td><code>anime style</code>, <code>oil painting</code>, <code>photorealistic</code>, <code>webtoon</code></td>
+<td>화풍</td>
+</tr>
+<tr>
+<td><strong>분위기</strong></td>
+<td><code>cinematic lighting</code>, <code>dark atmosphere</code>, <code>golden hour</code></td>
+<td>무드/조명</td>
+</tr>
+<tr>
+<td><strong>구도</strong></td>
+<td><code>close up</code>, <code>wide angle</code>, <code>depth of field</code>, <code>rule of thirds</code></td>
+<td>카메라 앵글</td>
+</tr>
+<tr>
+<td><strong>품질</strong></td>
+<td><code>8k</code>, <code>masterpiece</code>, <code>highly detailed</code>, <code>sharp focus</code></td>
+<td>해상도/디테일</td>
+</tr>
+<tr>
+<td><strong>기술적</strong></td>
+<td><code>ray tracing</code>, <code>octane render</code>, <code>unreal engine 5</code></td>
+<td>렌더링 힌트</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="_5"><a class="toclink" href="#_5">한국어 입력 팁</a><a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<h4 id="_6"><a class="toclink" href="#_6">잘 되는 입력 패턴</a><a class="headerlink" href="#_6" title="Permanent link">&para;</a></h4>
+<pre><code>✅ &quot;비 오는 날 네온사인 빛나는 사이버펑크 도시, 창가에 앉은 은발 소녀, 영화 같은 조명, 8k&quot;
+✅ &quot;따뜻한 오후 햇살 받는 나무 아래 낮잠 자는 고양이, 부드러운 보카시, 지브리 스타일&quot;
+✅ &quot;전투 중인 판타지 기사, 반짝이는 갑옷, 역동적인 포즈, 에픽한 분위기, 마스터피스&quot;
+</code></pre>
+<h4 id="_7"><a class="toclink" href="#_7">피해야 할 패턴</a><a class="headerlink" href="#_7" title="Permanent link">&para;</a></h4>
+<pre><code>❌ &quot;예쁜 그림 그려줘&quot; (너무 모호)
+❌ &quot;고양이&quot; (스타일/분위기/구도 정보 없음)
+❌ &quot;이쁘게 해줘&quot; (구체적 키워드 없음)
+</code></pre>
+<p><strong>핵심</strong>: <strong>구체적 명사 + 형용사 + 스타일/분위기 키워드</strong> 조합</p>
+<hr />
+<h3 id="ai"><a class="toclink" href="#ai">AI 프롬프트 마법사 활용</a><a class="headerlink" href="#ai" title="Permanent link">&para;</a></h3>
+<h4 id="_8"><a class="toclink" href="#_8">기본 동작</a><a class="headerlink" href="#_8" title="Permanent link">&para;</a></h4>
+<ol>
+<li>한국어 입력 → <code>✨ AI 프롬프트 마법사</code> 클릭</li>
+<li>LM Studio 언어 모델이 분석 → 영문 프롬프트 생성</li>
+<li>하단 <code>생성된 영문 프롬프트</code> 에디터에 결과 표시</li>
+</ol>
+<h4 id="_9"><a class="toclink" href="#_9">생성된 프롬프트 수정</a><a class="headerlink" href="#_9" title="Permanent link">&para;</a></h4>
+<ul>
+<li>에디터에서 <strong>직접 수정 가능</strong> (추가/삭제/순서 변경)</li>
+<li>수정한 내용으로 생성 진행</li>
+<li><code>📋 복사</code> 버튼으로 다른 곳에 재사용 가능</li>
+</ul>
+<h4 id="_10"><a class="toclink" href="#_10">모델별 프롬프트 특성</a><a class="headerlink" href="#_10" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>모델</th>
+<th>프롬프트 스타일</th>
+<th>팁</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>FLUX</strong></td>
+<td>자연어 문장형</td>
+<td>"A beautiful woman standing in..." 처럼 문장으로</td>
+</tr>
+<tr>
+<td><strong>SDXL</strong></td>
+<td>태그형/키워드형</td>
+<td>"beautiful woman, cyberpunk, neon lights, 8k..." 콤마 구분</td>
+</tr>
+<tr>
+<td><strong>Z-ANIME</strong></td>
+<td>태그형 + 스타일 태그</td>
+<td>"webtoon style", "japanime style" 등 스타일 태그 필수</td>
+</tr>
+<tr>
+<td><strong>ZImage</strong></td>
+<td>혼합형</td>
+<td>자연어 + 중요 키워드 콤마 구분</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="_11"><a class="toclink" href="#_11">고급 프롬프트 기법</a><a class="headerlink" href="#_11" title="Permanent link">&para;</a></h3>
+<h4 id="sdxl"><a class="toclink" href="#sdxl">가중치 조절 (SDXL 계열)</a><a class="headerlink" href="#sdxl" title="Permanent link">&para;</a></h4>
+<pre><code>(주제:1.3), (스타일:1.2), 품질태그, 조명태그
+</code></pre>
+<ul>
+<li><code>(keyword:weight)</code> 형식으로 강조/억제</li>
+<li>1.0 = 기본, &gt;1.0 = 강조, &lt;1.0 = 억제</li>
+</ul>
+<h4 id="sdxl_1"><a class="toclink" href="#sdxl_1">부정 프롬프트 (SDXL 필수)</a><a class="headerlink" href="#sdxl_1" title="Permanent link">&para;</a></h4>
+<pre><code>저품질 키워드:
+ugly, deformed, blurry, low quality, bad anatomy, 
+extra limbs, missing fingers, watermark, text, signature,
+cropped, jpeg artifacts, noise, grain
+</code></pre>
+<h4 id="_12"><a class="toclink" href="#_12">프롬프트 템플릿 저장</a><a class="headerlink" href="#_12" title="Permanent link">&para;</a></h4>
+<p>자주 쓰는 조합은 외부 프롬프트 파일(<code>prompts.json</code>)에 저장해 두고 불러오기 가능</p>
+<hr />
+<h3 id="_13"><a class="toclink" href="#_13">모델별 추천 프롬프트 패턴</a><a class="headerlink" href="#_13" title="Permanent link">&para;</a></h3>
+<h4 id="flux-zimage"><a class="toclink" href="#flux-zimage">FLUX / ZImage (자연어 친화적)</a><a class="headerlink" href="#flux-zimage" title="Permanent link">&para;</a></h4>
+<pre><code>&quot;A stunning cyberpunk cityscape at night, neon signs reflecting on wet streets, 
+a silver-haired android girl sitting by the window, cinematic volumetric lighting, 
+hyperrealistic, 8k resolution, masterpiece, sharp focus, ray tracing&quot;
+</code></pre>
+<h4 id="z-anime"><a class="toclink" href="#z-anime">Z-ANIME 웹툰 스타일</a><a class="headerlink" href="#z-anime" title="Permanent link">&para;</a></h4>
+<pre><code>webtoon style, beautiful korean webtoon character, silver hair, 
+cyberpunk city background, neon lights, rain, cinematic lighting, 
+clean lineart, flat shading, vibrant colors, masterpiece, 8k
+</code></pre>
+<h4 id="z-anime_1"><a class="toclink" href="#z-anime_1">Z-ANIME 일본애니 스타일</a><a class="headerlink" href="#z-anime_1" title="Permanent link">&para;</a></h4>
+<pre><code>japanime style, anime key visual, beautiful anime girl, silver hair, 
+cyberpunk cityscape, neon signs, rain, dramatic lighting, 
+cel shading, detailed background, 8k, masterpiece, high quality
+</code></pre>
+<h4 id="sdxl_2"><a class="toclink" href="#sdxl_2">SDXL (태그형)</a><a class="headerlink" href="#sdxl_2" title="Permanent link">&para;</a></h4>
+<pre><code>masterpiece, best quality, ultra high res, 8k, photorealistic,
+beautiful woman, silver hair, cyberpunk city, neon lights, rain,
+cinematic lighting, volumetric fog, ray tracing, sharp focus,
+detailed skin texture, depth of field
+</code></pre>
+<hr />
+<h3 id="_14"><a class="toclink" href="#_14">프롬프트 엔지니어링 체크리스트</a><a class="headerlink" href="#_14" title="Permanent link">&para;</a></h3>
+<p>생성 전 확인사항:
+- [ ] 주제가 명확한가? (무엇을 그릴지)
+- [ ] 스타일이 지정되었나? (웹툰/애니/실사/유화 등)
+- [ ] 분위기/조명 키워드가 있는가? (시네마틱/따뜻한/어두운/밝은)
+- [ ] 구도 키워드가 있는가? (클로즈업/전신/풍경/앵글)
+- [ ] 품질 태그가 있는가? (8k, 마스터피스, 샤프포커스 등)
+- [ ] 부정 프롬프트가 필요한 모델인가? (SDXL 계열)</p>
+<hr />
+<h3 id="_15"><a class="toclink" href="#_15">자주 하는 실수</a><a class="headerlink" href="#_15" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>실수</th>
+<th>해결</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>한국어를 영문으로 직역</td>
+<td>AI 마법사 믿고 맡기기, 필요시만 수정</td>
+</tr>
+<tr>
+<td>품질 태그 생략</td>
+<td><code>masterpiece, best quality, 8k</code> 필수 추가</td>
+</tr>
+<tr>
+<td>부정 프롬프트 안 씀 (SDXL)</td>
+<td>기본 부정 프롬프트라도 꼭 넣기</td>
+</tr>
+<tr>
+<td>너무 많은 키워드 나열</td>
+<td>핵심 10~15개 내외로 정리</td>
+</tr>
+<tr>
+<td>모델 특성 무시</td>
+<td>모델별 권장 프롬프트 형식 따르기</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="_16"><a class="toclink" href="#_16">다음 단계</a><a class="headerlink" href="#_16" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="05_generation_options.html">이미지 생성 옵션</a> - 파라미터로 품질 제어</li>
+<li><a href="06_facedetailer.html">FaceDetailer 얼굴 보정</a> - 얼굴 디테일 살리기</li>
+<li><a href="03_model_settings.html">모델 설정</a> - 모델별 특성 이해</li>
+</ul>
+</body>
+</html>

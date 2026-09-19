@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이미지 생성 옵션</title>
+    
+<style>
+:root { 
+    --text: #1a1a1a; 
+    --text-muted: #555; 
+    --primary: #0078d4; 
+    --bg: #ffffff; 
+    --code-bg: #f4f4f4; 
+    --border: #e0e0e0; 
+    --header-border: #e0e0e0;
+}
+[data-theme="dark"] { 
+    --text: #e0e0e0; 
+    --text-muted: #aaa; 
+    --primary: #60a5fa;
+    --bg: #1e1e1e; 
+    --code-bg: #2d2d2d; 
+    --border: #333; 
+    --header-border: #333;
+}
+body { 
+    font-family: 'Pretendard', 'Noto Sans KR', system-ui; 
+    font-size: 14px; 
+    line-height: 1.6; 
+    color: var(--text); 
+    background: var(--bg); 
+    padding: 24px; 
+    max-width: 720px; 
+    margin: 0 auto; 
+}
+h1 { 
+    font-size: 24px; 
+    font-weight: 700; 
+    margin: 0 0 16px; 
+    padding-bottom: 8px; 
+    border-bottom: 1px solid var(--header-border); 
+}
+h2 { 
+    font-size: 20px; 
+    font-weight: 700; 
+    margin: 24px 0 12px; 
+    color: var(--primary); 
+}
+h3 { 
+    font-size: 16px; 
+    font-weight: 600; 
+    margin: 18px 0 8px; 
+}
+p { 
+    margin: 0 0 12px; 
+}
+code { 
+    background: var(--code-bg); 
+    padding: 2px 6px; 
+    border-radius: 4px; 
+    font-family: 'JetBrains Mono', 'Consolas', monospace; 
+    font-size: 13px; 
+}
+pre { 
+    background: var(--code-bg); 
+    padding: 12px; 
+    border-radius: 6px; 
+    overflow-x: auto; 
+    margin: 16px 0; 
+}
+pre code { 
+    background: none; 
+    padding: 0; 
+}
+table { 
+    border-collapse: collapse; 
+    width: 100%; 
+    margin: 16px 0; 
+}
+th, td { 
+    border: 1px solid var(--border); 
+    padding: 8px 12px; 
+    text-align: left; 
+}
+th { 
+    background: var(--code-bg); 
+    font-weight: 600; 
+}
+a { 
+    color: var(--primary); 
+    text-decoration: none; 
+}
+a:hover { 
+    text-decoration: underline; 
+}
+img { 
+    max-width: 100%; 
+    height: auto; 
+    border-radius: 4px; 
+    display: block; 
+    margin: 16px auto; 
+}
+ul, ol { 
+    padding-left: 24px; 
+    margin: 8px 0; 
+}
+li { 
+    margin: 4px 0; 
+}
+hr { 
+    border: none; 
+    border-top: 1px solid var(--border); 
+    margin: 24px 0; 
+}
+blockquote { 
+    border-left: 3px solid var(--primary); 
+    padding-left: 16px; 
+    margin: 16px 0; 
+    color: var(--text-muted); 
+}
+.toc {
+    background: var(--code-bg);
+    padding: 16px;
+    border-radius: 6px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+}
+.toc ul {
+    list-style: none;
+    padding-left: 0;
+}
+.toc li {
+    margin: 4px 0;
+}
+.toc a {
+    text-decoration: none;
+    color: var(--text);
+}
+.toc a:hover {
+    color: var(--primary);
+}
+</style>
+
+</head>
+<body>
+    <div class="toc"><div class="toc">
+<ul>
+<li><a href="#_1">이미지 생성 옵션</a><ul>
+<li><a href="#_2">핵심 파라미터</a><ul>
+<li><a href="#steps">Steps (샘플링 스텝)</a></li>
+<li><a href="#cfg-scale-classifier-free-guidance">CFG Scale (Classifier-Free Guidance)</a></li>
+<li><a href="#sampler">Sampler (샘플러)</a></li>
+<li><a href="#scheduler">Scheduler (노이즈 스케줄러)</a></li>
+</ul>
+</li>
+<li><a href="#_3">해상도와 비율</a><ul>
+<li><a href="#_4">권장 해상도 (모델별)</a></li>
+<li><a href="#_5">프리셋 비율</a></li>
+</ul>
+</li>
+<li><a href="#_6">고급 설정</a><ul>
+<li><a href="#seed">Seed (시드)</a></li>
+<li><a href="#denoise-strength">Denoise Strength (디노이즈)</a></li>
+</ul>
+</li>
+<li><a href="#_7">모델별 추천 설정 요약</a><ul>
+<li><a href="#flux-gguf">FLUX (GGUF 포함)</a></li>
+<li><a href="#z-anime">Z-ANIME (웹툰/일본애니)</a></li>
+<li><a href="#zimage-turbobase">ZImage (Turbo/Base)</a></li>
+<li><a href="#sdxl">SDXL</a></li>
+<li><a href="#sd-15">SD 1.5</a></li>
+</ul>
+</li>
+<li><a href="#vs">성능 vs 품질 트레이드오프</a><ul>
+<li><a href="#_8">빠르게 테스트하려면</a></li>
+<li><a href="#_9">최고 품질로 뽑으려면</a></li>
+<li><a href="#vram">VRAM 절약하려면</a></li>
+</ul>
+</li>
+<li><a href="#_10">파라미터 조합 예시</a><ul>
+<li><a href="#z-anime_1">일러스트/캐릭터 (Z-ANIME 웹툰)</a></li>
+<li><a href="#flux">실사/포토리얼 (FLUX)</a></li>
+<li><a href="#sdxl_1">애니메이션/일러스트 (SDXL)</a></li>
+</ul>
+</li>
+<li><a href="#_11">문제 해결</a></li>
+<li><a href="#_12">다음 단계</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+    <h2 id="_1"><a class="toclink" href="#_1">이미지 생성 옵션</a><a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>생성 품질과 속도를 결정하는 핵심 파라미터들을 설명합니다. 모델 프로파일로 자동 적용되지만, 이해하고 직접 조정하면 더 좋은 결과를 얻을 수 있습니다.</p>
+<h3 id="_2"><a class="toclink" href="#_2">핵심 파라미터</a><a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<h4 id="steps"><a class="toclink" href="#steps">Steps (샘플링 스텝)</a><a class="headerlink" href="#steps" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>값</th>
+<th>효과</th>
+<th>추천</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10~15</td>
+<td>빠름, 거친 결과</td>
+<td>테스트용</td>
+</tr>
+<tr>
+<td><strong>20~30</strong></td>
+<td><strong>균형 (기본)</strong></td>
+<td><strong>대부분 상황</strong></td>
+</tr>
+<tr>
+<td>40~50</td>
+<td>느림, 매우 정교</td>
+<td>최종 고품질 생성</td>
+</tr>
+<tr>
+<td>50+</td>
+<td>매우 느림, 한계효과</td>
+<td>특수 목적</td>
+</tr>
+</tbody>
+</table>
+<p><strong>모델별 기본값</strong>: FLUX=20, SDXL=25, Z-ANIME=20, ZImage=15~20</p>
+<h4 id="cfg-scale-classifier-free-guidance"><a class="toclink" href="#cfg-scale-classifier-free-guidance">CFG Scale (Classifier-Free Guidance)</a><a class="headerlink" href="#cfg-scale-classifier-free-guidance" title="Permanent link">&para;</a></h4>
+<p>프롬프트를 얼마나 강하게 따를지 제어</p>
+<table>
+<thead>
+<tr>
+<th>값</th>
+<th>효과</th>
+<th>추천</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.0~2.0</td>
+<td>프롬프트 느슨함, 창의적</td>
+<td>FLUX 계열</td>
+</tr>
+<tr>
+<td><strong>3.5~7.0</strong></td>
+<td><strong>균형 (기본)</strong></td>
+<td><strong>SDXL, Z-ANIME</strong></td>
+</tr>
+<tr>
+<td>7.0~12.0</td>
+<td>프롬프트 엄격, 인위적 가능</td>
+<td>강한 스타일 강요 시</td>
+</tr>
+<tr>
+<td>12+</td>
+<td>과도, 아티팩트 발생</td>
+<td>비추천</td>
+</tr>
+</tbody>
+</table>
+<p><strong>모델별 기본값</strong>: FLUX=1.0, SDXL=7.0, Z-ANIME=4.0~5.0, ZImage=3.5</p>
+<h4 id="sampler"><a class="toclink" href="#sampler">Sampler (샘플러)</a><a class="headerlink" href="#sampler" title="Permanent link">&para;</a></h4>
+<p>노이즈에서 이미지를 복원하는 알고리즘</p>
+<table>
+<thead>
+<tr>
+<th>샘플러</th>
+<th>특징</th>
+<th>추천 모델</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>DPM++ 2M</strong></td>
+<td>빠름, 안정적, 범용</td>
+<td>거의 모든 모델</td>
+</tr>
+<tr>
+<td><strong>DPM++ 2M Karras</strong></td>
+<td>Karras 노이즈 스케줄, 품질↑</td>
+<td>SDXL, SD1.5</td>
+</tr>
+<tr>
+<td><strong>Euler a</strong></td>
+<td>빠름, 확률적, 다양성</td>
+<td>SD1.5, 애니메이션</td>
+</tr>
+<tr>
+<td><strong>Euler</strong></td>
+<td>결정론적, 재현성 좋음</td>
+<td>테스트/비교</td>
+</tr>
+<tr>
+<td><strong>DDIM</strong></td>
+<td>결정론적, img2img 적합</td>
+<td>img2img, 인페인팅</td>
+</tr>
+<tr>
+<td><strong>UniPC</strong></td>
+<td>매우 빠름, 적은 스텝</td>
+<td>FLUX, 빠른 생성</td>
+</tr>
+</tbody>
+</table>
+<h4 id="scheduler"><a class="toclink" href="#scheduler">Scheduler (노이즈 스케줄러)</a><a class="headerlink" href="#scheduler" title="Permanent link">&para;</a></h4>
+<p>스텝별 노이즈 감소 곡선</p>
+<table>
+<thead>
+<tr>
+<th>스케줄러</th>
+<th>특징</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>normal</strong></td>
+<td>표준, 범용</td>
+</tr>
+<tr>
+<td><strong>karras</strong></td>
+<td>후반부 노이즈 더 정교, 품질↑ (추천)</td>
+</tr>
+<tr>
+<td><strong>exponential</strong></td>
+<td>지수적 감소</td>
+</tr>
+<tr>
+<td><strong>sgm_uniform</strong></td>
+<td>SDXL 공식 권장</td>
+</tr>
+<tr>
+<td><strong>ddim_uniform</strong></td>
+<td>DDIM 샘플러용</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="_3"><a class="toclink" href="#_3">해상도와 비율</a><a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<h4 id="_4"><a class="toclink" href="#_4">권장 해상도 (모델별)</a><a class="headerlink" href="#_4" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>모델</th>
+<th>기본</th>
+<th>최대</th>
+<th>배수</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>FLUX</strong></td>
+<td>1024×1024</td>
+<td>1536×1536</td>
+<td>64</td>
+</tr>
+<tr>
+<td><strong>SDXL</strong></td>
+<td>1024×1024</td>
+<td>2048×2048</td>
+<td>64</td>
+</tr>
+<tr>
+<td><strong>Z-ANIME</strong></td>
+<td>896×1152</td>
+<td>1152×1536</td>
+<td>64</td>
+</tr>
+<tr>
+<td><strong>ZImage</strong></td>
+<td>1024×1024</td>
+<td>1536×1536</td>
+<td>64</td>
+</tr>
+<tr>
+<td><strong>SD 1.5</strong></td>
+<td>512×512</td>
+<td>768×768</td>
+<td>64</td>
+</tr>
+</tbody>
+</table>
+<p><strong>중요</strong>: 가로/세로는 <strong>64의 배수</strong>여야 합니다 (VAE 압축 단위).</p>
+<h4 id="_5"><a class="toclink" href="#_5">프리셋 비율</a><a class="headerlink" href="#_5" title="Permanent link">&para;</a></h4>
+<pre><code>□ 정사각 (1:1)     1024×1024  - 프로필, 썸네일, 정방형 구성
+▯ 세로형 (9:16) ★  896×1152   - 모바일 배경, 세로 일러스트, 만화 컷
+▭ 와이드 (16:9)    1152×896   - 모니터 배경, 풍경, 시네마틱
+</code></pre>
+<hr />
+<h3 id="_6"><a class="toclink" href="#_6">고급 설정</a><a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<h4 id="seed"><a class="toclink" href="#seed">Seed (시드)</a><a class="headerlink" href="#seed" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>-1</strong>: 완전 랜덤 (매번 다른 결과)</li>
+<li><strong>고정값</strong>: 같은 프롬프트/설정으로 <strong>동일 결과 재현</strong></li>
+<li><strong>🔒 고정 토글</strong>: 시드값 잠금 (다음 생성에도 유지)</li>
+<li><strong>활용</strong>: 캐릭터/구도 고정하며 프롬프트만 수정할 때</li>
+</ul>
+<h4 id="denoise-strength"><a class="toclink" href="#denoise-strength">Denoise Strength (디노이즈)</a><a class="headerlink" href="#denoise-strength" title="Permanent link">&para;</a></h4>
+<p>img2img / 인페인팅 시 원본 이미지 유지 비율</p>
+<table>
+<thead>
+<tr>
+<th>값</th>
+<th>효과</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1.0</strong></td>
+<td>완전 새로 생성 (txt2img 동일)</td>
+</tr>
+<tr>
+<td>0.7~0.9</td>
+<td>원본 구조 유지하며 디테일 변경</td>
+</tr>
+<tr>
+<td>0.4~0.6</td>
+<td>원본 강하게 유지, 스타일만 변경</td>
+</tr>
+<tr>
+<td>0.1~0.3</td>
+<td>미세 보정만</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="_7"><a class="toclink" href="#_7">모델별 추천 설정 요약</a><a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<h4 id="flux-gguf"><a class="toclink" href="#flux-gguf">FLUX (GGUF 포함)</a><a class="headerlink" href="#flux-gguf" title="Permanent link">&para;</a></h4>
+<pre><code>Steps: 20~25
+CFG: 1.0~3.5 (낮게!)
+Sampler: DPM++ 2M / UniPC
+Scheduler: normal / sgm_uniform
+Denoise: 1.0
+해상도: 1024×1024 ~ 1536×1536
+</code></pre>
+<p><strong>특징</strong>: CFG 낮게, 자연어 프롬프트, 네거티브 불필요</p>
+<h4 id="z-anime"><a class="toclink" href="#z-anime">Z-ANIME (웹툰/일본애니)</a><a class="headerlink" href="#z-anime" title="Permanent link">&para;</a></h4>
+<pre><code>Steps: 20~25
+CFG: 4.0~5.0
+Sampler: DPM++ 2M Karras / Euler a
+Scheduler: karras
+Denoise: 1.0
+해상도: 896×1152 (세로) / 1152×896 (가로)
+스타일: 웹툰/일본애니/기본 필수 선택
+</code></pre>
+<p><strong>특징</strong>: 스타일 버튼 선택 필수, CFG 중간</p>
+<h4 id="zimage-turbobase"><a class="toclink" href="#zimage-turbobase">ZImage (Turbo/Base)</a><a class="headerlink" href="#zimage-turbobase" title="Permanent link">&para;</a></h4>
+<pre><code>Steps: 15~20 (Turbo는 더 적게)
+CFG: 3.5~4.5
+Sampler: DPM++ 2M / UniPC
+Scheduler: normal
+Denoise: 1.0
+해상도: 1024×1024 ~ 1536×1536
+</code></pre>
+<p><strong>특징</strong>: 고속 생성, FLUX 계열과 유사</p>
+<h4 id="sdxl"><a class="toclink" href="#sdxl">SDXL</a><a class="headerlink" href="#sdxl" title="Permanent link">&para;</a></h4>
+<pre><code>Steps: 25~30
+CFG: 6.0~7.5
+Sampler: DPM++ 2M Karras / DPM++ 3M SDE
+Scheduler: karras / sgm_uniform
+Denoise: 1.0
+해상도: 1024×1024 ~ 2048×2048
+부정 프롬프트: 필수
+</code></pre>
+<p><strong>특징</strong>: CFG 높게, 부정 프롬프트 필수, Karras 스케줄러 권장</p>
+<h4 id="sd-15"><a class="toclink" href="#sd-15">SD 1.5</a><a class="headerlink" href="#sd-15" title="Permanent link">&para;</a></h4>
+<pre><code>Steps: 20~30
+CFG: 7.0~8.0
+Sampler: DPM++ 2M Karras / Euler a
+Scheduler: karras
+Denoise: 1.0
+해상도: 512×512 ~ 768×768
+</code></pre>
+<p><strong>특징</strong>: 저해상도, 하이레즈 픽스 별도 필요</p>
+<hr />
+<h3 id="vs"><a class="toclink" href="#vs">성능 vs 품질 트레이드오프</a><a class="headerlink" href="#vs" title="Permanent link">&para;</a></h3>
+<h4 id="_8"><a class="toclink" href="#_8">빠르게 테스트하려면</a><a class="headerlink" href="#_8" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Steps: 15~20</li>
+<li>해상도: 512×512 또는 768×768</li>
+<li>FaceDetailer: OFF</li>
+<li>Sampler: Euler a / UniPC</li>
+</ul>
+<h4 id="_9"><a class="toclink" href="#_9">최고 품질로 뽑으려면</a><a class="headerlink" href="#_9" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Steps: 40~50</li>
+<li>해상도: 모델 최대 지원 해상도</li>
+<li>FaceDetailer: ON (얼굴 있는 경우)</li>
+<li>Sampler: DPM++ 2M Karras / DPM++ 3M SDE</li>
+<li>Scheduler: karras</li>
+</ul>
+<h4 id="vram"><a class="toclink" href="#vram">VRAM 절약하려면</a><a class="headerlink" href="#vram" title="Permanent link">&para;</a></h4>
+<ul>
+<li>GGUF 양자화 모델 사용 (Q4_K_S)</li>
+<li>해상도 낮추기</li>
+<li>Steps 줄이기</li>
+<li>FaceDetailer 끄기</li>
+<li>xformers / SDP 어텐션 활성화 (ComfyUI 설정)</li>
+</ul>
+<hr />
+<h3 id="_10"><a class="toclink" href="#_10">파라미터 조합 예시</a><a class="headerlink" href="#_10" title="Permanent link">&para;</a></h3>
+<h4 id="z-anime_1"><a class="toclink" href="#z-anime_1">일러스트/캐릭터 (Z-ANIME 웹툰)</a><a class="headerlink" href="#z-anime_1" title="Permanent link">&para;</a></h4>
+<pre><code>모델: z_anime_base
+스타일: 웹툰
+Steps: 25
+CFG: 4.5
+Sampler: DPM++ 2M Karras
+Scheduler: karras
+해상도: 896×1152
+FaceDetailer: ON (기본값)
+</code></pre>
+<h4 id="flux"><a class="toclink" href="#flux">실사/포토리얼 (FLUX)</a><a class="headerlink" href="#flux" title="Permanent link">&para;</a></h4>
+<pre><code>모델: flux1-dev-Q4_K_S
+Steps: 20
+CFG: 2.5
+Sampler: UniPC
+Scheduler: normal
+해상도: 1024×1024
+FaceDetailer: ON (Denoise 0.3~0.4)
+</code></pre>
+<h4 id="sdxl_1"><a class="toclink" href="#sdxl_1">애니메이션/일러스트 (SDXL)</a><a class="headerlink" href="#sdxl_1" title="Permanent link">&para;</a></h4>
+<pre><code>모델: animagineXL
+Steps: 30
+CFG: 7.0
+Sampler: DPM++ 2M Karras
+Scheduler: karras
+해상도: 896×1152
+부정 프롬프트: (기본 품질 저하 키워드)
+FaceDetailer: ON
+</code></pre>
+<hr />
+<h3 id="_11"><a class="toclink" href="#_11">문제 해결</a><a class="headerlink" href="#_11" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>증상</th>
+<th>원인</th>
+<th>해결</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>이미지 깨짐/노이즈</td>
+<td>Steps 부족 / CFG 과도</td>
+<td>Steps↑, CFG↓</td>
+</tr>
+<tr>
+<td>프롬프트 무시됨</td>
+<td>CFG 너무 낮음</td>
+<td>CFG↑ (모델 권장값으로)</td>
+</tr>
+<tr>
+<td>기괴한 얼굴/손</td>
+<td>모델 한계 / Steps 부족</td>
+<td>FaceDetailer ON, Steps↑</td>
+</tr>
+<tr>
+<td>너무 느림</td>
+<td>해상도 높음 / Steps 과다</td>
+<td>해상도↓, Steps↓, GGUF 모델</td>
+</tr>
+<tr>
+<td>VRAM OOM</td>
+<td>해상도/배치/모델 크기</td>
+<td>해상도↓, GGUF, FaceDetailer OFF</td>
+</tr>
+<tr>
+<td>같은 시드인데 결과 다름</td>
+<td>설정 변경됨 / 비결정론적 샘플러</td>
+<td>Euler/DDIM 사용, 설정 고정 확인</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="_12"><a class="toclink" href="#_12">다음 단계</a><a class="headerlink" href="#_12" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="06_facedetailer.html">FaceDetailer 얼굴 보정</a> - 얼굴 디테일 전문 보정</li>
+<li><a href="03_model_settings.html">모델 설정</a> - 모델별 프로파일 상세</li>
+<li><a href="04_prompt_writing.html">프롬프트 작성</a> - 프롬프트로 품질 제어</li>
+</ul>
+</body>
+</html>

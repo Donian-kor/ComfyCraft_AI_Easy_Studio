@@ -121,8 +121,15 @@ class PromptsConfig:
     system_prompt_flux_kr: str = ""    
     system_prompt_sdxl_en: str = ""
     system_prompt_sdxl_kr: str = ""
+    system_prompt_zanime_webtoon_en: str = ""
+    system_prompt_zanime_webtoon_kr: str = ""
+    system_prompt_zanime_anime_en: str = ""
+    system_prompt_zanime_anime_kr: str = ""
+    system_prompt_zanime_basic_en: str = ""
+    system_prompt_zanime_basic_kr: str = ""
     negative_default: str = ""
     use_korean_prompt: bool = False
+    zanime_style: str = ""
 
 
 @dataclass
@@ -223,8 +230,15 @@ class ConfigManager:
             system_prompt_flux_kr=ext_prompts.get("system_prompt_flux_kr", ""),
             system_prompt_sdxl_en=ext_prompts.get("system_prompt_sdxl_en", ""),
             system_prompt_sdxl_kr=ext_prompts.get("system_prompt_sdxl_kr", ""),
+            system_prompt_zanime_webtoon_en=ext_prompts.get("system_prompt_zanime_webtoon_en", ""),
+            system_prompt_zanime_webtoon_kr=ext_prompts.get("system_prompt_zanime_webtoon_kr", ""),
+            system_prompt_zanime_anime_en=ext_prompts.get("system_prompt_zanime_anime_en", ""),
+            system_prompt_zanime_anime_kr=ext_prompts.get("system_prompt_zanime_anime_kr", ""),
+            system_prompt_zanime_basic_en=ext_prompts.get("system_prompt_zanime_basic_en", ""),
+            system_prompt_zanime_basic_kr=ext_prompts.get("system_prompt_zanime_basic_kr", ""),
             negative_default=ext_prompts.get("negative_default", ""),
             use_korean_prompt=prompt_raw.get("use_korean_prompt", True),
+            zanime_style=prompt_raw.get("zanime_style", ""),
         )
   
         # 워크플로우 설정
@@ -385,6 +399,7 @@ class ConfigManager:
             "prompts": {
                 # 프롬프트 설정은 prompt.json에서 관리하므로 use_korean_prompt만 저장
                 "use_korean_prompt": config.prompts.use_korean_prompt,
+                "zanime_style": config.prompts.zanime_style,
             },
             "workflow": {
                 "checkpoint_template": config.workflow.checkpoint_template,

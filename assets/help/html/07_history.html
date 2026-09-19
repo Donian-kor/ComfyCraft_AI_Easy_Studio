@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>히스토리/썸네일</title>
+    
+<style>
+:root { 
+    --text: #1a1a1a; 
+    --text-muted: #555; 
+    --primary: #0078d4; 
+    --bg: #ffffff; 
+    --code-bg: #f4f4f4; 
+    --border: #e0e0e0; 
+    --header-border: #e0e0e0;
+}
+[data-theme="dark"] { 
+    --text: #e0e0e0; 
+    --text-muted: #aaa; 
+    --primary: #60a5fa;
+    --bg: #1e1e1e; 
+    --code-bg: #2d2d2d; 
+    --border: #333; 
+    --header-border: #333;
+}
+body { 
+    font-family: 'Pretendard', 'Noto Sans KR', system-ui; 
+    font-size: 14px; 
+    line-height: 1.6; 
+    color: var(--text); 
+    background: var(--bg); 
+    padding: 24px; 
+    max-width: 720px; 
+    margin: 0 auto; 
+}
+h1 { 
+    font-size: 24px; 
+    font-weight: 700; 
+    margin: 0 0 16px; 
+    padding-bottom: 8px; 
+    border-bottom: 1px solid var(--header-border); 
+}
+h2 { 
+    font-size: 20px; 
+    font-weight: 700; 
+    margin: 24px 0 12px; 
+    color: var(--primary); 
+}
+h3 { 
+    font-size: 16px; 
+    font-weight: 600; 
+    margin: 18px 0 8px; 
+}
+p { 
+    margin: 0 0 12px; 
+}
+code { 
+    background: var(--code-bg); 
+    padding: 2px 6px; 
+    border-radius: 4px; 
+    font-family: 'JetBrains Mono', 'Consolas', monospace; 
+    font-size: 13px; 
+}
+pre { 
+    background: var(--code-bg); 
+    padding: 12px; 
+    border-radius: 6px; 
+    overflow-x: auto; 
+    margin: 16px 0; 
+}
+pre code { 
+    background: none; 
+    padding: 0; 
+}
+table { 
+    border-collapse: collapse; 
+    width: 100%; 
+    margin: 16px 0; 
+}
+th, td { 
+    border: 1px solid var(--border); 
+    padding: 8px 12px; 
+    text-align: left; 
+}
+th { 
+    background: var(--code-bg); 
+    font-weight: 600; 
+}
+a { 
+    color: var(--primary); 
+    text-decoration: none; 
+}
+a:hover { 
+    text-decoration: underline; 
+}
+img { 
+    max-width: 100%; 
+    height: auto; 
+    border-radius: 4px; 
+    display: block; 
+    margin: 16px auto; 
+}
+ul, ol { 
+    padding-left: 24px; 
+    margin: 8px 0; 
+}
+li { 
+    margin: 4px 0; 
+}
+hr { 
+    border: none; 
+    border-top: 1px solid var(--border); 
+    margin: 24px 0; 
+}
+blockquote { 
+    border-left: 3px solid var(--primary); 
+    padding-left: 16px; 
+    margin: 16px 0; 
+    color: var(--text-muted); 
+}
+.toc {
+    background: var(--code-bg);
+    padding: 16px;
+    border-radius: 6px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+}
+.toc ul {
+    list-style: none;
+    padding-left: 0;
+}
+.toc li {
+    margin: 4px 0;
+}
+.toc a {
+    text-decoration: none;
+    color: var(--text);
+}
+.toc a:hover {
+    color: var(--primary);
+}
+</style>
+
+</head>
+<body>
+    <div class="toc"><div class="toc">
+<ul>
+<li><a href="#_1">히스토리/썸네일</a><ul>
+<li><a href="#_2">히스토리 패널 구조</a></li>
+<li><a href="#_3">자동 저장되는 정보</a></li>
+<li><a href="#_4">사용법</a><ul>
+<li><a href="#_5">썸네일 클릭 → 설정 복원</a></li>
+<li><a href="#_6">썸네일 삭제</a></li>
+<li><a href="#_7">히스토리 초기화</a></li>
+</ul>
+</li>
+<li><a href="#_8">활용 시나리오</a><ul>
+<li><a href="#1">1. 마음에 드는 결과 조금 수정해서 다시 뽑기</a></li>
+<li><a href="#2">2. 시드 고정으로 캐릭터 고정하며 포즈 변경</a></li>
+<li><a href="#3-facedetailer">3. FaceDetailer 설정 비교</a></li>
+<li><a href="#4">4. 다른 모델로 같은 프롬프트 테스트</a></li>
+<li><a href="#5">5. 프롬프트 재사용</a></li>
+</ul>
+</li>
+<li><a href="#_9">제한사항</a></li>
+<li><a href="#_10">출력 폴더와의 관계</a></li>
+<li><a href="#_11">키보드 단축키</a></li>
+<li><a href="#_12">다음 단계</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+    <h2 id="_1"><a class="toclink" href="#_1">히스토리/썸네일</a><a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>최근 생성한 이미지 4개를 <strong>우측 썸네일 패널</strong>에 자동 저장하고, 클릭 한 번으로 당시 설정을 완전히 복원할 수 있습니다.</p>
+<h3 id="_2"><a class="toclink" href="#_2">히스토리 패널 구조</a><a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<pre><code>┌─────────────────────────────────────┐
+│  📜 생성 히스토리 (최근 4개)          │
+├─────────────────────────────────────┤
+│  [썸네일 1]  [썸네일 2]              │
+│  [썸네일 3]  [썸네일 4]              │
+│                                     │
+│  각 썸네일 우측: × 삭제 버튼         │
+└─────────────────────────────────────┘
+</code></pre>
+<h3 id="_3"><a class="toclink" href="#_3">자동 저장되는 정보</a><a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<p>썸네일 클릭 시 <strong>다음 모든 설정 복원</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>복원 항목</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>이미지</strong></td>
+<td>생성된 결과 이미지 표시</td>
+</tr>
+<tr>
+<td><strong>한국어 프롬프트</strong></td>
+<td>1단계 입력한 원본 아이디어</td>
+</tr>
+<tr>
+<td><strong>영문 프롬프트</strong></td>
+<td>AI 마법사로 생성/수정한 프롬프트</td>
+</tr>
+<tr>
+<td><strong>부정 프롬프트</strong></td>
+<td>입력된 부정 프롬프트 (SDXL용)</td>
+</tr>
+<tr>
+<td><strong>ComfyUI 모델</strong></td>
+<td>사용한 생성 모델</td>
+</tr>
+<tr>
+<td><strong>해상도</strong></td>
+<td>Width × Height</td>
+</tr>
+<tr>
+<td><strong>시드</strong></td>
+<td>사용된 시드값 (고정 시 재현 가능)</td>
+</tr>
+<tr>
+<td><strong>Steps / CFG</strong></td>
+<td>생성 파라미터</td>
+</tr>
+<tr>
+<td><strong>Sampler / Scheduler</strong></td>
+<td>샘플러 설정</td>
+</tr>
+<tr>
+<td><strong>Denoise</strong></td>
+<td>디노이즈 강도</td>
+</tr>
+<tr>
+<td><strong>FaceDetailer 설정</strong></td>
+<td>켜짐/꺼짐 + 17개 세부 옵션 전체</td>
+</tr>
+<tr>
+<td><strong>Z-ANIME 스타일</strong></td>
+<td>웹툰/일본애니/기본 선택 상태</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="_4"><a class="toclink" href="#_4">사용법</a><a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<h4 id="_5"><a class="toclink" href="#_5">썸네일 클릭 → 설정 복원</a><a class="headerlink" href="#_5" title="Permanent link">&para;</a></h4>
+<ol>
+<li>우측 패널에서 원하는 썸네일 <strong>클릭</strong></li>
+<li>메인 화면의 모든 입력창/설정이 <strong>자동으로 당시 값으로 변경</strong></li>
+<li>즉시 <code>생성 시작</code> 눌러 <strong>같은 조건으로 재생성</strong> 가능</li>
+</ol>
+<h4 id="_6"><a class="toclink" href="#_6">썸네일 삭제</a><a class="headerlink" href="#_6" title="Permanent link">&para;</a></h4>
+<ul>
+<li>썸네일 우측 상단 <code>×</code> 버튼 클릭</li>
+<li>개별 삭제 가능, 빈 슬롯은 다음 생성 시 채워짐</li>
+</ul>
+<h4 id="_7"><a class="toclink" href="#_7">히스토리 초기화</a><a class="headerlink" href="#_7" title="Permanent link">&para;</a></h4>
+<ul>
+<li>프로그램 재시작 시 히스토리 초기화됨</li>
+<li>영구 저장은 <code>이미지 저장</code> 버튼으로 파일로 보관</li>
+</ul>
+<hr />
+<h3 id="_8"><a class="toclink" href="#_8">활용 시나리오</a><a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
+<h4 id="1"><a class="toclink" href="#1">1. 마음에 드는 결과 조금 수정해서 다시 뽑기</a><a class="headerlink" href="#1" title="Permanent link">&para;</a></h4>
+<pre><code>썸네일 클릭 → 프롬프트 살짝 수정 → 생성 시작
+→ 구도/캐릭터 유지하며 디테일만 변경
+</code></pre>
+<h4 id="2"><a class="toclink" href="#2">2. 시드 고정으로 캐릭터 고정하며 포즈 변경</a><a class="headerlink" href="#2" title="Permanent link">&para;</a></h4>
+<pre><code>썸네일 클릭 → 🔒 시드 고정 토글 ON → 프롬프트에서 포즈 키워드만 변경 → 생성
+→ 같은 캐릭터, 다른 포즈/표정 생성
+</code></pre>
+<h4 id="3-facedetailer"><a class="toclink" href="#3-facedetailer">3. FaceDetailer 설정 비교</a><a class="headerlink" href="#3-facedetailer" title="Permanent link">&para;</a></h4>
+<pre><code>썸네일 클릭 (FaceDetailer OFF) → 생성 → 결과 확인
+썸네일 클릭 (FaceDetailer ON)  → 생성 → 결과 비교
+→ 보정 전후 바로 비교 가능
+</code></pre>
+<h4 id="4"><a class="toclink" href="#4">4. 다른 모델로 같은 프롬프트 테스트</a><a class="headerlink" href="#4" title="Permanent link">&para;</a></h4>
+<pre><code>썸네일 클릭 → ComfyUI 모델만 변경 → 생성 시작
+→ 같은 프롬프트로 모델별 스타일 비교
+</code></pre>
+<h4 id="5"><a class="toclink" href="#5">5. 프롬프트 재사용</a><a class="headerlink" href="#5" title="Permanent link">&para;</a></h4>
+<pre><code>썸네일 클릭 → 📋 프롬프트 복사 → 새 탭/메모장에 붙여넣기
+→ 나중에 다른 프로젝트에서 활용
+</code></pre>
+<hr />
+<h3 id="_9"><a class="toclink" href="#_9">제한사항</a><a class="headerlink" href="#_9" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>제한</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>저장 개수</strong></td>
+<td>최대 4개 (FIFO, 5번째부터 가장 오래된 것 삭제)</td>
+</tr>
+<tr>
+<td><strong>지속성</strong></td>
+<td>프로그램 종료 시 초기화 (메모리 상주)</td>
+</tr>
+<tr>
+<td><strong>용량</strong></td>
+<td>썸네일 이미지 메모리 보관 (원본 파일은 출력 폴더에 별도 저장)</td>
+</tr>
+<tr>
+<td><strong>동기화</strong></td>
+<td>다중 인스턴스 실행 시 각자 독립적 히스토리</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="_10"><a class="toclink" href="#_10">출력 폴더와의 관계</a><a class="headerlink" href="#_10" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>구분</th>
+<th>히스토리 썸네일</th>
+<th>출력 폴더 저장 파일</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>저장 위치</strong></td>
+<td>메모리 (RAM)</td>
+<td>디스크 (<code>output/</code> 폴더)</td>
+</tr>
+<tr>
+<td><strong>파일명</strong></td>
+<td>자동 생성</td>
+<td><code>{모델}_{시드}_{날짜시간}.png</code></td>
+</tr>
+<tr>
+<td><strong>보존 기간</strong></td>
+<td>프로그램 실행 중만</td>
+<td>영구 보관 (수동 삭제 전까지)</td>
+</tr>
+<tr>
+<td><strong>용도</strong></td>
+<td>빠른 복원/비교</td>
+<td>최종 결과물 아카이브</td>
+</tr>
+</tbody>
+</table>
+<p><strong>팁</strong>: 중요 결과는 반드시 <code>💾 이미지 저장</code> 또는 <code>📁 출력 폴더 열기</code>로 파일 보관하세요.</p>
+<hr />
+<h3 id="_11"><a class="toclink" href="#_11">키보드 단축키</a><a class="headerlink" href="#_11" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>키</th>
+<th>동작</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>1~4</code></td>
+<td>히스토리 슬롯 1~4 선택 (구현 시)</td>
+</tr>
+<tr>
+<td><code>Delete</code></td>
+<td>선택된 썸네일 삭제 (구현 시)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="_12"><a class="toclink" href="#_12">다음 단계</a><a class="headerlink" href="#_12" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="05_generation_options.html">이미지 생성 옵션</a> - 생성 파라미터 이해</li>
+<li><a href="06_facedetailer.html">FaceDetailer 얼굴 보정</a> - 히스토리에 저장되는 보정 설정</li>
+<li><a href="11_shortcuts.html">단축키/팁</a> - 효율적인 작업 흐름</li>
+</ul>
+</body>
+</html>

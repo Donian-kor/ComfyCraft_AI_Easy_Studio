@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>설치 및 필수 노드</title>
+    
+<style>
+:root { 
+    --text: #1a1a1a; 
+    --text-muted: #555; 
+    --primary: #0078d4; 
+    --bg: #ffffff; 
+    --code-bg: #f4f4f4; 
+    --border: #e0e0e0; 
+    --header-border: #e0e0e0;
+}
+[data-theme="dark"] { 
+    --text: #e0e0e0; 
+    --text-muted: #aaa; 
+    --primary: #60a5fa;
+    --bg: #1e1e1e; 
+    --code-bg: #2d2d2d; 
+    --border: #333; 
+    --header-border: #333;
+}
+body { 
+    font-family: 'Pretendard', 'Noto Sans KR', system-ui; 
+    font-size: 14px; 
+    line-height: 1.6; 
+    color: var(--text); 
+    background: var(--bg); 
+    padding: 24px; 
+    max-width: 720px; 
+    margin: 0 auto; 
+}
+h1 { 
+    font-size: 24px; 
+    font-weight: 700; 
+    margin: 0 0 16px; 
+    padding-bottom: 8px; 
+    border-bottom: 1px solid var(--header-border); 
+}
+h2 { 
+    font-size: 20px; 
+    font-weight: 700; 
+    margin: 24px 0 12px; 
+    color: var(--primary); 
+}
+h3 { 
+    font-size: 16px; 
+    font-weight: 600; 
+    margin: 18px 0 8px; 
+}
+p { 
+    margin: 0 0 12px; 
+}
+code { 
+    background: var(--code-bg); 
+    padding: 2px 6px; 
+    border-radius: 4px; 
+    font-family: 'JetBrains Mono', 'Consolas', monospace; 
+    font-size: 13px; 
+}
+pre { 
+    background: var(--code-bg); 
+    padding: 12px; 
+    border-radius: 6px; 
+    overflow-x: auto; 
+    margin: 16px 0; 
+}
+pre code { 
+    background: none; 
+    padding: 0; 
+}
+table { 
+    border-collapse: collapse; 
+    width: 100%; 
+    margin: 16px 0; 
+}
+th, td { 
+    border: 1px solid var(--border); 
+    padding: 8px 12px; 
+    text-align: left; 
+}
+th { 
+    background: var(--code-bg); 
+    font-weight: 600; 
+}
+a { 
+    color: var(--primary); 
+    text-decoration: none; 
+}
+a:hover { 
+    text-decoration: underline; 
+}
+img { 
+    max-width: 100%; 
+    height: auto; 
+    border-radius: 4px; 
+    display: block; 
+    margin: 16px auto; 
+}
+ul, ol { 
+    padding-left: 24px; 
+    margin: 8px 0; 
+}
+li { 
+    margin: 4px 0; 
+}
+hr { 
+    border: none; 
+    border-top: 1px solid var(--border); 
+    margin: 24px 0; 
+}
+blockquote { 
+    border-left: 3px solid var(--primary); 
+    padding-left: 16px; 
+    margin: 16px 0; 
+    color: var(--text-muted); 
+}
+.toc {
+    background: var(--code-bg);
+    padding: 16px;
+    border-radius: 6px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+}
+.toc ul {
+    list-style: none;
+    padding-left: 0;
+}
+.toc li {
+    margin: 4px 0;
+}
+.toc a {
+    text-decoration: none;
+    color: var(--text);
+}
+.toc a:hover {
+    color: var(--primary);
+}
+</style>
+
+</head>
+<body>
+    <div class="toc"><div class="toc">
+<ul>
+<li><a href="#_1">설치 및 필수 노드</a><ul>
+<li><a href="#_2">시스템 권장 사양</a></li>
+<li><a href="#_3">프로그램 설치 및 실행</a><ul>
+<li><a href="#1">1. 저장소 복제</a></li>
+<li><a href="#2">2. 파이썬 가상환경 생성 및 활성화</a></li>
+<li><a href="#3">3. 의존성 설치</a></li>
+<li><a href="#4">4. 프로그램 실행</a></li>
+</ul>
+</li>
+<li><a href="#comfyui-facedetailer">ComfyUI 필수 설치 노드 (FaceDetailer용)</a><ul>
+<li><a href="#1-impact-pack">1. Impact Pack (필수 뼈대)</a></li>
+<li><a href="#2-sam">2. SAM 모델 (정밀 마스크용)</a></li>
+<li><a href="#3-yolo">3. YOLO 모델 (안면 감지용)</a></li>
+<li><a href="#_4">설치 확인</a></li>
+</ul>
+</li>
+<li><a href="#lm-studio">LM Studio 설치 및 설정</a><ul>
+<li><a href="#1_1">1. 다운로드 및 설치</a></li>
+<li><a href="#2_1">2. 모델 로드</a></li>
+<li><a href="#3_1">3. 로컬 서버 켜기</a></li>
+<li><a href="#4_1">4. 프로그램에서 연동 확인</a></li>
+</ul>
+</li>
+<li><a href="#comfyui">ComfyUI 설치 및 실행</a><ul>
+<li><a href="#1_2">1. 설치 (이미 있는 경우 건너뛰기)</a></li>
+<li><a href="#2_2">2. 모델 다운로드</a></li>
+<li><a href="#3_2">3. 서버 실행</a></li>
+<li><a href="#4_2">4. 프로그램에서 연동 확인</a></li>
+</ul>
+</li>
+<li><a href="#_5">필수 모델 다운로드 링크</a><ul>
+<li><a href="#facedetailer">FaceDetailer용 (필수)</a></li>
+<li><a href="#_6">추천 생성 모델 (예시)</a></li>
+</ul>
+</li>
+<li><a href="#_7">폴더 구조 요약</a></li>
+<li><a href="#_8">문제 해결</a><ul>
+<li><a href="#comfyui_1">ComfyUI 연결 실패</a></li>
+<li><a href="#lm-studio_1">LM Studio 연결 실패</a></li>
+<li><a href="#_9">"로드된 모델 없음"</a></li>
+<li><a href="#facedetailer_1">FaceDetailer 작동 안 함</a></li>
+<li><a href="#vram-out-of-memory">VRAM 부족 (Out of Memory)</a></li>
+</ul>
+</li>
+<li><a href="#_10">프로그램 삭제 및 초기화</a><ul>
+<li><a href="#_11">설정 리셋 (화면이 꼬였을 때)</a></li>
+<li><a href="#_12">완전 삭제</a></li>
+</ul>
+</li>
+<li><a href="#_13">다음 단계</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+    <h2 id="_1"><a class="toclink" href="#_1">설치 및 필수 노드</a><a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>본 프로그램과 완벽하게 연동되려면 <strong>ComfyUI</strong>가 기본 웹 서버 모드(포트 8188)로 켜져 있어야 하며, 특히 <strong>얼굴 보정(FaceDetailer)</strong> 기능을 쓰기 위해서는 ComfyUI 웹 화면(Manager)에서 아래 3가지를 반드시 설치해야 합니다.</p>
+<h3 id="_2"><a class="toclink" href="#_2">시스템 권장 사양</a><a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>구분</th>
+<th>CPU</th>
+<th>RAM</th>
+<th>GPU (그래픽)</th>
+<th>여유 용량</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>최소 사양</strong></td>
+<td>Intel i5 이상</td>
+<td>8 GB</td>
+<td>GTX 1060 이상 (6GB VRAM)</td>
+<td>50 GB 이상</td>
+</tr>
+<tr>
+<td><strong>권장 사양</strong></td>
+<td>Intel i7 이상</td>
+<td>16 GB</td>
+<td>RTX 3070 이상 (8GB VRAM)</td>
+<td>100 GB 이상</td>
+</tr>
+<tr>
+<td><strong>고성능</strong></td>
+<td>Intel i9 이상</td>
+<td>32 GB 이상</td>
+<td>RTX 4090 (24GB VRAM)</td>
+<td>500 GB 이상 (SSD)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>참고</strong>: GGUF 양자화 모델(Q4_K_S) 사용 시 VRAM 6~8GBでも 쾌적하게 동작합니다.</p>
+</blockquote>
+<hr />
+<h3 id="_3"><a class="toclink" href="#_3">프로그램 설치 및 실행</a><a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<h4 id="1"><a class="toclink" href="#1">1. 저장소 복제</a><a class="headerlink" href="#1" title="Permanent link">&para;</a></h4>
+<pre><code class="language-bash">git clone &lt;repository-url&gt;
+cd comfyui_Lmstudio_gui
+</code></pre>
+<h4 id="2"><a class="toclink" href="#2">2. 파이썬 가상환경 생성 및 활성화</a><a class="headerlink" href="#2" title="Permanent link">&para;</a></h4>
+<pre><code class="language-bash"># 가상환경 생성 (패키지 꼬임 방지)
+python -m venv .venv
+
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+
+# Windows CMD
+.venv\Scripts\activate.bat
+
+# Linux/Mac
+source .venv/bin/activate
+</code></pre>
+<h4 id="3"><a class="toclink" href="#3">3. 의존성 설치</a><a class="headerlink" href="#3" title="Permanent link">&para;</a></h4>
+<pre><code class="language-bash">pip install -r requirements.txt
+</code></pre>
+<h4 id="4"><a class="toclink" href="#4">4. 프로그램 실행</a><a class="headerlink" href="#4" title="Permanent link">&para;</a></h4>
+<pre><code class="language-bash">python main.py
+</code></pre>
+<hr />
+<h3 id="comfyui-facedetailer"><a class="toclink" href="#comfyui-facedetailer">ComfyUI 필수 설치 노드 (FaceDetailer용)</a><a class="headerlink" href="#comfyui-facedetailer" title="Permanent link">&para;</a></h3>
+<p>ComfyUI Manager(웹 UI 좌측 메뉴)에서 설치하세요.</p>
+<h4 id="1-impact-pack"><a class="toclink" href="#1-impact-pack">1. Impact Pack (필수 뼈대)</a><a class="headerlink" href="#1-impact-pack" title="Permanent link">&para;</a></h4>
+<pre><code>ComfyUI Manager → Install Custom Nodes
+검색: &quot;Impact Pack&quot;
+설치: ComfyUI-Impact-Pack (작성자: ltdrdata)
+⚠️ 설치 후 ComfyUI 서버를 **완전히 껐다가 다시 켜세요** (재시작 필수)
+</code></pre>
+<h4 id="2-sam"><a class="toclink" href="#2-sam">2. SAM 모델 (정밀 마스크용)</a><a class="headerlink" href="#2-sam" title="Permanent link">&para;</a></h4>
+<pre><code>ComfyUI Manager → Install Models
+검색: &quot;sam_vit_b&quot;
+설치: sam_vit_b_01ec64.pth
+→ 저장 위치: ComfyUI/models/sams/sam_vit_b_01ec64.pth
+</code></pre>
+<h4 id="3-yolo"><a class="toclink" href="#3-yolo">3. YOLO 모델 (안면 감지용)</a><a class="headerlink" href="#3-yolo" title="Permanent link">&para;</a></h4>
+<pre><code>ComfyUI Manager → Install Models
+검색: &quot;face_yolov8m&quot;
+설치: bbox/face_yolov8m.pt
+→ 저장 위치: ComfyUI/models/ultralytics/bbox/face_yolov8m.pt
+</code></pre>
+<h4 id="_4"><a class="toclink" href="#_4">설치 확인</a><a class="headerlink" href="#_4" title="Permanent link">&para;</a></h4>
+<p>ComfyUI 웹 UI에서 워크플로우 로드 시 <code>FaceDetailer</code> 관련 노드들이 에러 없이 보여야 합니다.</p>
+<hr />
+<h3 id="lm-studio"><a class="toclink" href="#lm-studio">LM Studio 설치 및 설정</a><a class="headerlink" href="#lm-studio" title="Permanent link">&para;</a></h3>
+<p>프롬프트를 똑똑하게 확장해주는 언어 모델 서버입니다.</p>
+<h4 id="1_1"><a class="toclink" href="#1_1">1. 다운로드 및 설치</a><a class="headerlink" href="#1_1" title="Permanent link">&para;</a></h4>
+<ul>
+<li><a href="https://lmstudio.ai/">LM Studio 공식 홈페이지</a>에서 OS에 맞는 버전 다운로드 후 설치</li>
+</ul>
+<h4 id="2_1"><a class="toclink" href="#2_1">2. 모델 로드</a><a class="headerlink" href="#2_1" title="Permanent link">&para;</a></h4>
+<ol>
+<li>좌측 돋보기 메뉴(🔍) 클릭</li>
+<li>검색창에 사용할 언어 모델 검색 (추천: <code>qwen2.5-7b-instruct</code>, <code>llama-3.1-8b-instruct</code>, <code>gemma-2-9b-it</code>)</li>
+<li>모델 다운로드 (양자화: Q4_K_M 또는 Q5_K_M 권장)</li>
+<li>상단 탭에서 모델 선택 → <code>Load</code> 클릭 (GPU 레이어 수 조정 가능)</li>
+</ol>
+<h4 id="3_1"><a class="toclink" href="#3_1">3. 로컬 서버 켜기</a><a class="headerlink" href="#3_1" title="Permanent link">&para;</a></h4>
+<pre><code>1. 좌측 메뉴 중 ↔ (Local Server) 아이콘 클릭
+2. 포트가 1234로 설정되어 있는지 확인
+3. 초록색 Start Server 버튼 눌러 서버 시작
+4. &quot;Server started at http://localhost:1234&quot; 메시지 확인
+</code></pre>
+<h4 id="4_1"><a class="toclink" href="#4_1">4. 프로그램에서 연동 확인</a><a class="headerlink" href="#4_1" title="Permanent link">&para;</a></h4>
+<ul>
+<li>프로그램 헤더 <code>LM Studio 연결 확인</code> 버튼 클릭</li>
+<li>초록불(🟢 준비 완료) 뜨면 연동 성공</li>
+</ul>
+<hr />
+<h3 id="comfyui"><a class="toclink" href="#comfyui">ComfyUI 설치 및 실행</a><a class="headerlink" href="#comfyui" title="Permanent link">&para;</a></h3>
+<p>이미지 생성 백엔드 서버입니다.</p>
+<h4 id="1_2"><a class="toclink" href="#1_2">1. 설치 (이미 있는 경우 건너뛰기)</a><a class="headerlink" href="#1_2" title="Permanent link">&para;</a></h4>
+<pre><code class="language-bash">git clone https://github.com/comfyanonymous/ComfyUI
+cd ComfyUI
+pip install -r requirements.txt
+</code></pre>
+<h4 id="2_2"><a class="toclink" href="#2_2">2. 모델 다운로드</a><a class="headerlink" href="#2_2" title="Permanent link">&para;</a></h4>
+<p>ComfyUI <code>models/checkpoints/</code> 폴더에 <code>.safetensors</code> 또는 <code>.gguf</code> 모델 파일 배치
+- 추천: <a href="https://huggingface.co/models?library=comfyui">HuggingFace ComfyUI 모델</a></p>
+<h4 id="3_2"><a class="toclink" href="#3_2">3. 서버 실행</a><a class="headerlink" href="#3_2" title="Permanent link">&para;</a></h4>
+<pre><code class="language-bash"># 기본 실행 (로컬만)
+python main.py
+
+# 외부 접속 허용 (필수: 이 프로그램이 연결하려면)
+python main.py --listen --port 8188
+
+# GPU 메모리 최적화 옵션 (선택)
+python main.py --listen --port 8188 --force-fp16
+</code></pre>
+<h4 id="4_2"><a class="toclink" href="#4_2">4. 프로그램에서 연동 확인</a><a class="headerlink" href="#4_2" title="Permanent link">&para;</a></h4>
+<ul>
+<li>프로그램 헤더 <code>ComfyUI 연결 확인</code> 버튼 클릭</li>
+<li>모델 폴더 경로 설정 (<code>⚙️ 설정</code> → <code>모델 폴더</code> 입력)</li>
+<li>초록불(🟢 준비 완료) + 모델 목록 로드되면 성공</li>
+</ul>
+<hr />
+<h3 id="_5"><a class="toclink" href="#_5">필수 모델 다운로드 링크</a><a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<h4 id="facedetailer"><a class="toclink" href="#facedetailer">FaceDetailer용 (필수)</a><a class="headerlink" href="#facedetailer" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>모델</th>
+<th>용도</th>
+<th>다운로드</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sam_vit_b_01ec64.pth</code></td>
+<td>SAM 세그멘테이션</td>
+<td>ComfyUI Manager에서 설치 권장</td>
+</tr>
+<tr>
+<td><code>face_yolov8m.pt</code></td>
+<td>YOLO 안면 감지</td>
+<td>ComfyUI Manager에서 설치 권장</td>
+</tr>
+</tbody>
+</table>
+<h4 id="_6"><a class="toclink" href="#_6">추천 생성 모델 (예시)</a><a class="headerlink" href="#_6" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>모델</th>
+<th>패밀리</th>
+<th>용도</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>flux1-dev-Q4_K_S.gguf</code></td>
+<td>FLUX</td>
+<td>실사/일반 고품질</td>
+<td>GGUF 양자화, VRAM 절약</td>
+</tr>
+<tr>
+<td><code>zimage_turbo-Q4_K_S.gguf</code></td>
+<td>ZImage</td>
+<td>고속 생성</td>
+<td>Turbo 버전, 8~12스텝</td>
+</tr>
+<tr>
+<td><code>z_anime_base.safetensors</code></td>
+<td>Z-ANIME</td>
+<td>웹툰/애니</td>
+<td>스타일 선택 필수</td>
+</tr>
+<tr>
+<td><code>animagineXL_v31.safetensors</code></td>
+<td>SDXL</td>
+<td>애니메이션</td>
+<td>부정 프롬프트 필요</td>
+</tr>
+<tr>
+<td><code>juggernaut_xl_v10.safetensors</code></td>
+<td>SDXL</td>
+<td>실사/범용</td>
+<td>고품질 실사</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="_7"><a class="toclink" href="#_7">폴더 구조 요약</a><a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<pre><code>프로젝트 루트/
+├── main.py                    # 메인 엔트리
+├── requirements.txt           # 파이썬 의존성
+├── assets/
+│   ├── help/                  # 도움말 콘텐츠
+│   │   ├── md/                # 마크다운 소스
+│   │   └── html/              # 빌드된 HTML (자동 생성)
+│   ├── ui/                    # Qt Designer .ui 파일
+│   ├── icons/                 # SVG 아이콘 리소스
+│   └── themes/                # QSS 테마 파일
+├── workflows/                 # ComfyUI 워크플로우 JSON
+│   └── app_config.json        # 설정 파일 (자동 생성)
+├── output/                    # 생성된 이미지 저장 (자동 생성)
+└── .venv/                     # 가상환경 (gitignore)
+</code></pre>
+<hr />
+<h3 id="_8"><a class="toclink" href="#_8">문제 해결</a><a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
+<h4 id="comfyui_1"><a class="toclink" href="#comfyui_1">ComfyUI 연결 실패</a><a class="headerlink" href="#comfyui_1" title="Permanent link">&para;</a></h4>
+<ul>
+<li>ComfyUI가 <code>--listen --port 8188</code>로 실행 중인지 확인</li>
+<li>방화벽에서 8188 포트 허용</li>
+<li><code>http://localhost:8188</code> 브라우저 접속 테스트</li>
+</ul>
+<h4 id="lm-studio_1"><a class="toclink" href="#lm-studio_1">LM Studio 연결 실패</a><a class="headerlink" href="#lm-studio_1" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Local Server가 시작됨(초록불)인지 확인</li>
+<li>포트 1234 충돌 없는지 확인 (다른 앱 사용 중이면 설정에서 변경)</li>
+<li>방화벽에서 1234 포트 허용</li>
+</ul>
+<h4 id="_9"><a class="toclink" href="#_9">"로드된 모델 없음"</a><a class="headerlink" href="#_9" title="Permanent link">&para;</a></h4>
+<ul>
+<li>ComfyUI 웹 UI에서 모델이 실제로 로드되어 있는지 확인</li>
+<li>모델 폴더 경로가 정확한지 설정에서 확인 (<code>checkpoints</code> 또는 <code>unet</code> 폴더 존재)</li>
+<li>프로그램 재시작 후 모델 새로고침</li>
+</ul>
+<h4 id="facedetailer_1"><a class="toclink" href="#facedetailer_1">FaceDetailer 작동 안 함</a><a class="headerlink" href="#facedetailer_1" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Impact Pack 설치 후 ComfyUI <strong>완전 재시작</strong>했는지 확인</li>
+<li>SAM/YOLO 모델이 올바른 경로에 있는지 확인</li>
+<li>ComfyUI 콘솔 로그에 에러 메시지 확인</li>
+</ul>
+<h4 id="vram-out-of-memory"><a class="toclink" href="#vram-out-of-memory">VRAM 부족 (Out of Memory)</a><a class="headerlink" href="#vram-out-of-memory" title="Permanent link">&para;</a></h4>
+<ul>
+<li>GGUF 양자화 모델 사용 (Q4_K_S)</li>
+<li>해상도 낮추기 (512×512 시작)</li>
+<li>Steps 줄이기 (15~20)</li>
+<li>FaceDetailer 끄기</li>
+<li>ComfyUI 실행 시 <code>--force-fp16</code> 옵션 추가</li>
+</ul>
+<hr />
+<h3 id="_10"><a class="toclink" href="#_10">프로그램 삭제 및 초기화</a><a class="headerlink" href="#_10" title="Permanent link">&para;</a></h3>
+<h4 id="_11"><a class="toclink" href="#_11">설정 리셋 (화면이 꼬였을 때)</a><a class="headerlink" href="#_11" title="Permanent link">&para;</a></h4>
+<pre><code>프로젝트 폴더/workflows/ 폴더에서 다음 파일 삭제 후 재실행:
+- app_config.json
+- prompt.json
+</code></pre>
+<h4 id="_12"><a class="toclink" href="#_12">완전 삭제</a><a class="headerlink" href="#_12" title="Permanent link">&para;</a></h4>
+<pre><code>프로젝트 폴더/.venv/ 폴더 통째로 삭제
+→ 파이썬 패키지 모두 깔끔하게 제거됨
+</code></pre>
+<hr />
+<h3 id="_13"><a class="toclink" href="#_13">다음 단계</a><a class="headerlink" href="#_13" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="01_getting_started.html">시작하기</a> - 빠른 시작 가이드</li>
+<li><a href="09_lmstudio.html">LM Studio 연동</a> - 언어 모델 서버 상세</li>
+<li><a href="10_faq.html">자주 묻는 질문</a> - 트러블슈팅 모음</li>
+</ul>
+</body>
+</html>

@@ -107,6 +107,7 @@ class ComfyUIWebSocketClient:
         self.ws_app = None
         self.lock = threading.Lock()
         self._connected = False
+        self._last_progress = 0.0  # 🌟 마지막 수신 진행률 저장 (폴링 루프에서 참조용)
 
     @staticmethod
     def _generate_client_id() -> str:
@@ -128,6 +129,13 @@ class ComfyUIWebSocketClient:
             ws_base = 'ws://' + url[len('http://'):]
         else:
             ws_base = url
+
+        # 🌟 ComfyUI WebSocket 엔드포인트는 보통 /ws 경로를 사용
+        # 이미 경로가 있는 경우(예: /api)엔 추가하지 않음
+        from urllib.parse import urlparse
+        parsed = urlparse(ws_base)
+        if not parsed.path or parsed.path == '/':
+            ws_base = ws_base.rstrip('/') + '/ws'
 
         if client_id:
             separator = '&' if '?' in ws_base else '?'
@@ -279,6 +287,7 @@ class ComfyUIWebSocketClient:
             # 파싱 성공 시 진행률 시그널 송출 (0~100 사이 제한)
             if percent is not None and self.on_progress is not None:
                 final_percent = max(0.0, min(100.0, float(percent)))
+                self._last_progress = final_percent  # 🌟 진행률 저장 (폴링 루프에서 참조)
                 self.on_progress(final_percent)
                 return
 
@@ -298,8 +307,7 @@ class ComfyUIWebSocketClient:
 
         def on_error(_, error: Exception) -> None:
             self._connected = False
-            if isinstance(error, Exception):
-                return
+            self.emit_log(f"[WebSocket 에러] {error}")  # 🌟 에러 로깅 추가
             self.ws_app = None
 
         self.ws_app = websocket.WebSocketApp(
@@ -313,9 +321,25 @@ class ComfyUIWebSocketClient:
         self.thread.start()
 
     def close(self) -> None:
+        """WebSocket 연결을 안전하게 종료합니다."""
         try:
             if self.ws_app is not None:
+                # WebSocket 연결 종료 요청
                 self.ws_app.close()
         except Exception:
             pass
+        
+        # 스레드 종료 대기 (최대 2초)
+        if hasattr(self, 'thread') and self.thread is not None and self.thread.is_alive():
+            self.thread.join(timeout=2.0)
+        
+        self.ws_app = None
+        self.thread = None
         self._connected = False
+
+    def __del__(self):
+        """소멸자에서 정리 보장"""
+        try:
+            self.close()
+        except Exception:
+            pass

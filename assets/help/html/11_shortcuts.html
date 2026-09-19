@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>단축키/팁</title>
+    
+<style>
+:root { 
+    --text: #1a1a1a; 
+    --text-muted: #555; 
+    --primary: #0078d4; 
+    --bg: #ffffff; 
+    --code-bg: #f4f4f4; 
+    --border: #e0e0e0; 
+    --header-border: #e0e0e0;
+}
+[data-theme="dark"] { 
+    --text: #e0e0e0; 
+    --text-muted: #aaa; 
+    --primary: #60a5fa;
+    --bg: #1e1e1e; 
+    --code-bg: #2d2d2d; 
+    --border: #333; 
+    --header-border: #333;
+}
+body { 
+    font-family: 'Pretendard', 'Noto Sans KR', system-ui; 
+    font-size: 14px; 
+    line-height: 1.6; 
+    color: var(--text); 
+    background: var(--bg); 
+    padding: 24px; 
+    max-width: 720px; 
+    margin: 0 auto; 
+}
+h1 { 
+    font-size: 24px; 
+    font-weight: 700; 
+    margin: 0 0 16px; 
+    padding-bottom: 8px; 
+    border-bottom: 1px solid var(--header-border); 
+}
+h2 { 
+    font-size: 20px; 
+    font-weight: 700; 
+    margin: 24px 0 12px; 
+    color: var(--primary); 
+}
+h3 { 
+    font-size: 16px; 
+    font-weight: 600; 
+    margin: 18px 0 8px; 
+}
+p { 
+    margin: 0 0 12px; 
+}
+code { 
+    background: var(--code-bg); 
+    padding: 2px 6px; 
+    border-radius: 4px; 
+    font-family: 'JetBrains Mono', 'Consolas', monospace; 
+    font-size: 13px; 
+}
+pre { 
+    background: var(--code-bg); 
+    padding: 12px; 
+    border-radius: 6px; 
+    overflow-x: auto; 
+    margin: 16px 0; 
+}
+pre code { 
+    background: none; 
+    padding: 0; 
+}
+table { 
+    border-collapse: collapse; 
+    width: 100%; 
+    margin: 16px 0; 
+}
+th, td { 
+    border: 1px solid var(--border); 
+    padding: 8px 12px; 
+    text-align: left; 
+}
+th { 
+    background: var(--code-bg); 
+    font-weight: 600; 
+}
+a { 
+    color: var(--primary); 
+    text-decoration: none; 
+}
+a:hover { 
+    text-decoration: underline; 
+}
+img { 
+    max-width: 100%; 
+    height: auto; 
+    border-radius: 4px; 
+    display: block; 
+    margin: 16px auto; 
+}
+ul, ol { 
+    padding-left: 24px; 
+    margin: 8px 0; 
+}
+li { 
+    margin: 4px 0; 
+}
+hr { 
+    border: none; 
+    border-top: 1px solid var(--border); 
+    margin: 24px 0; 
+}
+blockquote { 
+    border-left: 3px solid var(--primary); 
+    padding-left: 16px; 
+    margin: 16px 0; 
+    color: var(--text-muted); 
+}
+.toc {
+    background: var(--code-bg);
+    padding: 16px;
+    border-radius: 6px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+}
+.toc ul {
+    list-style: none;
+    padding-left: 0;
+}
+.toc li {
+    margin: 4px 0;
+}
+.toc a {
+    text-decoration: none;
+    color: var(--text);
+}
+.toc a:hover {
+    color: var(--primary);
+}
+</style>
+
+</head>
+<body>
+    <div class="toc"><div class="toc">
+<ul>
+<li><a href="#_1">단축키 &amp; 팁</a><ul>
+<li><a href="#_2">키보드 단축키</a><ul>
+<li><a href="#_3">전역 단축키 (어디서든 작동)</a></li>
+<li><a href="#_4">메인 화면 단축키</a></li>
+<li><a href="#_5">프롬프트 에디터 단축키</a></li>
+<li><a href="#_6">히스토리/썸네일 (구현 예정)</a></li>
+</ul>
+</li>
+<li><a href="#_7">마우스 팁</a><ul>
+<li><a href="#_8">헤더 버튼</a></li>
+<li><a href="#_9">사이드바</a></li>
+<li><a href="#_10">썸네일 (우측 패널)</a></li>
+<li><a href="#_11">슬라이더</a></li>
+</ul>
+</li>
+<li><a href="#_12">숨겨진 기능 &amp; 팁</a><ul>
+<li><a href="#1">1. 설정 자동 저장</a></li>
+<li><a href="#2">2. 모델별 자동 프로파일</a></li>
+<li><a href="#3">3. 프롬프트 카운터</a></li>
+<li><a href="#4">4. 시드 고정 워크플로우</a></li>
+<li><a href="#5">5. 테마별 최적화</a></li>
+<li><a href="#6">6. 로그 창 활용</a></li>
+<li><a href="#7">7. 출력 파일명 규칙</a></li>
+<li><a href="#8">8. 외부 프롬프트 파일</a></li>
+</ul>
+</li>
+<li><a href="#_13">워크플로우별 추천 설정</a><ul>
+<li><a href="#30">빠른 테스트 (30초 내 결과)</a></li>
+<li><a href="#25">고품질 최종본 (2~5분)</a></li>
+<li><a href="#_14">캐릭터 일관성 유지 (시드 고정)</a></li>
+<li><a href="#_15">웹툰/만화 컷 연작</a></li>
+</ul>
+</li>
+<li><a href="#_16">트러블슈팅 단축법</a></li>
+<li><a href="#_17">외부 도구 연계 팁</a><ul>
+<li><a href="#1_1">1. 이미지 편집기 연동</a></li>
+<li><a href="#2_1">2. 프롬프트 공유</a></li>
+<li><a href="#3_1">3. 버전 관리</a></li>
+</ul>
+</li>
+<li><a href="#_18">다음 단계</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+    <h2 id="_1"><a class="toclink" href="#_1">단축키 &amp; 팁</a><a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>작업 효율을 높여주는 키보드 단축키와 숨겨진 기능들입니다.</p>
+<h3 id="_2"><a class="toclink" href="#_2">키보드 단축키</a><a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<h4 id="_3"><a class="toclink" href="#_3">전역 단축키 (어디서든 작동)</a><a class="headerlink" href="#_3" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>키</th>
+<th>동작</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>F1</code></td>
+<td>도움말 열기</td>
+</tr>
+<tr>
+<td><code>Esc</code></td>
+<td>도움말/다이얼로그 닫기</td>
+</tr>
+<tr>
+<td><code>Ctrl+Q</code></td>
+<td>프로그램 종료</td>
+</tr>
+<tr>
+<td><code>Ctrl+S</code></td>
+<td>설정 저장 (설정 대화상자에서)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="_4"><a class="toclink" href="#_4">메인 화면 단축키</a><a class="headerlink" href="#_4" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>키</th>
+<th>동작</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Enter</code></td>
+<td>생성 시작/중지 (포커스가 입력창이 아닐 때)</td>
+</tr>
+<tr>
+<td><code>Ctrl+Enter</code></td>
+<td>강제 생성 시작</td>
+</tr>
+<tr>
+<td><code>Ctrl+Shift+Enter</code></td>
+<td>프롬프트 마법사 실행</td>
+</tr>
+<tr>
+<td><code>Ctrl+1</code></td>
+<td>홈 탭 이동</td>
+</tr>
+<tr>
+<td><code>Ctrl+2</code></td>
+<td>ComfyUI 탭 이동</td>
+</tr>
+<tr>
+<td><code>Ctrl+3</code></td>
+<td>LM Studio 탭 이동</td>
+</tr>
+<tr>
+<td><code>Ctrl+6</code></td>
+<td>설정 탭 이동</td>
+</tr>
+<tr>
+<td><code>Ctrl+L</code></td>
+<td>로그 창 토글 (펼치기/접기)</td>
+</tr>
+<tr>
+<td><code>Ctrl+Shift+L</code></td>
+<td>로그 지우기</td>
+</tr>
+<tr>
+<td><code>Ctrl+O</code></td>
+<td>출력 폴더 열기</td>
+</tr>
+<tr>
+<td><code>Ctrl+Shift+S</code></td>
+<td>이미지 저장 대화상자</td>
+</tr>
+</tbody>
+</table>
+<h4 id="_5"><a class="toclink" href="#_5">프롬프트 에디터 단축키</a><a class="headerlink" href="#_5" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>키</th>
+<th>동작</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Ctrl+A</code></td>
+<td>전체 선택</td>
+</tr>
+<tr>
+<td><code>Ctrl+C</code></td>
+<td>복사</td>
+</tr>
+<tr>
+<td><code>Ctrl+V</code></td>
+<td>붙여넣기</td>
+</tr>
+<tr>
+<td><code>Ctrl+Z</code></td>
+<td>실행 취소</td>
+</tr>
+<tr>
+<td><code>Ctrl+Y</code></td>
+<td>다시 실행</td>
+</tr>
+<tr>
+<td><code>Ctrl+F</code></td>
+<td>찾기 (브라우저 기본)</td>
+</tr>
+<tr>
+<td><code>Tab</code></td>
+<td>들여쓰기 (일반 텍스트 에디터)</td>
+</tr>
+<tr>
+<td><code>Shift+Tab</code></td>
+<td>내어쓰기</td>
+</tr>
+</tbody>
+</table>
+<h4 id="_6"><a class="toclink" href="#_6">히스토리/썸네일 (구현 예정)</a><a class="headerlink" href="#_6" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>키</th>
+<th>동작</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>1</code>~<code>4</code></td>
+<td>히스토리 슬롯 1~4 선택</td>
+</tr>
+<tr>
+<td><code>Delete</code></td>
+<td>선택된 썸네일 삭제</td>
+</tr>
+<tr>
+<td><code>Enter</code></td>
+<td>선택된 썸네일로 설정 복원</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="_7"><a class="toclink" href="#_7">마우스 팁</a><a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<h4 id="_8"><a class="toclink" href="#_8">헤더 버튼</a><a class="headerlink" href="#_8" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>버튼</th>
+<th>우클릭/길게 누르기</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>🎨 ComfyUI 상태</td>
+<td>우클릭</td>
+<td>설정 대화상자 바로 열기</td>
+</tr>
+<tr>
+<td>💬 LM Studio 상태</td>
+<td>우클릭</td>
+<td>설정 대화상자 바로 열기</td>
+</tr>
+<tr>
+<td>⚙️ 설정</td>
+<td>-</td>
+<td>설정 대화상자 열기</td>
+</tr>
+<tr>
+<td>❓ 도움말</td>
+<td>-</td>
+<td>도움말 창 열기</td>
+</tr>
+</tbody>
+</table>
+<h4 id="_9"><a class="toclink" href="#_9">사이드바</a><a class="headerlink" href="#_9" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>마우스 호버</strong>: 사이드바 자동 확장 (아이콘 → 아이콘+텍스트)</li>
+<li><strong>마우스 떠남</strong>: 자동 축소 (아이콘만)</li>
+<li><strong>카드 클릭</strong>: 홈 화면에서 해당 탭으로 바로 이동</li>
+</ul>
+<h4 id="_10"><a class="toclink" href="#_10">썸네일 (우측 패널)</a><a class="headerlink" href="#_10" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>클릭</strong>: 설정 완전 복원</li>
+<li><strong>우클릭</strong>: 컨텍스트 메뉴 (복사, 저장, 삭제 - 구현 예정)</li>
+<li><strong>Drag &amp; Drop</strong>: 다른 폴더로 이미지 파일 드래그 가능 (구현 예정)</li>
+</ul>
+<h4 id="_11"><a class="toclink" href="#_11">슬라이더</a><a class="headerlink" href="#_11" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>휠 스크롤</strong>: 값 미세 조정 (±1)</li>
+<li><strong>Shift+휠</strong>: 큰 단위 조정 (±10)</li>
+<li><strong>우클릭</strong>: 기본값으로 리셋 (구현 예정)</li>
+</ul>
+<hr />
+<h3 id="_12"><a class="toclink" href="#_12">숨겨진 기능 &amp; 팁</a><a class="headerlink" href="#_12" title="Permanent link">&para;</a></h3>
+<h4 id="1"><a class="toclink" href="#1">1. 설정 자동 저장</a><a class="headerlink" href="#1" title="Permanent link">&para;</a></h4>
+<ul>
+<li>모델 변경, 슬라이더 조작 등 주요 설정은 <strong>자동으로 <code>app_config.json</code>에 저장</strong></li>
+<li>프로그램 재시작 시 마지막 상태 복원</li>
+<li><code>⚙️ 설정</code> → <code>💾 설정 저장 후 닫기</code>로 강제 저장도 가능</li>
+</ul>
+<h4 id="2"><a class="toclink" href="#2">2. 모델별 자동 프로파일</a><a class="headerlink" href="#2" title="Permanent link">&para;</a></h4>
+<pre><code>모델 선택 → 자동으로 적용되는 것들:
+✓ Steps, CFG 기본값
+✓ Sampler, Scheduler 추천값  
+✓ VAE, CLIP 경로 (모델에 포함된 경우)
+✓ 네거티브 프롬프트 표시/숨김
+✓ Z-ANIME 스타일 영역 표시/숨김
+✓ 권장 해상도 프리셋
+</code></pre>
+<h4 id="3"><a class="toclink" href="#3">3. 프롬프트 카운터</a><a class="headerlink" href="#3" title="Permanent link">&para;</a></h4>
+<ul>
+<li>각 프롬프트 입력창 하단에 <strong>실시간 문자 수 표시</strong></li>
+<li>토큰 수 대략 추정: 영문 기준 문자 수 ÷ 4 ≈ 토큰 수</li>
+<li>CLIP 제한(77 토큰 ≈ 300자) 고려해 길이 조절</li>
+</ul>
+<h4 id="4"><a class="toclink" href="#4">4. 시드 고정 워크플로우</a><a class="headerlink" href="#4" title="Permanent link">&para;</a></h4>
+<pre><code>1. 마음에 드는 결과 생성 → 히스토리에 저장됨
+2. 히스토리 썸네일 클릭 → 당시 시드값 자동 입력됨
+3. 🔒 시드 고정 버튼 토글 ON
+4. 프롬프트만 수정하며 같은 구도/캐릭터로 변형 생성
+5. 완료 후 🔒 토글 OFF (다음엔 새 랜덤 시드)
+</code></pre>
+<h4 id="5"><a class="toclink" href="#5">5. 테마별 최적화</a><a class="headerlink" href="#5" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>테마</th>
+<th>추천 상황</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Fluent Dark</strong></td>
+<td>기본, 장시간 작업, 눈 피로 최소화</td>
+</tr>
+<tr>
+<td><strong>Fluent Light</strong></td>
+<td>밝은 환경, 프린트/스크린샷 공유 시</td>
+</tr>
+<tr>
+<td><strong>Midnight Navy</strong></td>
+<td>야간 작업, 집중 모드</td>
+</tr>
+<tr>
+<td><strong>Purple Nebula</strong></td>
+<td>창작 분위기, 색감 영감</td>
+</tr>
+<tr>
+<td><strong>Emerald Forest</strong></td>
+<td>편안한 분위기, 장시간 편집</td>
+</tr>
+</tbody>
+</table>
+<h4 id="6"><a class="toclink" href="#6">6. 로그 창 활용</a><a class="headerlink" href="#6" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>에러 발생 시</strong>: 로그 창 <code>📋 복사</code> → 이슈 리포트에 첨부</li>
+<li><strong>모델 로딩 확인</strong>: <code>모델 프로파일 로드: [FAMILY] name</code> 로그로 프로파일 적용 확인</li>
+<li><strong>연결 디버깅</strong>: 연결 시도/성공/실패 상세 로그 기록</li>
+</ul>
+<h4 id="7"><a class="toclink" href="#7">7. 출력 파일명 규칙</a><a class="headerlink" href="#7" title="Permanent link">&para;</a></h4>
+<pre><code>{모델명}_{시드}_{YYYYMMDD_HHMMSS}.png
+예: flux1-dev-Q4_K_S_1234567890_20260115_143022.png
+
+→ 모델/시드/시간으로 정렬/검색 용이
+</code></pre>
+<h4 id="8"><a class="toclink" href="#8">8. 외부 프롬프트 파일</a><a class="headerlink" href="#8" title="Permanent link">&para;</a></h4>
+<p><code>workflows/prompt.json</code> 수정으로 프롬프트 템플릿 커스터마이징:</p>
+<pre><code class="language-json">{
+  &quot;system_prompt&quot;: &quot;당신의 커스텀 시스템 프롬프트&quot;,
+  &quot;negative_default&quot;: &quot;당신의 기본 부정 프롬프트&quot;
+}
+</code></pre>
+<hr />
+<h3 id="_13"><a class="toclink" href="#_13">워크플로우별 추천 설정</a><a class="headerlink" href="#_13" title="Permanent link">&para;</a></h3>
+<h4 id="30"><a class="toclink" href="#30">빠른 테스트 (30초 내 결과)</a><a class="headerlink" href="#30" title="Permanent link">&para;</a></h4>
+<pre><code>모델: ZImage Turbo / FLUX Schnell
+Steps: 8~12 (Turbo) / 4~8 (Schnell)
+해상도: 512×512
+FaceDetailer: OFF
+고급설정: 모두 기본
+</code></pre>
+<h4 id="25"><a class="toclink" href="#25">고품질 최종본 (2~5분)</a><a class="headerlink" href="#25" title="Permanent link">&para;</a></h4>
+<pre><code>모델: FLUX Dev / ZImage Base / SDXL
+Steps: 30~50
+해상도: 1024×1024 이상
+FaceDetailer: ON (기본값)
+Sampler: DPM++ 2M Karras / UniPC
+Scheduler: karras
+</code></pre>
+<h4 id="_14"><a class="toclink" href="#_14">캐릭터 일관성 유지 (시드 고정)</a><a class="headerlink" href="#_14" title="Permanent link">&para;</a></h4>
+<pre><code>1. 기본 생성 → 결과 확인
+2. 히스토리 클릭 → 시드 자동 입력
+3. 🔒 시드 고정 ON
+4. 프롬프트에서 포즈/표정/배경만 변경
+5. 반복 생성
+</code></pre>
+<h4 id="_15"><a class="toclink" href="#_15">웹툰/만화 컷 연작</a><a class="headerlink" href="#_15" title="Permanent link">&para;</a></h4>
+<pre><code>모델: Z-ANIME (z_anime_base 등)
+스타일: 웹툰 (고정)
+해상도: 896×1152 (세로 컷 최적)
+시드: 고정하여 캐릭터 일관성
+프롬프트: 컷별 상황만 변경 (캐릭터 설명 유지)
+</code></pre>
+<hr />
+<h3 id="_16"><a class="toclink" href="#_16">트러블슈팅 단축법</a><a class="headerlink" href="#_16" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>상황</th>
+<th>즉시 시도할 것</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>생성 안 됨/에러</td>
+<td><code>Ctrl+L</code> 로그 열기 → 빨간 글자 확인 → ComfyUI 콘솔 확인</td>
+</tr>
+<tr>
+<td>모델 안 뜸</td>
+<td><code>⚙️ 설정</code> → 모델 폴더 경로 재확인 → <code>연결 확인</code></td>
+</tr>
+<tr>
+<td>프롬프트 이상함</td>
+<td><code>Ctrl+Shift+Enter</code> 마법사 재실행 → 영문 프롬프트 직접 수정</td>
+</tr>
+<tr>
+<td>얼굴 망함</td>
+<td>FaceDetailer ON → Denoise 0.3 → 재생성</td>
+</tr>
+<tr>
+<td>너무 느림</td>
+<td>해상도 512×512 → Steps 15 → FaceDetailer OFF → 테스트 후 단계적 올리기</td>
+</tr>
+<tr>
+<td>VRAM 부족</td>
+<td>GGUF 모델로 변경 → 해상도↓ → FaceDetailer OFF</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="_17"><a class="toclink" href="#_17">외부 도구 연계 팁</a><a class="headerlink" href="#_17" title="Permanent link">&para;</a></h3>
+<h4 id="1_1"><a class="toclink" href="#1_1">1. 이미지 편집기 연동</a><a class="headerlink" href="#1_1" title="Permanent link">&para;</a></h4>
+<ul>
+<li>생성된 이미지 <code>📋 이미지 복사</code> → 포토샵/Krita/CSP <code>Ctrl+V</code> 붙여넣기</li>
+<li><code>💾 이미지 저장</code> → 편집기에서 열기 → 수정 후 다시 img2img 활용</li>
+</ul>
+<h4 id="2_1"><a class="toclink" href="#2_1">2. 프롬프트 공유</a><a class="headerlink" href="#2_1" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>📋 프롬프트 복사</code> → 디스코드/노션/옵시디언 공유</li>
+<li>팀 작업 시 프롬프트 템플릿 표준화</li>
+</ul>
+<h4 id="3_1"><a class="toclink" href="#3_1">3. 버전 관리</a><a class="headerlink" href="#3_1" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>workflows/app_config.json</code> Git 커밋으로 설정 버전 관리</li>
+<li>중요 프롬프트는 별도 <code>.txt</code> 파일로 저장</li>
+</ul>
+<hr />
+<h3 id="_18"><a class="toclink" href="#_18">다음 단계</a><a class="headerlink" href="#_18" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="01_getting_started.html">시작하기</a> - 기본 워크플로우 복습</li>
+<li><a href="02_basic_usage.html">기본 사용법</a> - 3단계 상세 가이드</li>
+<li><a href="10_faq.html">자주 묻는 질문</a> - 문제 해결 참고</li>
+</ul>
+</body>
+</html>

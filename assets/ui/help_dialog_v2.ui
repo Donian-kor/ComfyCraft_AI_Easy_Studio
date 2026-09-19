@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>HelpDialog</class>
+ <widget class="QDialog" name="HelpDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>900</width>
+    <height>650</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>700</width>
+    <height>500</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>📖 ComfyCraft AI Easy Studio 도움말 v0.3</string>
+  </property>
+  <layout class="QVBoxLayout" name="dialogLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QFrame" name="headerFrame">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>48</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>48</height>
+      </size>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::StyledPanel</enum>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QFrame#headerFrame {
+    border-bottom: 1px solid #e0e0e0;
+    background-color: #fafafa;
+}
+[data-theme="dark"] QFrame#headerFrame {
+    border-bottom: 1px solid #333;
+    background-color: #252525;
+}</string>
+     </property>
+     <layout class="QHBoxLayout" name="headerLayout">
+      <property name="leftMargin">
+       <number>16</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>16</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="helpTitleLabel">
+        <property name="text">
+         <string>📖 ComfyCraft AI Easy Studio 도움말</string>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">font-size: 16px; font-weight: 600; color: #1a1a1a;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="headerSpacer">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="helpCloseBtn">
+        <property name="minimumSize">
+         <size>
+          <width>36</width>
+          <height>36</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>36</width>
+          <height>36</height>
+         </size>
+        </property>
+        <property name="cursor">
+         <cursorShape>PointingHandCursor</cursorShape>
+        </property>
+        <property name="toolTip">
+         <string>닫기 (Esc)</string>
+        </property>
+        <property name="text">
+         <string>✕</string>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+    border: none;
+    border-radius: 18px;
+    background-color: transparent;
+    color: #555;
+    font-size: 16px;
+    font-weight: 600;
+}
+QPushButton:hover {
+    background-color: #e0e0e0;
+    color: #1a1a1a;
+}
+QPushButton:pressed {
+    background-color: #d0d0d0;
+}
+[data-theme="dark"] QPushButton {
+    color: #aaa;
+}
+[data-theme="dark"] QPushButton:hover {
+    background-color: #3a3a3a;
+    color: #fff;
+}
+[data-theme="dark"] QPushButton:pressed {
+    background-color: #444;
+}</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="contentFrame">
+     <property name="frameShape">
+      <enum>QFrame::Shape::NoFrame</enum>
+     </property>
+     <layout class="QHBoxLayout" name="contentLayout">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QFrame" name="leftPanel">
+        <property name="minimumSize">
+         <size>
+          <width>180</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>280</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::Shape::StyledPanel</enum>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QFrame#leftPanel {
+    border-right: 1px solid #e0e0e0;
+    background-color: #fafafa;
+}
+[data-theme="dark"] QFrame#leftPanel {
+    border-right: 1px solid #333;
+    background-color: #1e1e1e;
+}</string>
+        </property>
+        <layout class="QVBoxLayout" name="leftPanelLayout">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QListWidget" name="sectionListWidget">
+           <property name="frameShape">
+            <enum>QFrame::Shape::NoFrame</enum>
+           </property>
+           <property name="verticalScrollBarPolicy">
+            <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
+           </property>
+           <property name="horizontalScrollBarPolicy">
+            <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+           </property>
+           <property name="spacing">
+            <number>2</number>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QListWidget {
+    border: none;
+    outline: none;
+    background-color: transparent;
+}
+QListWidget::item {
+    padding: 10px 14px;
+    border: none;
+    border-radius: 0;
+    color: #1a1a1a;
+    font-size: 13px;
+    font-weight: 500;
+}
+QListWidget::item:hover {
+    background-color: #e8e8e8;
+    color: #1a1a1a;
+}
+QListWidget::item:selected {
+    background-color: #0078d4;
+    color: #ffffff;
+}
+QListWidget::item:selected:!active {
+    background-color: #0066cc;
+    color: #ffffff;
+}
+[data-theme="dark"] QListWidget::item {
+    color: #e0e0e0;
+}
+[data-theme="dark"] QListWidget::item:hover {
+    background-color: #3a3a3a;
+    color: #fff;
+}
+[data-theme="dark"] QListWidget::item:selected {
+    background-color: #0066cc;
+    color: #fff;
+}
+[data-theme="dark"] QListWidget::item:selected:!active {
+    background-color: #0055aa;
+    color: #fff;
+}</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QFrame" name="rightPanel">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::Shape::NoFrame</enum>
+        </property>
+        <layout class="QVBoxLayout" name="rightPanelLayout">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QTextBrowser" name="helpContentBrowser">
+           <property name="openExternalLinks">
+            <bool>true</bool>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::Shape::NoFrame</enum>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QTextBrowser {
+    border: none;
+    background-color: #ffffff;
+    padding: 24px;
+    font-family: 'Pretendard', 'Noto Sans KR', system-ui;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1a1a1a;
+}
+[data-theme="dark"] QTextBrowser {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+}
+QTextBrowser:focus {
+    border: none;
+    outline: none;
+}</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

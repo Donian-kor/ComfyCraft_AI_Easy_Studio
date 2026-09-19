@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시작하기</title>
+    
+<style>
+:root { 
+    --text: #1a1a1a; 
+    --text-muted: #555; 
+    --primary: #0078d4; 
+    --bg: #ffffff; 
+    --code-bg: #f4f4f4; 
+    --border: #e0e0e0; 
+    --header-border: #e0e0e0;
+}
+[data-theme="dark"] { 
+    --text: #e0e0e0; 
+    --text-muted: #aaa; 
+    --primary: #60a5fa;
+    --bg: #1e1e1e; 
+    --code-bg: #2d2d2d; 
+    --border: #333; 
+    --header-border: #333;
+}
+body { 
+    font-family: 'Pretendard', 'Noto Sans KR', system-ui; 
+    font-size: 14px; 
+    line-height: 1.6; 
+    color: var(--text); 
+    background: var(--bg); 
+    padding: 24px; 
+    max-width: 720px; 
+    margin: 0 auto; 
+}
+h1 { 
+    font-size: 24px; 
+    font-weight: 700; 
+    margin: 0 0 16px; 
+    padding-bottom: 8px; 
+    border-bottom: 1px solid var(--header-border); 
+}
+h2 { 
+    font-size: 20px; 
+    font-weight: 700; 
+    margin: 24px 0 12px; 
+    color: var(--primary); 
+}
+h3 { 
+    font-size: 16px; 
+    font-weight: 600; 
+    margin: 18px 0 8px; 
+}
+p { 
+    margin: 0 0 12px; 
+}
+code { 
+    background: var(--code-bg); 
+    padding: 2px 6px; 
+    border-radius: 4px; 
+    font-family: 'JetBrains Mono', 'Consolas', monospace; 
+    font-size: 13px; 
+}
+pre { 
+    background: var(--code-bg); 
+    padding: 12px; 
+    border-radius: 6px; 
+    overflow-x: auto; 
+    margin: 16px 0; 
+}
+pre code { 
+    background: none; 
+    padding: 0; 
+}
+table { 
+    border-collapse: collapse; 
+    width: 100%; 
+    margin: 16px 0; 
+}
+th, td { 
+    border: 1px solid var(--border); 
+    padding: 8px 12px; 
+    text-align: left; 
+}
+th { 
+    background: var(--code-bg); 
+    font-weight: 600; 
+}
+a { 
+    color: var(--primary); 
+    text-decoration: none; 
+}
+a:hover { 
+    text-decoration: underline; 
+}
+img { 
+    max-width: 100%; 
+    height: auto; 
+    border-radius: 4px; 
+    display: block; 
+    margin: 16px auto; 
+}
+ul, ol { 
+    padding-left: 24px; 
+    margin: 8px 0; 
+}
+li { 
+    margin: 4px 0; 
+}
+hr { 
+    border: none; 
+    border-top: 1px solid var(--border); 
+    margin: 24px 0; 
+}
+blockquote { 
+    border-left: 3px solid var(--primary); 
+    padding-left: 16px; 
+    margin: 16px 0; 
+    color: var(--text-muted); 
+}
+.toc {
+    background: var(--code-bg);
+    padding: 16px;
+    border-radius: 6px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+}
+.toc ul {
+    list-style: none;
+    padding-left: 0;
+}
+.toc li {
+    margin: 4px 0;
+}
+.toc a {
+    text-decoration: none;
+    color: var(--text);
+}
+.toc a:hover {
+    color: var(--primary);
+}
+</style>
+
+</head>
+<body>
+    <div class="toc"><div class="toc">
+<ul>
+<li><a href="#_1">시작하기</a><ul>
+<li><a href="#_2">주요 특징</a></li>
+<li><a href="#_3">빠른 시작</a><ul>
+<li><a href="#1">1. 필수 프로그램 설치</a></li>
+<li><a href="#2">2. 서버 실행</a></li>
+<li><a href="#3">3. 프로그램 실행</a></li>
+<li><a href="#4">4. 첫 이미지 생성</a></li>
+</ul>
+</li>
+<li><a href="#_4">화면 구성</a></li>
+<li><a href="#_5">다음 단계</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+    <h2 id="_1"><a class="toclink" href="#_1">시작하기</a><a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>ComfyCraft AI Easy Studio에 오신 것을 환영합니다! 이 프로그램은 <strong>LM Studio</strong>의 똑똑한 프롬프트 작성 능력과 <strong>ComfyUI</strong>의 강력한 이미지 생성 기술을 하나로 합친 통합 이미지 생성 프로그램입니다. 파이썬이나 복잡한 노드 연결을 몰라도 누구나 쉽게 고품질 이미지를 생성할 수 있습니다.</p>
+<h3 id="_2"><a class="toclink" href="#_2">주요 특징</a><a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>AI 프롬프트 마법사</strong>: 한국어 아이디어를 입력하면 AI가 상세한 영문 프롬프트로 자동 확장</li>
+<li><strong>자동 최적 설정</strong>: 모델만 선택하면 Steps, CFG, Sampler 등 최적값 자동 적용</li>
+<li><strong>강력한 얼굴 보정</strong>: FaceDetailer로 얼굴 영역만 자동 인식해 픽셀 단위 보정</li>
+<li><strong>히스토리 관리</strong>: 최근 생성 이미지 4장 썸네일로 저장, 클릭 한 번으로 설정 복원</li>
+<li><strong>클립보드 연동</strong>: 프롬프트/이미지 원클릭 복사</li>
+</ul>
+<h3 id="_3"><a class="toclink" href="#_3">빠른 시작</a><a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<h4 id="1"><a class="toclink" href="#1">1. 필수 프로그램 설치</a><a class="headerlink" href="#1" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>프로그램</th>
+<th>용도</th>
+<th>다운로드</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>LM Studio</strong></td>
+<td>프롬프트 확장용 언어 모델 서버</td>
+<td><a href="https://lmstudio.ai/">lmstudio.ai</a></td>
+</tr>
+<tr>
+<td><strong>ComfyUI</strong></td>
+<td>이미지 생성 백엔드</td>
+<td><a href="https://github.com/comfyanonymous/ComfyUI">github.com/comfyanonymous/ComfyUI</a></td>
+</tr>
+</tbody>
+</table>
+<h4 id="2"><a class="toclink" href="#2">2. 서버 실행</a><a class="headerlink" href="#2" title="Permanent link">&para;</a></h4>
+<p><strong>LM Studio</strong>
+1. 언어 모델 다운로드 (예: qwen2.5-7b-instruct 등)
+2. 좌측 <code>↔</code> 아이콘 클릭 → Local Server 탭
+3. 포트 <code>1234</code> 확인 후 <code>Start Server</code> 클릭</p>
+<p><strong>ComfyUI</strong>
+1. 터미널에서 <code>python main.py --listen --port 8188</code> 실행
+2. 브라우저에서 <code>http://localhost:8188</code> 접속 확인</p>
+<h4 id="3"><a class="toclink" href="#3">3. 프로그램 실행</a><a class="headerlink" href="#3" title="Permanent link">&para;</a></h4>
+<pre><code class="language-bash"># 가상환경 활성화
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+
+# 의존성 설치
+pip install -r requirements.txt
+
+# 실행
+python main.py
+</code></pre>
+<h4 id="4"><a class="toclink" href="#4">4. 첫 이미지 생성</a><a class="headerlink" href="#4" title="Permanent link">&para;</a></h4>
+<ol>
+<li>상단 <code>LM Studio 연결 확인</code>, <code>ComfyUI 연결 확인</code> 버튼 클릭 → 초록불 확인</li>
+<li>사용할 모델 선택 (프롬프트용 LM / 생성용 ComfyUI)</li>
+<li>한국어로 아이디어 입력 (예: "비 오는 날 창가에 앉은 고양이")</li>
+<li><code>✨ AI 프롬프트 마법사로 영문 확장 생성</code> 클릭</li>
+<li>초록색 <code>생성 시작</code> 버튼 클릭!</li>
+</ol>
+<h3 id="_4"><a class="toclink" href="#_4">화면 구성</a><a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<pre><code>┌─────────────────────────────────────────────────────────────┐
+│ 헤더: 앱 제목 | 서버 상태 | 테마 | ❓ 도움말 | ⚙️ 설정          │
+├──────────────┬──────────────────────────────────────────────┤
+│  좌측 사이드바  │  메인 작업 영역 (3단계 워크플로우)             │
+│  🏠 홈         │  1️⃣ 한국어 아이디어 → AI 프롬프트 변환        │
+│  🎨 ComfyUI    │  2️⃣ 핵심 생성 옵션 (모델, 비율, 고급설정)      │
+│  💬 LM Studio  │  3️⃣ 생성 실행 및 결과 확인                    │
+│  ⚙️ 설정       │                                              │
+└──────────────┴──────────────────────────────────────────────┘
+</code></pre>
+<h3 id="_5"><a class="toclink" href="#_5">다음 단계</a><a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="02_basic_usage.html">기본 사용법</a> - 워크플로우 상세 가이드</li>
+<li><a href="03_model_settings.html">모델 설정</a> - 모델 선택과 프로파일</li>
+<li><a href="04_prompt_writing.html">프롬프트 작성</a> - 효과적인 프롬프트 팁</li>
+</ul>
+</body>
+</html>

@@ -1,7 +1,7 @@
 {
   "lmstudio": {
     "url": "http://127.0.0.1:1234",
-    "model": "로드된 모델 없음",
+    "model": "krea-2-engineer-v1",
     "timeout_seconds": 120,
     "enhance_temperature": 0.7,
     "enhance_max_tokens": 5000
@@ -32,7 +32,8 @@
     "cfg_increment": 0.5
   },
   "prompts": {
-    "use_korean_prompt": false
+    "use_korean_prompt": false,
+    "zanime_style": "japanime"
   },
   "workflow": {
     "checkpoint_template": "workflows/checkpoint.json",

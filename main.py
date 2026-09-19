@@ -26,10 +26,13 @@ from PySide6.QtWidgets import (
     QDoubleSpinBox,
     QFileDialog,
     QFrame,
+    QGraphicsOpacityEffect,
     QGroupBox,
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QListWidget,
+    QListWidgetItem,
     QMessageBox,
     QPlainTextEdit,
     QProgressBar,
@@ -45,6 +48,15 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+
+ZANIME_STYLE_CHOICES = (
+    ("webtoon", "🇰🇷 웹툰"),
+    ("japanime", "🇯🇵 일본애니"),
+    ("basic", "✨ 기본"),
+)
+
+ZANIME_STYLE_LABELS = {value: label for value, label in ZANIME_STYLE_CHOICES}
+
 from assets.icons import (
     icon_rc,  # noqa: F401  (SVG 아이콘 리소스 등록용 - 직접 사용하진 않지만 import 자체가 필요함)
 )
@@ -53,13 +65,14 @@ from app.gui.theme_manager import (
     apply_theme,
     load_theme_choice,
     save_theme_choice,
+    zanime_style_button_colors,
 )
 from app.gui.ui_loader import load_dialog_ui, load_ui
 
 BASE_DIR = Path(__file__).resolve().parent
 
 SETTINGS_DIALOG_FILE = BASE_DIR / "assets" / "ui" / "settings_dialog.ui"
-HELP_DIALOG_FILE = BASE_DIR / "assets" / "ui" / "help_dialog.ui"
+HELP_DIALOG_FILE = BASE_DIR / "assets" / "ui" / "help_dialog_v2.ui"
 
 from app import (
     SAMPLER_NAMES,
@@ -223,6 +236,8 @@ class MainController(QObject):
         sampler.setCurrentText("DPM++ 2M·균형")
         sampler.currentTextChanged.connect(self._on_sampler_changed)
 
+        self._zanime_style_buttons = {}
+
         scheduler_combo = self.find(QComboBox, "schedulerComboBox")
         if scheduler_combo is not None:
             scheduler_combo.clear()
@@ -275,6 +290,7 @@ class MainController(QObject):
         self.find(QPushButton, "enhancePromptButton").clicked.connect(
             self.enhance_prompt_only
         )
+        self._setup_zanime_style_buttons()
         self.find(QPushButton, "loadConfigButton").clicked.connect(self.load_config)
         self.find(QPushButton, "saveConfigButton").clicked.connect(self.save_config)
         self.find(QPushButton, "restoreDefaultsButton").clicked.connect(
@@ -304,6 +320,9 @@ class MainController(QObject):
         self.find(QComboBox, "comfyModelCombo").currentTextChanged.connect(
             self.apply_model_defaults
         )
+        self.find(QComboBox, "comfyModelCombo").currentTextChanged.connect(
+            lambda _text="": self.update_zanime_style_visibility()
+        )
         presets = {
             "preset_1024x1024": (1024, 1024),
             "preset_896x1152": (896, 1152),
@@ -318,8 +337,8 @@ class MainController(QObject):
             btn = self.find(QPushButton, button_name)
             if btn is not None:
                 btn.clicked.connect(
-                    lambda checked=False, width=width, height=height: self.apply_preset(
-                        width, height
+                    lambda checked=False, button=btn, width=width, height=height: self._on_preset_button_clicked(
+                        button, width, height
                     )
                 )
         self.find(QPlainTextEdit, "positivePromptEdit").textChanged.connect(
@@ -458,6 +477,7 @@ class MainController(QObject):
         if not isinstance(app, QApplication):
             return
         applied = apply_theme(app, key)
+        self._apply_zanime_style_theme(applied)
         if save_theme_choice(applied):
             display_name = AVAILABLE_THEMES.get(applied, applied)
             self.append_log(f"테마 변경: {display_name}")
@@ -536,6 +556,349 @@ class MainController(QObject):
             scheduler_combo.blockSignals(True)
             scheduler_combo.setCurrentText("normal")
             scheduler_combo.blockSignals(False)
+
+    def _build_zanime_style_qss(self, theme_key: str | None = None) -> str:
+        """현재 테마 색상으로 zanime 스타일 버튼의 스타일 문자열을 만든다.
+
+        밝은 테마(fluent_light 등)에서도 글씨가 보이도록,
+        배경색과 글자색을 테마별 색상 표에서 가져와 함께 지정한다.
+        """
+        if not theme_key:
+            try:
+                theme_key = load_theme_choice()
+            except Exception:
+                theme_key = ""
+        colors = zanime_style_button_colors(theme_key)
+        sel_bg = colors.get("selected_bg", "#0078d4")
+        sel_border = colors.get("selected_border", "#005a9e")
+        sel_text = colors.get("selected_text", "#ffffff")
+        unsel_bg = colors.get("unselected_bg", "#e2e2e2")
+        unsel_border = colors.get("unselected_border", "#b8b8b8")
+        unsel_text = colors.get("unselected_text", "#1a1a1a")
+
+        selected_selector = 'QPushButton[zanimeSelected="true"]'
+        unselected_selector = 'QPushButton[zanimeSelected="false"]'
+
+        return (
+            "QPushButton { border-radius: 10px; padding: 6px 8px; "
+            f"border: 1px solid {unsel_border}; "
+            f"background-color: {unsel_bg}; "
+            f"color: {unsel_text}; }}"
+            "QPushButton:hover { "
+            f"border: 2px solid {sel_border}; }}"
+            "QPushButton:pressed { padding-top: 8px; padding-bottom: 4px; }"
+            f"{selected_selector} {{ border: 2px solid {sel_border}; "
+            f"background-color: {sel_bg}; "
+            f"font-weight: 700; color: {sel_text}; }}"
+            f"{unselected_selector} {{ border: 1px solid {unsel_border}; "
+            f"background-color: {unsel_bg}; color: {unsel_text}; }}"
+        )
+
+    def _apply_zanime_style_theme(self, theme_key: str | None = None) -> None:
+        """테마가 바뀌면 zanime 스타일 버튼 색상을 다시 칠한다."""
+        buttons = getattr(self, "_zanime_style_buttons", {}) or {}
+        if not buttons:
+            return
+        qss = self._build_zanime_style_qss(theme_key)
+        for button in buttons.values():
+            try:
+                button.setStyleSheet(qss)
+            except Exception:
+                pass
+        self.refresh_zanime_style_buttons()
+
+    def _should_show_negative_prompt(self, model_name: str) -> bool:
+        """부정 프롬프트 입력칸을 보여줄 모델인지 판단한다.
+
+        저거넛(Juggernaut), 리얼비스(RealVis), Z-ANIME 계열일 때만 True.
+        FLUX나 Z-Image 등 나머지 모델에서는 표시하지 않는다.
+        """
+        try:
+            if not model_name or model_name == "로드된 모델 없음":
+                return False
+            lowered = model_name.lower()
+            keywords = (
+                "juggernaut",
+                "ragnarok",
+                "realvis",
+                "z-anime",
+                "z_anime",
+                "zanime",
+                "anime_aio",
+            )
+            if any(keyword in lowered for keyword in keywords):
+                return True
+            # 파일명 규칙이 안 맞아도 프로필 family로 한 번 더 확인
+            profile = self.model_registry.detect(model_name)
+            return profile.family in ("realvisxl", "juggernautxl", "zanime")
+        except Exception:
+            return False
+
+    def _apply_negative_prompt_height(self) -> None:
+        """부정 프롬프트 입력칸의 높이를 1줄 크기로 고정한다.
+
+        내용이 길어져도 칸이 늘어나지 않아 화면이 아래로 밀리지 않는다.
+        넘치는 내용은 세로 스크롤로 볼 수 있다.
+        """
+        edit = self.find(QPlainTextEdit, "negativePromptEdit")
+        if edit is None:
+            return
+        try:
+            metrics = edit.fontMetrics()
+            line_height = metrics.lineSpacing()
+            frame = edit.frameWidth() * 2
+            # 문서/뷰포트 여백을 감안해 1줄만 보이도록 높이를 계산한다
+            target = line_height + frame + 8
+            edit.setMinimumHeight(target)
+            edit.setMaximumHeight(target)
+            edit.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+            edit.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        except Exception:
+            pass
+
+    def _apply_positive_prompt_height(self) -> None:
+        """긍정 프롬프트 입력칸 높이를 2줄 크기로 고정한다.
+
+        항상 2줄 높이를 유지하므로 긴 내용을 입력해도
+        칸이 커지지 않고 화면이 밀리지 않는다. 넘치는 내용은 스크롤로 본다.
+        """
+        edit = self.find(QPlainTextEdit, "positivePromptEdit")
+        if edit is None:
+            return
+        try:
+            metrics = edit.fontMetrics()
+            line_height = metrics.lineSpacing()
+            frame = edit.frameWidth() * 2
+            # 2줄 + 프레임/여백
+            target = line_height * 2 + frame + 10
+            edit.setMinimumHeight(target)
+            edit.setMaximumHeight(target)
+            edit.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+            edit.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        except Exception:
+            pass
+
+    def _setup_dynamic_enhance_prompt_height(self) -> None:
+        """향상 프롬프트 입력칸 높이가 내용에 따라 늘고 줄게 만든다.
+
+        내용이 없으면 최소(2줄), 길어지면 최대(12줄)까지 늘어난다.
+        최대를 넘으면 스크롤로 나머지 내용을 본다.
+        """
+        edit = self.find(QPlainTextEdit, "enhancePromptEdit")
+        if edit is None:
+            return
+        try:
+            metrics = edit.fontMetrics()
+            line_height = metrics.lineSpacing()
+            frame = edit.frameWidth() * 2
+            self._enhance_height_extra = frame + 10
+            self._enhance_min_height = line_height * 2 + self._enhance_height_extra
+            self._enhance_max_height = line_height * 12 + self._enhance_height_extra
+            edit.textChanged.connect(self._update_enhance_prompt_height)
+            self._update_enhance_prompt_height()
+        except Exception:
+            pass
+
+    def _update_enhance_prompt_height(self) -> None:
+        """향상 프롬프트 내용 높이를 계산해 입력칸 높이를 맞춘다.
+
+        QPlainTextEdit의 document().size().height()는 픽셀 높이가 아니라
+        줄 수를 돌려주므로, 각 줄(블록)의 실제 줄 수를 세서 픽셀 높이로 바꾼다.
+        """
+        edit = self.find(QPlainTextEdit, "enhancePromptEdit")
+        if edit is None:
+            return
+        try:
+            metrics = edit.fontMetrics()
+            line_height = metrics.lineSpacing()
+            # 자동 줄바꿈을 포함한 실제 보이는 줄 수를 센다
+            total_lines = 0
+            block = edit.document().begin()
+            while block.isValid():
+                total_lines += max(1, block.layout().lineCount())
+                block = block.next()
+            margins = edit.contentsMargins()
+            extra = getattr(self, "_enhance_height_extra", 10)
+            min_height = getattr(self, "_enhance_min_height", 50)
+            max_height = getattr(self, "_enhance_max_height", 300)
+            doc_height = total_lines * line_height
+            target = int(doc_height + margins.top() + margins.bottom() + extra)
+            target = max(min_height, min(max_height, target))
+            edit.setMinimumHeight(target)
+            edit.setMaximumHeight(target)
+        except Exception:
+            pass
+
+    def _setup_zanime_style_buttons(self):
+        """핵심 생성 옵션의 모델 바로 아래에 zanime 스타일 버튼을 만든다."""
+        if getattr(self, "_zanime_style_buttons", None) is None:
+            self._zanime_style_buttons = {}
+        if getattr(self, "_zanime_style_frame", None) is not None:
+            self.update_zanime_style_visibility()
+            return
+
+        model_layout = self.window.findChild(QVBoxLayout, "modelSelectLayout")
+        step_layout = self.window.findChild(QVBoxLayout, "step2Layout")
+        if model_layout is None or step_layout is None:
+            return
+
+        frame = QFrame()
+        frame.setObjectName("zanimeStyleFrame")
+        layout = QVBoxLayout(frame)
+        layout.setObjectName("zanimeStyleLayout")
+        layout.setSpacing(4)
+        layout.setContentsMargins(0, 4, 0, 0)
+
+        title = QLabel("🎨 Z-ANIME 스타일 선택 (필수)")
+        title.setObjectName("zanimeStyleLabel")
+        layout.addWidget(title)
+
+        button_row = QHBoxLayout()
+        button_row.setObjectName("zanimeStyleButtonLayout")
+        button_row.setSpacing(6)
+        base_button_style = self._build_zanime_style_qss()
+        for style_value, style_label in ZANIME_STYLE_CHOICES:
+            button = QPushButton(style_label)
+            button.setObjectName(f"zanimeStyle_{style_value}_Button")
+            button.setCheckable(True)
+            button.setCursor(Qt.CursorShape.PointingHandCursor)
+            button.setMinimumHeight(34)
+            button.setProperty("zanimeSelected", False)
+            button.setStyleSheet(base_button_style)
+            effect = QGraphicsOpacityEffect(button)
+            effect.setOpacity(1.0)
+            button.setGraphicsEffect(effect)
+            button.clicked.connect(
+                lambda _checked=False, value=style_value: self.select_zanime_style(value)
+            )
+            button_row.addWidget(button)
+            self._zanime_style_buttons[style_value] = button
+        layout.addLayout(button_row)
+
+        notice = QLabel("Z-ANIME 모델일 때만 보입니다. 버튼을 누른 뒤 생성해 주세요.")
+        notice.setObjectName("zanimeStyleNoticeLabel")
+        notice.setWordWrap(True)
+        layout.addWidget(notice)
+
+        self._zanime_style_frame = frame
+
+        index = -1
+        for i in range(step_layout.count()):
+            if step_layout.itemAt(i).layout() is model_layout:
+                index = i
+                break
+        if index >= 0:
+            step_layout.insertWidget(index + 1, frame)
+        else:
+            model_layout.addWidget(frame)
+
+        self.refresh_zanime_style_buttons()
+        self.update_zanime_style_visibility()
+
+    def is_zanime_selected(self) -> bool:
+        """현재 선택된 ComfyUI 모델이 zanime 계열인지 판단한다."""
+        try:
+            combo = self.find(QComboBox, "comfyModelCombo")
+            model_name = combo.currentText() if combo is not None else ""
+            profile = self.model_registry.detect(model_name)
+            lowered = (model_name or "").lower()
+            return bool(
+                "z-anime" in lowered
+                or "zanime" in lowered
+                or "z_anime_base" in lowered
+                or "anime_aio" in lowered
+                or profile.family == "zanime"
+                or profile.name == "zanime_aio"
+            )
+        except Exception:
+            return False
+
+    def current_zanime_style(self) -> str:
+        """저장된 zanime 스타일 값을 소문자로 반환한다."""
+        try:
+            return (self.config.prompts.zanime_style or "").strip().lower()
+        except Exception:
+            return ""
+
+    def refresh_zanime_style_buttons(self) -> None:
+        """저장된 zanime 스타일을 버튼 선택 상태에 반영한다."""
+        buttons = getattr(self, "_zanime_style_buttons", {}) or {}
+        if not buttons:
+            return
+        current = self.current_zanime_style()
+        for style_value, button in buttons.items():
+            try:
+                button.blockSignals(True)
+                is_selected = style_value == current
+                button.setChecked(is_selected)
+                button.setProperty("zanimeSelected", is_selected)
+                try:
+                    button.style().unpolish(button)
+                    button.style().polish(button)
+                    button.update()
+                except Exception:
+                    pass
+            finally:
+                try:
+                    button.blockSignals(False)
+                except Exception:
+                    pass
+
+    def update_zanime_style_visibility(self) -> None:
+        """zanime이 선택됐을 때만 스타일 선택 영역을 보여준다."""
+        frame = getattr(self, "_zanime_style_frame", None)
+        if frame is None:
+            return
+        frame.setVisible(self.is_zanime_selected())
+
+    def select_zanime_style(self, style_value: str) -> None:
+        """스타일 버튼 선택을 저장하고 UI 선택 상태에 반영한다."""
+        normalized = (style_value or "").strip().lower()
+        valid_styles = {value for value, _label in ZANIME_STYLE_CHOICES}
+        if normalized not in valid_styles:
+            return
+        try:
+            self.config.prompts.zanime_style = normalized
+            self.config_manager.set_config(self.config)
+            self.config_manager.save(self.config)
+        except Exception as exc:
+            self.append_log(f"스타일 저장 실패: {exc}")
+        self.refresh_zanime_style_buttons()
+        self._play_zanime_style_animation(normalized)
+        label = ZANIME_STYLE_LABELS.get(normalized, normalized)
+        self.append_log(f"Z-ANIME 스타일 선택: {label}")
+
+    def _play_zanime_style_animation(self, style_value: str) -> None:
+        """선택된 스타일 버튼에 짧은 강조 애니메이션을 보여준다."""
+        buttons = getattr(self, "_zanime_style_buttons", {}) or {}
+        self._play_button_pulse_animation(buttons.get(style_value))
+
+    def _play_button_pulse_animation(self, button: QPushButton) -> None:
+        """버튼을 눌렀을 때 반짝이는 강조 애니메이션을 보여준다.
+
+        스타일 버튼과 해상도 프리셋 버튼 등에서 함께 쓴다.
+        잠깐 어두워졌다가 밝아지고, 다시 살짝 어두웠다가 원래대로 돌아온다.
+        """
+        if button is None:
+            return
+        try:
+            effect = button.graphicsEffect()
+            if not isinstance(effect, QGraphicsOpacityEffect):
+                effect = QGraphicsOpacityEffect(button)
+                button.setGraphicsEffect(effect)
+            animation = QPropertyAnimation(effect, b"opacity", button)
+            animation.setDuration(460)
+            animation.setKeyValueAt(0.0, 0.40)
+            animation.setKeyValueAt(0.45, 1.0)
+            animation.setKeyValueAt(0.70, 0.72)
+            animation.setKeyValueAt(1.0, 1.0)
+            animation.setEasingCurve(QEasingCurve.Type.InOutQuad)
+            animation.finished.connect(
+                lambda: effect.setOpacity(1.0) if effect is not None else None
+            )
+            animation.start(QPropertyAnimation.DeletionPolicy.DeleteWhenStopped)
+        except Exception:
+            return
 
     def _setup_progress_label_overlay(self):
         """progressPercentLabel을 로딩바 정중앙에 overlay로 배치"""
@@ -900,12 +1263,12 @@ class MainController(QObject):
         )
         self.find(QComboBox, "samplerComboBox").setCurrentText(display)
 
-        # 모델별 네거티브 프롬프트 동적 제어 (FLUX/ZImage는 숨김, SDXL은 표시)
+        self.update_zanime_style_visibility()
+
+        # 부정 프롬프트: 저거넛/리얼비스/Z-ANIME 계열에서만 표시
         neg_frame = self.find(QFrame, "negativePromptFrame")
         if neg_frame:
-            m_lower = model_name.lower()
-            is_flux_or_zimage = any(k in m_lower for k in ["flux", "zimage", "z_image", "turbo"])
-            neg_frame.setVisible(not is_flux_or_zimage)
+            neg_frame.setVisible(self._should_show_negative_prompt(model_name))
 
         # 추천 설정 안내 배지 갱신
         notice_label = self.find(QLabel, "modelProfileNoticeLabel")
@@ -949,6 +1312,15 @@ class MainController(QObject):
         self.find(QSpinBox, "widthSpinBox").setValue(width)
         self.find(QSpinBox, "heightSpinBox").setValue(height)
         self.append_log(f"해상도 프리셋 적용: {width}x{height}")
+
+    def _on_preset_button_clicked(self, button, width, height):
+        """프리셋 버튼을 눌렀을 때: 값 적용 + 스타일 버튼과 같은 반짝 애니메이션.
+
+        기록 복원처럼 코드에서 직접 apply_preset을 부를 때는
+        이 함수를 거치지 않으므로 애니메이션이 실행되지 않는다.
+        """
+        self.apply_preset(width, height)
+        self._play_button_pulse_animation(button)
 
     def load_config(self):
         config_path = self.config_manager.config_path
@@ -1011,6 +1383,9 @@ class MainController(QObject):
                 scheduler_combo.setCurrentText(scheduler_name)
             else:
                 scheduler_combo.setCurrentIndex(0)
+
+        self.refresh_zanime_style_buttons()
+        self.update_zanime_style_visibility()
 
         # Denoise 복구
         denoise_spin = self.find(QDoubleSpinBox, "denoiseSpinBox")
@@ -1184,6 +1559,16 @@ class MainController(QObject):
     def capture_snapshot(self):
         prompt_text = self.find(QPlainTextEdit, "positivePromptEdit").toPlainText()
         negative_text = self.find(QPlainTextEdit, "negativePromptEdit").toPlainText()
+        comfy_model_name = self.find(QComboBox, "comfyModelCombo").currentText()
+        # zanime 모델이면 스타일 선택이 끝난 뒤에만 생성 가능
+        if self.is_zanime_selected() and self.current_zanime_style() not in (
+            "webtoon",
+            "japanime",
+            "basic",
+        ):
+            raise ValueError(
+                "Z-ANIME 스타일을 먼저 선택해 주세요. (웹툰 / 일본애니 / 기본 중 하나)"
+            )
         # enhancePromptEdit 내용도 스냅샷에 포함 (이미지 생성 시 LM Studio 재요청 방지용)
         enhance_prompt_text = self.find(
             QPlainTextEdit, "enhancePromptEdit"
@@ -1236,6 +1621,7 @@ class MainController(QObject):
         )
 
         snapshot = {
+            "zanime_style": self.current_zanime_style(),
             "prompt": normalize_prompt(prompt_text),
             "negative": build_negative_prompt(negative_text),
             "enhance_prompt": enhance_prompt_text,  # enhancePromptEdit 내용 추가
@@ -1345,10 +1731,43 @@ class MainController(QObject):
             manager.is_zimage_model(comfy_model_name)
             or profile.workflow_type == "zimage"
         )
+        lowered_model_name = (comfy_model_name or "").lower()
+        is_zanime = bool(
+            "z-anime" in lowered_model_name
+            or "zanime" in lowered_model_name
+            or "z_anime_base" in lowered_model_name
+            or "anime_aio" in lowered_model_name
+            or profile.family == "zanime"
+            or profile.name == "zanime_aio"
+        )
+
+        # zanime 모델일 때만: 저장된 스타일 설정을 따라 별도 시스템 프롬프트 사용
+        zanime_style = (self.config.prompts.zanime_style or "").strip().lower()
+        zanime_system_prompt = ""
+        if is_zanime and zanime_style in ("webtoon", "japanime", "basic"):
+            if zanime_style == "webtoon":
+                zanime_system_prompt = ext_prompts.get("system_prompt_zanime_webtoon_en") or ""
+            elif zanime_style == "japanime":
+                zanime_system_prompt = ext_prompts.get("system_prompt_zanime_anime_en") or ""
+            else:
+                zanime_system_prompt = ext_prompts.get("system_prompt_zanime_basic_en") or ""
+            if zanime_system_prompt:
+                self.append_log(
+                    f"[ZANIME 스타일] '{zanime_style}' 스타일 프롬프트 지시문을 사용합니다."
+                )
+            else:
+                self.append_log(
+                    f"[ZANIME 스타일] '{zanime_style}' 전용 지시문이 없어 기본 문장형 지시문으로 대체합니다."
+                )
 
         # LM Studio에는 영문 시스템 프롬프트 사용 (출력 언어 준수율 향상)
         # use_korean_prompt 설정과 무관하게 영문 프롬프트(_en) 사용
-        if is_flux or is_zimage:
+        if zanime_system_prompt:
+            system_prompt = zanime_system_prompt
+            self.append_log(
+                f"[AI 자동 분석] '{comfy_model_name}' 모델 감지: '문장형' 프롬프트 지시문을 사용합니다."
+            )
+        elif is_flux or is_zimage or is_zanime:
             self.append_log(
                 f"[AI 자동 분석] '{comfy_model_name}' 모델 감지: '문장형' 프롬프트 지시문을 사용합니다."
             )
@@ -1410,7 +1829,26 @@ class MainController(QObject):
                 seed_spin = self.find(QSpinBox, "seedSpinBox")
                 if seed_spin:
                     seed_spin.setValue(rand_seed)
-            snapshot = self.capture_snapshot()
+            try:
+                snapshot = self.capture_snapshot()
+            except ValueError as exc:
+                show_message_box(
+                    self.window,
+                    QMessageBox.Icon.Warning,
+                    "스타일 선택 필요",
+                    str(exc),
+                )
+                btn = self.find(QPushButton, "generateButton")
+                if btn is not None:
+                    try:
+                        btn.blockSignals(True)
+                        btn.setChecked(False)
+                    finally:
+                        try:
+                            btn.blockSignals(False)
+                        except Exception:
+                            pass
+                return
             if not snapshot["prompt"]:
                 show_message_box(
                     self.window,
@@ -1673,16 +2111,14 @@ class MainController(QObject):
         _sync_fd_label("facedetailerSamBboxExpansionSlider", "facedetailerSamBboxExpansionValueLabel", lambda v: f"{int(v)}")
         _sync_fd_label("facedetailerSamMaskHintThresholdSlider", "facedetailerSamMaskHintThresholdValueLabel", lambda v: f"{v / 100.0:.2f}")
 
-        # 6-1. 네거티브 프롬프트 패널 초기 표시 상태 (SDXL 등 필요 모델 선택 시에만 표시)
+        # 6-1. 부정 프롬프트 패널: 저거넛/리얼비스/Z-ANIME 계열에서만 표시하고 1줄 높이로 고정
         neg_frame = self.find(QFrame, "negativePromptFrame")
         if neg_frame:
             curr_model = self.find(QComboBox, "comfyModelCombo").currentText() if self.find(QComboBox, "comfyModelCombo") else ""
-            if curr_model and curr_model != "로드된 모델 없음":
-                m_lower = curr_model.lower()
-                is_flux_or_zimage = any(k in m_lower for k in ["flux", "zimage", "z_image", "turbo"])
-                neg_frame.setVisible(not is_flux_or_zimage)
-            else:
-                neg_frame.setVisible(False)
+            neg_frame.setVisible(self._should_show_negative_prompt(curr_model))
+        self._apply_negative_prompt_height()
+        self._apply_positive_prompt_height()
+        self._setup_dynamic_enhance_prompt_height()
 
         # 7. 접이식 고급 설정 토글 (얼굴 보정과 동일한 체크박스 방식으로 통일)
         adv_check = self.find(QCheckBox, "advancedToggleBtn")
@@ -1894,7 +2330,7 @@ class MainController(QObject):
         dlg.exec()
 
     def _show_help_dialog(self):
-        """도움말 다이얼로그(.ui 파일 기반)를 표시한다."""
+        """도움말 다이얼로그(v2: 좌우 분할)를 표시한다. 비모달 방식으로 메인 화면과 병행 사용 가능."""
         try:
             dlg = load_dialog_ui(HELP_DIALOG_FILE, self.window)
         except Exception as e:  # noqa: BLE001 (ui 로드 실패 시 알림)
@@ -1906,34 +2342,84 @@ class MainController(QObject):
             )
             return
 
-        browser = dlg.findChild(QTextBrowser, "dlgHelpBrowser")
-        if browser is not None:
-            browser.setOpenExternalLinks(True)
-            readme_path = BASE_DIR / "assets" / "help" / "README.md"
-            style_inject = """
-        <style>
-            h1 { font-size: 24px; font-weight: bold; margin-bottom: 14px; }
-            h2 { font-size: 20px; font-weight: bold; margin-top: 20px; margin-bottom: 10px; color: #d0bcff; }
-            h3 { font-size: 16px; font-weight: bold; margin-top: 15px; margin-bottom: 8px; color: #e8def8; }
-            p, li, td, th { font-size: 14px; line-height: 1.5; }
-            strong { font-weight: bold; font-size: 14px; color: #ffffff; }
-            hr { border-bottom: 1px solid #33343b; margin: 15px 0; }
-            pre, code { background-color: #1e1e1e; color: #e2e2eb; padding: 3px 5px; border-radius: 4px; font-family: Consolas, monospace; font-size: 13px; }
-            pre { padding: 10px; }
-        </style>
-        """
-            html_content = (
-                style_inject
-                + "<h2 style='color:#d0bcff; font-size:24px;'>📖 ComfyCraft AI Easy Studio 도움말</h2><hr>"
-                + self._render_markdown_file(readme_path)
-            )
-            browser.setHtml(html_content)
+        # UI 위젯 찾기
+        section_list = dlg.findChild(QListWidget, "sectionListWidget")
+        content_browser = dlg.findChild(QTextBrowser, "helpContentBrowser")
+        close_btn = dlg.findChild(QPushButton, "helpCloseBtn")
 
-        close_btn = dlg.findChild(QPushButton, "dlgHelpCloseBtn")
+        if section_list is None or content_browser is None:
+            show_message_box(
+                self.window,
+                QMessageBox.Icon.Warning,
+                "도움말 UI 오류",
+                "도움말 창의 필수 위젯을 찾을 수 없습니다.",
+            )
+            return
+
+        # HTML 디렉토리
+        html_dir = BASE_DIR / "assets" / "help" / "html"
+
+        # 섹션 정의 (아이콘은 Feather Icons 이름, 실제로는 SVG 파일 또는 유니코드 이모지 사용)
+        help_sections = [
+            {"id": "getting_started", "title": "시작하기", "icon": "🚀", "file": "01_getting_started.html"},
+            {"id": "basic_usage", "title": "기본 사용법", "icon": "📝", "file": "02_basic_usage.html"},
+            {"id": "model_settings", "title": "모델 설정", "icon": "🤖", "file": "03_model_settings.html"},
+            {"id": "prompt_writing", "title": "프롬프트 작성", "icon": "✍️", "file": "04_prompt_writing.html"},
+            {"id": "generation_options", "title": "이미지 생성 옵션", "icon": "⚙️", "file": "05_generation_options.html"},
+            {"id": "facedetailer", "title": "FaceDetailer 얼굴 보정", "icon": "👤", "file": "06_facedetailer.html"},
+            {"id": "history", "title": "히스토리/썸네일", "icon": "🖼️", "file": "07_history.html"},
+            {"id": "installation", "title": "설치 및 필수 노드", "icon": "📦", "file": "08_installation.html"},
+            {"id": "lmstudio", "title": "LM Studio 연동", "icon": "💬", "file": "09_lmstudio.html"},
+            {"id": "faq", "title": "자주 묻는 질문", "icon": "❓", "file": "10_faq.html"},
+            {"id": "shortcuts", "title": "단축키/팁", "icon": "⌨️", "file": "11_shortcuts.html"},
+        ]
+
+        # 좌측 리스트 채우기
+        for section in help_sections:
+            item = QListWidgetItem(f"{section['icon']}  {section['title']}")
+            item.setData(Qt.ItemDataRole.UserRole, section)
+            section_list.addItem(item)
+
+        # HTML 로드 함수
+        def load_section_html(section_data):
+            html_file = html_dir / section_data["file"]
+            if html_file.exists():
+                try:
+                    html = html_file.read_text(encoding="utf-8")
+                except Exception:
+                    html = "<p style='color:red;'>HTML 파일을 읽을 수 없습니다.</p>"
+            else:
+                html = f"<p style='color:red;'>파일을 찾을 수 없습니다: {section_data['file']}</p>"
+            content_browser.setHtml(html)
+            # 스크롤을 맨 위로
+            content_browser.verticalScrollBar().setValue(0)
+
+        # 리스트 클릭 시 콘텐츠 전환
+        def on_section_clicked(item):
+            section_data = item.data(Qt.ItemDataRole.UserRole)
+            if section_data:
+                load_section_html(section_data)
+
+        section_list.itemClicked.connect(on_section_clicked)
+
+        # 초기 선택: 첫 번째 항목
+        if section_list.count() > 0:
+            first_item = section_list.item(0)
+            section_list.setCurrentItem(first_item)
+            load_section_html(first_item.data(Qt.ItemDataRole.UserRole))
+
+        # 닫기 버튼
         if close_btn is not None:
             close_btn.clicked.connect(dlg.accept)
 
-        dlg.exec()
+        # ESC 키로 닫기
+        dlg.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+        dlg.setWindowModality(Qt.WindowModality.NonModal)  # 비모달
+
+        # 창 표시 (비모달)
+        dlg.show()
+        dlg.raise_()
+        dlg.activateWindow()
 
     def _show_facedetailer_guide(self):
         """❓ 얼굴 보정(FaceDetailer) 초보자 가이드 다이얼로그"""
@@ -1998,6 +2484,14 @@ class MainController(QObject):
             self.find(QComboBox, "samplerComboBox").setCurrentText(snap["sampler"])
         if "scheduler" in snap:
             self.find(QComboBox, "schedulerComboBox").setCurrentText(snap["scheduler"])
+        if "zanime_style" in snap and snap.get("zanime_style"):
+            try:
+                self.config.prompts.zanime_style = str(snap.get("zanime_style", "")).strip().lower()
+                self.config_manager.set_config(self.config)
+                self.refresh_zanime_style_buttons()
+            except Exception:
+                pass
+        self.update_zanime_style_visibility()
 
         # 4. FaceDetailer 옵션 복원
         self._restore_facedetailer_from_snapshot(snap)

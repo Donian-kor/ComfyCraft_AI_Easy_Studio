@@ -79,6 +79,7 @@ class GenerationWorker:
         self.snapshot = snapshot
         self.signals = WorkerSignals()
         self.stop_requested = False
+        self._last_model_name = None
         self.comfy_api: Optional[ComfyUIApiClient] = None
         self.comfy_ws: Optional[ComfyUIWebSocketClient] = None
 
@@ -178,11 +179,16 @@ class GenerationWorker:
             return False
 
         # 🌟 [중요] 새 생성 시작 전 ComfyUI 큐/실행 상태 강제 정리 (재실행 400 에러 방지)
+        # 🌟 [개선] 모델이 변경된 경우에만 free_memory 호출 (같은 모델이면 메모리 유지)
         try:
             self.comfy_api.interrupt(timeout=2)
             self.comfy_api.clear_queue(timeout=2)
-            self.comfy_api.free_memory(timeout=3)
-            self.emit_log("사전 큐 정리 완료 (interrupt + clear_queue + free_memory)")
+            if self._last_model_name is None or self._last_model_name != model_name:
+                self.comfy_api.free_memory(timeout=3)
+                self._last_model_name = model_name
+                self.emit_log("사전 큐 정리 완료 (interrupt + clear_queue + free_memory)")
+            else:
+                self.emit_log(f"동일 모델({model_name}) 유지 — free_memory 건너뜀")
         except Exception as e:
             self.emit_log(f"[⚠️ 경고] 사전 큐 정리 중 오류 (무시하고 진행): {e}")
 
@@ -230,6 +236,9 @@ class GenerationWorker:
             
             self.comfy_ws.start()
 
+            # 🌟 WebSocket URL 디버그 로그
+            self.emit_log(f"[WebSocket] 연결 시도: {self.comfy_ws.ws_url}")
+            
             self.emit_log("ComfyUI WebSocket 연결 프로세스 시작")
             
             # 👇 [👍 수정 및 교체] 웹소켓이 '진짜' 연결될 때까지 최대 2초간 안전하게 대기합니다.
@@ -251,10 +260,17 @@ class GenerationWorker:
         self.signals.status.emit("이미지 생성 중...")
 
         interval = max(self.controller.config.comfyui.poll_interval_seconds, 0.2)
-        attempts = int(self.controller.config.comfyui.max_wait_seconds / interval)
+        max_wait = self.controller.config.comfyui.max_wait_seconds
+        attempts = int(max_wait / interval)
+        
+        # 모델 로딩 단계 추적용
+        model_loading_logged = False
+        last_progress = 0
+        
         for attempt in range(attempts):
             if self.stop_requested:
                 return False
+            
             history = self.comfy_api.history(prompt_id, timeout=5)
             if history.status_code == 200:
                 item = history.json().get(prompt_id)
@@ -274,13 +290,24 @@ class GenerationWorker:
                         except Exception as e:
                             self.emit_log(f"[⚠️ 경고] 큐 정리 실패: {e}")
                         return True
-           
-            # 👍 아래와 같이 주석 처리하여 가짜 게이지 상승을 막습니다.
-            # if not getattr(self.comfy_ws, "_connected", False):
-            #     self.signals.progress.emit(min(95, 10 + attempt * 3))
+            
+            # 🌟 WebSocket에서 실제 진행률이 오면 last_progress 업데이트됨
+            # (ComfyUIWebSocketClient에서 on_progress 콜백으로 progress 시그널 발생 시 자동 반영)
+            current_progress = getattr(self.comfy_ws, "_last_progress", 0) if self.comfy_ws else 0
+            if current_progress > last_progress:
+                last_progress = current_progress
+                model_loading_logged = False  # 실제 진행 시작되면 로깅 리셋
+            
+            # 🌟 모델 로딩 단계(진행률 0% 유지 시) 시각적 피드백 + 로그
+            if last_progress == 0 and not model_loading_logged:
+                elapsed = attempt * interval
+                if elapsed >= 30:  # 30초 후부터 로그 출력
+                    self.emit_log(f"[모델 로딩 중] 대용량 모델 초기화 대기... ({elapsed:.0f}초 경과, 최대 {max_wait}초 대기)")
+                    model_loading_logged = True
+            
             time.sleep(interval)
 
-        raise RuntimeError("이미지 생성 시간이 초과되었습니다.")
+        raise RuntimeError(f"이미지 생성 시간이 초과되었습니다. (최대 {max_wait}초 대기)")
 
     @staticmethod
     def _extract_comfyui_error(item: Dict[str, Any]) -> Optional[str]:
@@ -427,6 +454,11 @@ class GenerationWorker:
             required_nodes = ["UnetLoaderGGUF", "CLIPLoaderGGUF", "VAELoader", "KSampler", "TextEncodeZImageOmni"]
             missing = [name for name in required_nodes if not self._comfyui_node_exists(name, comfy_url)]
             if missing:
+                if manager.is_gguf_model(model_name):
+                    raise RuntimeError(
+                        f"ZImage 전용 노드 누락: {', '.join(missing)}. "
+                        f"ComfyUI 서버에 해당 커스텀 노드를 설치해주세요."
+                    )
                 self.emit_log(f"ZImage 전용 노드 누락: {', '.join(missing)}. 기본 checkpoint 경로로 대체합니다.")
                 base_wf = manager.render_checkpoint_workflow(
                     model_name=model_name,
@@ -466,6 +498,11 @@ class GenerationWorker:
             required_nodes = ["UnetLoaderGGUF", "DualCLIPLoaderGGUF", "FluxGuidance", "VAELoader"]
             missing = [name for name in required_nodes if not self._comfyui_node_exists(name, comfy_url)]
             if missing:
+                if manager.is_gguf_model(model_name):
+                    raise RuntimeError(
+                        f"Flux 전용 노드 누락: {', '.join(missing)}. "
+                        f"ComfyUI 서버에 해당 커스텀 노드를 설치해주세요."
+                    )
                 self.emit_log(f"Flux 전용 노드 누락: {', '.join(missing)}. 기본 checkpoint 경로로 대체합니다.")
                 base_wf = manager.render_checkpoint_workflow(
                     model_name=model_name,
@@ -785,11 +822,47 @@ class GenerationWorker:
         # 🌟 [개선안] 기존 소스 코드의 워크플로우 분기법과 100% 동일하게 오차 없이 판별
         is_flux = bool(profile.workflow_type == "flux_gguf" or manager.is_flux_model(comfy_model_name) or profile.family == "flux")
         is_zimage = bool(manager.is_zimage_model(comfy_model_name) or profile.workflow_type == "zimage")
+        lowered_model_name = (comfy_model_name or "").lower()
+        is_zanime = bool(
+            "z-anime" in lowered_model_name
+            or "zanime" in lowered_model_name
+            or "z_anime_base" in lowered_model_name
+            or "anime_aio" in lowered_model_name
+            or profile.family == "zanime"
+            or profile.name == "zanime_aio"
+        )
 
-        # 1. 모델이 FLUX이거나 ZImage 계열일 때 ➡️ '문장형' 프롬프트 분기
-        if is_flux or is_zimage:
-            self.emit_log(f"[AI 자동 분석] '{comfy_model_name}' 모델 감지: '문장형' 프롬프트 지시문을 사용합니다.")
-            system_prompt = ext_prompts.get("system_prompt_flux_kr" if use_korean else "system_prompt_flux_en") or ""
+        # zanime 모델일 때만: 저장된 스타일 설정을 따라 별도 시스템 프롬프트 사용
+        # - webtoon: 한국 웹툰 스타일 (국가/인종은 랜덤으로 유지, 랜덤 반영)
+        # - japanime: 일본 애니 스타일 (국가/인종은 랜덤으로 유지, 랜덤 반영)
+        # - basic: 애니 기본 방향
+        zanime_style = (self.config.prompts.zanime_style or "").strip().lower()
+        if is_zanime and zanime_style in ("webtoon", "japanime", "basic"):
+            style_suffix = "kr" if use_korean else "en"
+            if zanime_style == "webtoon":
+                system_prompt = (
+                    ext_prompts.get(f"system_prompt_zanime_webtoon_{style_suffix}") or ""
+                )
+            elif zanime_style == "japanime":
+                system_prompt = (
+                    ext_prompts.get(f"system_prompt_zanime_anime_{style_suffix}") or ""
+                )
+            else:
+                system_prompt = (
+                    ext_prompts.get(f"system_prompt_zanime_basic_{style_suffix}") or ""
+                )
+            if not system_prompt:
+                self.emit_log(
+                    f"[ZANIME 스타일] '{zanime_style}' 전용 지시문이 없어 기본 문장형 지시문으로 대체합니다."
+                )
+                system_prompt = ext_prompts.get("system_prompt_flux_kr" if use_korean else "system_prompt_flux_en") or ""
+            else:
+                self.emit_log(
+                    f"[ZANIME 스타일] '{zanime_style}' 스타일 프롬프트 지시문을 사용합니다."
+                )
+        elif is_flux or is_zimage or is_zanime:
+                self.emit_log(f"[AI 자동 분석] '{comfy_model_name}' 모델 감지: '문장형' 프롬프트 지시문을 사용합니다.")
+                system_prompt = ext_prompts.get("system_prompt_flux_kr" if use_korean else "system_prompt_flux_en") or ""
         
        # 2. 저거넛, 리얼비스를 포함한 나머지 모든 SDXL 계열일 때 ➡️ '태그형' 프롬프트 분기
         else:
