@@ -108,6 +108,8 @@ def apply_theme(app: QApplication, key: str) -> str:
     _update_split_text_button_theme(key)
     # PlayStopButton 테마 색상 업데이트
     _update_play_stop_button_theme(key)
+    # Z-ANIME 스타일 버튼 테마 색상 업데이트
+    _update_zanime_style_button_theme(key)
     return key
 
 
@@ -127,6 +129,16 @@ def _update_play_stop_button_theme(key: str) -> None:
         from app.gui.play_stop_button import PlayStopButton
         colors = _PLAY_STOP_BUTTON_COLORS.get(key, _PLAY_STOP_BUTTON_COLORS[DEFAULT_THEME])
         PlayStopButton.updateThemeColors(key, colors)
+    except Exception:
+        pass
+
+
+def _update_zanime_style_button_theme(key: str) -> None:
+    """Z-ANIME 스타일 버튼의 테마 색상을 업데이트한다."""
+    try:
+        from app.gui.zanime_style_button import ZAnimeStyleButton
+        colors = _ZANIME_STYLE_BUTTON_COLORS.get(key, _ZANIME_STYLE_BUTTON_COLORS[DEFAULT_THEME])
+        ZAnimeStyleButton.update_theme_colors(key, colors)
     except Exception:
         pass
 

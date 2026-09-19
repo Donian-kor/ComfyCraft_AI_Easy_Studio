@@ -76,6 +76,7 @@ class GenerationWorker:
 
     def __init__(self, controller, snapshot: Dict[str, Any]):
         self.controller = controller
+        self.config = controller.config
         self.snapshot = snapshot
         self.signals = WorkerSignals()
         self.stop_requested = False
@@ -138,13 +139,22 @@ class GenerationWorker:
         # 2️⃣ enhancePromptEdit에 이미 텍스트가 있는지 확인 (스냅샷에서 가져옴)
         pre_existing_ui_text = snapshot.get("enhance_prompt", "").strip()
 
+        # ★ 스타일 변경 감지: 스냅샷에 저장된 스타일과 현재 스타일이 다르면
+        #    이전 스타일의 프롬프트를 무시하고 다시 향상합니다.
+        saved_style = snapshot.get("zanime_style", "").strip().lower()
+        current_style = (self.config.prompts.zanime_style or "").strip().lower()
+        style_changed = (saved_style != "" and saved_style != current_style)
+
         # 3️⃣ LM Studio 프롬프트 향상 단계
-        # enhancePromptEdit에 텍스트가 이미 있으면 향상을 건너뛰고, 비어있을 때만 수행
-        if pre_existing_ui_text:
+        # enhancePromptEdit에 텍스트가 있고 스타일이 동일하면 향상을 건너뜀
+        if pre_existing_ui_text and not style_changed:
             self.emit_log("enhancePromptEdit에 이미 텍스트가 있어 프롬프트 향상을 건너뜁니다.")
             prompt = pre_existing_ui_text
         elif self.controller.is_lm_connected():
-            self.emit_log("LM Studio를 통해 프롬프트 향상 중...")
+            if style_changed:
+                self.emit_log(f"[ZANIME 스타일 변경] '{saved_style}' → '{current_style}' : 프롬프트 향상을 새로 수행합니다.")
+            else:
+                self.emit_log("LM Studio를 통해 프롬프트 향상 중...")
             enhanced = self.enhance_prompt(prompt)
             if enhanced:
                 prompt = enhanced

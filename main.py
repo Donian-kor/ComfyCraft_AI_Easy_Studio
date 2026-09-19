@@ -336,6 +336,11 @@ class MainController(QObject):
         for button_name, (width, height) in presets.items():
             btn = self.find(QPushButton, button_name)
             if btn is not None:
+                # 버튼 폰트 볼드 설정 (일관된 시각적 강조)
+                font = btn.font()
+                font.setBold(True)
+                btn.setFont(font)
+                
                 btn.clicked.connect(
                     lambda checked=False, button=btn, width=width, height=height: self._on_preset_button_clicked(
                         button, width, height
@@ -867,6 +872,12 @@ class MainController(QObject):
         self._play_zanime_style_animation(normalized)
         label = ZANIME_STYLE_LABELS.get(normalized, normalized)
         self.append_log(f"Z-ANIME 스타일 선택: {label}")
+        # ★ 새 스타일 선택 시 이전 향상 프롬프트 초기화 (스타일별 그림체 적용 보장)
+        try:
+            if hasattr(self, "ui") and hasattr(self.ui, "enhancePromptEdit"):
+                self.ui.enhancePromptEdit.clear()
+        except Exception as exc:
+            self.append_log(f"프롬프트 편집창 초기화 실패: {exc}")
 
     def _play_zanime_style_animation(self, style_value: str) -> None:
         """선택된 스타일 버튼에 짧은 강조 애니메이션을 보여준다."""
@@ -1883,6 +1894,9 @@ class MainController(QObject):
         self.loading_animation.start("이미지 생성 중...")
         self.append_log("이미지 생성을 시작했습니다.")
 
+        # 🌟 생성 시작: 다른 모든 입력/선택 위젯 비활성화 (실수 방지)
+        self._set_ui_enabled(False)
+
         # 🚀 단 1번만 백그라운드 스레드를 가동합니다.
         threading.Thread(target=self.worker.run, daemon=True).start()
 
@@ -1906,6 +1920,88 @@ class MainController(QObject):
             # 빨강 "정지"에서 클릭 → 파랑 "이미지 생성 시작"으로 변화 → 생성 중지
             self.stop_generation()
 
+    # ──────────────────────────────────────────────────────────────────────
+    # UI 활성화/비활성화 토글 (이미지 생성 중 실수 방지용)
+    # ──────────────────────────────────────────────────────────────────────
+
+    def _set_ui_enabled(self, enabled: bool):
+        """이미지 생성 시작/종료 시 모든 입력·선택 위젯의 사용 가능 여부를 토글합니다.
+
+        생성 버튼(generateButton) 자체는 정지 기능을 위해 항상 활성 상태로 둡니다.
+        """
+        if not hasattr(self, "_ui_enabled_widgets"):
+            self._ui_enabled_widgets = []
+            # 빈도가 높은 위젯은 한 번만 찾아서 저장해 둔다.
+            targets = [
+                # --- 프롬프트 ---
+                "positivePromptEdit",
+                "negativePromptEdit",
+                "enhancePromptEdit",
+                "enhancePromptButton",
+                "copyPromptButton",
+                # --- 모델 선택 ---
+                "lmModelCombo",
+                "comfyModelCombo",
+                "lmCheckButton",
+                "comfyCheckButton",
+                "browseModelFolderButton",
+                "comfyModelPathEdit",
+                # --- 설정 ---
+                "loadConfigButton",
+                "saveConfigButton",
+                "restoreDefaultsButton",
+                "lmUrlEdit",
+                "comfyUrlEdit",
+                # --- 생성 파라미터 ---
+                "widthSpinBox",
+                "heightSpinBox",
+                "seedSpinBox",
+                "cfgSlider",
+                "stepsSlider",
+                "samplerComboBox",
+                "schedulerComboBox",
+                "denoiseSpinBox",
+                "randomSeedButton",
+                "lockSeedButton",
+                # --- 프리셋 ---
+                "preset_1024x1024",
+                "preset_896x1152",
+                "preset_1152x896",
+                "preset_512x512",
+                "preset_768x768",
+                "preset_832x1216",
+                "preset_1216x832",
+                # --- 기타 기능 버튼 ---
+                "exitButton",
+                "resetButton",
+                "openOutputFolderButton",
+                "saveImageButton",
+                "toggleLogButton",
+                "helpButton",
+                "settingsButton",
+                "facedetailerHelpBtn",
+            ]
+            for name in targets:
+                for widget in self.window.findChildren(QWidget, name):
+                    self._ui_enabled_widgets.append(widget)
+            # 썸네일 버튼 4개
+            for i in range(4):
+                for widget in self.window.findChildren(QPushButton, f"thumbBtn_{i}"):
+                    self._ui_enabled_widgets.append(widget)
+            # 중복 제거
+            self._ui_enabled_widgets = list(dict.fromkeys(self._ui_enabled_widgets))
+
+        for widget in self._ui_enabled_widgets:
+            try:
+                widget.setEnabled(enabled)
+            except Exception:
+                pass
+
+    # ──────────────────────────────────────────────────────────────────────
+    # 생성 시작/종료 시 UI 토글 통합 호출부
+    # ──────────────────────────────────────────────────────────────────────
+
+
     def generation_finished(self, success):
         self.elapsed_timer.stop()
         self.loading_animation.stop()
@@ -1926,6 +2022,9 @@ class MainController(QObject):
             100 if success else 0,
             "생성 완료" if success else "생성 실패 또는 중단",
         )
+        # 🌟 생성 완료: 다른 모든 입력/선택 위젯 다시 활성화
+        self._set_ui_enabled(True)
+
         if success:
             self.append_log("이미지 생성이 완료되었습니다.")
 
