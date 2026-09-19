@@ -32,3 +32,5 @@ novel_studio/ui/forms/*_ui.py
 .clinerules/
 .github/
 .kilo/
+.vscode/
+.github/
