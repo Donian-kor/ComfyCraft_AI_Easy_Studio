@@ -7,7 +7,7 @@ class ZimageTurboProfile(ModelProfile):
             name="zimage_turbo",
             family="zimage",
             aliases=("zimage", "zimage-turbo", "zimage_turbo"),
-            patterns=("zimage", "z_image", "turbo"),
+            patterns=("zimage", "z_image", "zimage-turbo", "zimage_turbo"),
             workflow_type="zimage",
             default_clip1="Z-Image-Engineer-V6-Q5_K_M.gguf",
             default_clip2="",

@@ -131,12 +131,12 @@ class ModelRegistry:
                 profile.default_cfg = 1.0
             return profile
 
-        if "zimage" in lowered or "turbo" in lowered:
+        if "zimage" in lowered or "z_image" in lowered:
             return ModelProfile(
                 name="inferred_zimage",
                 family="zimage",
-                aliases=("zimage", "turbo"),
-                patterns=("zimage", "turbo"),
+                aliases=("zimage", "z_image"),
+                patterns=("zimage", "z_image"),
                 workflow_type="zimage",
                 default_vae="diffusion_pytorch_model.safetensors",
                 default_steps=8,

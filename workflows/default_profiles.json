@@ -18,7 +18,7 @@
     "name": "zimage",
     "family": "zimage",
     "aliases": ["zimage", "zimage-turbo", "zimage_turbo"],
-    "patterns": ["zimage", "z_image", "turbo"],
+    "patterns": ["zimage", "z_image", "zimage-turbo", "zimage_turbo"],
     "workflow_type": "zimage",
     "default_clip1": "Z-Image-Engineer-V6-Q5_K_M.gguf",
     "default_clip2": "",
@@ -58,5 +58,35 @@
     "sampler_name": "dpmpp_2m",
     "scheduler": "karras",
     "priority": 10
+  },
+  "ernie-aio-base": {
+    "name": "ernie-aio-base",
+    "family": "ernie",
+    "aliases": ["ernie-aio-base", "ernie_aio_base"],
+    "patterns": ["ernie-aio-base", "ernie_aio_base"],
+    "workflow_type": "checkpoint",
+    "default_clip1": "",
+    "default_clip2": "",
+    "default_vae": "",
+    "default_steps": 50,
+    "default_cfg": 4.0,
+    "sampler_name": "euler",
+    "scheduler": "simple",
+    "priority": 4
+  },
+  "ernie-aio-turbo": {
+    "name": "ernie-aio-turbo",
+    "family": "ernie",
+    "aliases": ["ernie-aio-turbo", "ernie_aio_turbo"],
+    "patterns": ["ernie-aio-turbo", "ernie_aio_turbo"],
+    "workflow_type": "checkpoint",
+    "default_clip1": "",
+    "default_clip2": "",
+    "default_vae": "",
+    "default_steps": 8,
+    "default_cfg": 1.0,
+    "sampler_name": "euler",
+    "scheduler": "simple",
+    "priority": 3
   }
 }

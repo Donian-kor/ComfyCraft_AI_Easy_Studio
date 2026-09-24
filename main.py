@@ -1763,6 +1763,7 @@ class MainController(QObject):
             manager.is_zimage_model(comfy_model_name)
             or profile.workflow_type == "zimage"
         )
+        is_ernie = bool(profile.family == "ernie")
         lowered_model_name = (comfy_model_name or "").lower()
         is_zanime = bool(
             "z-anime" in lowered_model_name
@@ -1799,7 +1800,7 @@ class MainController(QObject):
             self.append_log(
                 f"[AI 자동 분석] '{comfy_model_name}' 모델 감지: '문장형' 프롬프트 지시문을 사용합니다."
             )
-        elif is_flux or is_zimage or is_zanime:
+        elif is_flux or is_zimage or is_zanime or is_ernie:
             self.append_log(
                 f"[AI 자동 분석] '{comfy_model_name}' 모델 감지: '문장형' 프롬프트 지시문을 사용합니다."
             )

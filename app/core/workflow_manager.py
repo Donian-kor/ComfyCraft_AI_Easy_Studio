@@ -294,11 +294,11 @@ class WorkflowManager:
         return "flux" in model_name.lower()
 
     def is_zimage_model(self, model_name: str) -> bool:
-        """모델명이 ZImage/Turbo 계열인지 판별"""
+        """모델명이 ZImage 계열인지 판별 (파일명의 'turbo' 단독은 ZImage로 보지 않음)"""
         if not model_name:
             return False
         lowered = model_name.lower()
-        return "zimage" in lowered or "turbo" in lowered
+        return "zimage" in lowered or "z_image" in lowered
 
     def get_model_preset(self, model_name: str):
         """설정에서 모델 프리셋 조회"""

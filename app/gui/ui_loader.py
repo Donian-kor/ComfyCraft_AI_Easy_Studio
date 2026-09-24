@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import cast
 
 from PySide6.QtCore import QFile, QIODevice
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtWidgets import QPushButton
+from PySide6.QtWidgets import QDialog, QPushButton
 
 from app.gui.play_stop_button import PlayStopButton
 from app.gui.split_text_button import SplitTextButton
@@ -91,7 +92,7 @@ def _upgrade_buttons(root) -> None:
         old.deleteLater()
 
 
-def load_dialog_ui(path: Path, parent=None):
+def load_dialog_ui(path: Path, parent=None) -> QDialog:
     """QDialog용 .ui 파일을 로드한다 (버튼 업그레이드 없이 그대로 반환).
 
     설정/도움말 다이얼로그처럼 레이아웃을 그대로 유지해야 하는 경우 사용.
@@ -106,7 +107,9 @@ def load_dialog_ui(path: Path, parent=None):
         file.close()
     if obj is None:
         raise RuntimeError(f"Qt가 UI 파일을 읽지 못했습니다: {path}")
-    return obj
+    # QUiLoader.load()는 QWidget으로 추론되지만, 이 함수가 로드하는 .ui 파일은
+    # 루트가 QDialog이므로 Pylance에 알려주기 위해 cast()로 감싼다.
+    return cast(QDialog, obj)
 
 
 def load_ui(path: Path):

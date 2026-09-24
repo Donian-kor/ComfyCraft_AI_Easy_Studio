@@ -832,6 +832,7 @@ class GenerationWorker:
         # 🌟 [개선안] 기존 소스 코드의 워크플로우 분기법과 100% 동일하게 오차 없이 판별
         is_flux = bool(profile.workflow_type == "flux_gguf" or manager.is_flux_model(comfy_model_name) or profile.family == "flux")
         is_zimage = bool(manager.is_zimage_model(comfy_model_name) or profile.workflow_type == "zimage")
+        is_ernie = bool(profile.family == "ernie")
         lowered_model_name = (comfy_model_name or "").lower()
         is_zanime = bool(
             "z-anime" in lowered_model_name
@@ -870,7 +871,7 @@ class GenerationWorker:
                 self.emit_log(
                     f"[ZANIME 스타일] '{zanime_style}' 스타일 프롬프트 지시문을 사용합니다."
                 )
-        elif is_flux or is_zimage or is_zanime:
+        elif is_flux or is_zimage or is_zanime or is_ernie:
                 self.emit_log(f"[AI 자동 분석] '{comfy_model_name}' 모델 감지: '문장형' 프롬프트 지시문을 사용합니다.")
                 system_prompt = ext_prompts.get("system_prompt_flux_kr" if use_korean else "system_prompt_flux_en") or ""
         

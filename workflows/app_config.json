@@ -8,7 +8,7 @@
   },
   "comfyui": {
     "url": "http://127.0.0.1:8188",
-    "model": "z-anime-base-aio-fp8.safetensors",
+    "model": "juggernautXL_ragnarok.safetensors",
     "timeout_seconds": 10,
     "poll_interval_seconds": 1,
     "max_wait_seconds": 600
@@ -16,9 +16,9 @@
   "generation": {
     "default_width": 896,
     "default_height": 1152,
-    "default_steps": 35,
-    "default_cfg": 4.0,
-    "default_seed": 136584164,
+    "default_steps": 30,
+    "default_cfg": 5.5,
+    "default_seed": 954499336,
     "width_min": 256,
     "width_max": 2048,
     "height_min": 256,
@@ -40,8 +40,8 @@
     "gguf_template": "workflows/gguf_unet.json",
     "flux_gguf_template": "workflows/flux_gguf.json",
     "zimage_template": "workflows/zimage.json",
-    "sampler_name": "euler_ancestral",
-    "scheduler": "beta",
+    "sampler_name": "dpmpp_2m",
+    "scheduler": "karras",
     "denoise": 1.0
   },
   "output": {
