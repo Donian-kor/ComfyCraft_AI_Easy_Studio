@@ -1,6 +1,10 @@
-# 자주 묻는 질문 (FAQ)
+# 문제해결 (FAQ)
 
-## 설치 및 실행
+설치, 연결, 생성, FaceDetailer, 성능 등 모든 트러블슈팅을 한 곳에 모았습니다. 증상별로 빠르게 찾아보세요.
+
+---
+
+## 📦 설치 및 실행
 
 ### Q: "Python을 찾을 수 없습니다" / "pip 명령이 없습니다"
 **A**: 파이썬이 설치되지 않았거나 PATH에 등록되지 않았습니다.
@@ -21,11 +25,18 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 .venv\Scripts\Activate.ps1 대신 .venv\Scripts\activate.bat 사용 (CMD)
 ```
 
+### Q: 프로그램 실행 시 모듈 import 에러
+**A**: 가상환경이 활성화되지 않았거나 의존성 미설치.
+```bash
+.venv\Scripts\Activate.ps1  # 가상환경 활성화
+pip install -r requirements.txt  # 의존성 설치
+```
+
 ---
 
-## 연결 및 서버
+## 🔗 연결 및 서버
 
-### Q: "연결 실패" 팝업이 뜹니다
+### Q: "연결 실패" 팝업이 뜹니다 (LM Studio / ComfyUI)
 **A**: 다음 체크리스트 순서대로 확인:
 1. **LM Studio**: Local Server 탭에서 초록불(시작됨) 인가?
 2. **ComfyUI**: 터미널에서 `python main.py --listen --port 8188` 실행 중인가?
@@ -35,20 +46,29 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ### Q: "로드된 모델 없음" 이라고 뜹니다
 **A**: 
-- LM Studio: 모델이 Load 되어 있고 서버가 시작됐는지 확인
-- ComfyUI: 웹 UI(http://localhost:8188)에서 모델이 로드되어 있는지 확인
-- 프로그램에서 `모델 폴더 경로`가 정확한지 설정 확인 (`checkpoints` 폴더 존재해야 함)
+- **LM Studio**: 모델이 Load 되어 있고 서버가 시작됐는지 확인
+- **ComfyUI**: 웹 UI(http://localhost:8188)에서 모델이 로드되어 있는지 확인
+- 프로그램에서 `모델 폴더 경로`가 정확한지 설정 확인 (`checkpoints` 또는 `unet` / `diffusion_models` 폴더 존재해야 함)
 
 ### Q: ComfyUI 모델이 목록에 안 뜹니다
 **A**:
 1. 설정 대화상자에서 `모델 폴더` 경로 확인 (예: `C:\ComfyUI\models`)
 2. 해당 폴더 하위에 `checkpoints` 또는 `unet` / `diffusion_models` 폴더 존재하는지 확인
 3. 모델 파일(.safetensors, .gguf)이 해당 폴더에 있는지 확인
-4. 프로그램 재시작 후 `모델 새로고침`
+4. 프로그램 재시작 후 `모델 새로고침` 버튼 클릭
+
+### Q: LM Studio 모델이 목록에 안 뜹니다
+**A**:
+1. LM Studio에서 모델을 **Load** 했는지 확인 (단순 다운로드만으로는 안 뜸)
+2. Local Server에서 해당 모델이 선택되어 있는지 확인
+3. 서버 재시작 후 프로그램에서 `모델 새로고침`
+
+### Q: 자동으로 감지된 URL이 틀립니다
+**A**: 프로그램은 기본 경로에서 ComfyUI/LM Studio를 자동 탐색합니다. 수동으로 설정 대화상자에서 정확한 경로/주소 입력 후 `연결 확인` 하세요.
 
 ---
 
-## 생성 및 품질
+## 🎨 생성 및 품질
 
 ### Q: 생성이 너무 오래 걸립니다 / 멈춘 것 같습니다
 **A**: 
@@ -83,9 +103,18 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 - 모델 파일 손상: 재다운로드
 - ComfyUI 버전 구형: 최신 버전으로 업데이트
 
+### Q: 프롬프트를 무시하는 것 같습니다
+**A**: CFG가 너무 낮음 → 모델 권장값으로 올리기 (FLUX=1~3.5, SDXL=6~7.5, Z-ANIME=4~5)
+
+### Q: 이미지에 노이즈/아티팩트가 많습니다
+**A**: Steps 부족 또는 CFG 과도 → Steps↑ (20~30), CFG↓ (권장값으로)
+
+### Q: 생성된 이미지가 너무 어둡거나 밝습니다
+**A**: VAE 누락 또는 잘못된 VAE → 모델에 맞는 VAE 파일(`vae/` 폴더) 확인
+
 ---
 
-## FaceDetailer 전용
+## 👤 FaceDetailer 전용
 
 ### Q: FaceDetailer 체크해도 변화가 없습니다
 **A**:
@@ -98,15 +127,33 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 **A**: ComfyUI Manager → Install Models → `sam_vit_b` 검색 → `sam_vit_b_01ec64.pth` 설치
 - 미설치 시 YOLO 박스 기준으로만 동작 (기본값으로도 보통 충분)
 
+### Q: 얼굴을 못 찾아요 (감지 안 됨)
+**A**: **BBox Thresh 0.40~0.45로 낮추기** (가장 흔한 해결)
+
+### Q: 보정된 얼굴이 다른 사람 같아요 / 너무 많이 변함
+**A**: **Denoise 0.25~0.30으로 낮추기**, CFG 3~4로 낮추기
+
+### Q: 얼굴 경계가 티나요 / 피부톤 차이 남
+**A**: **Feather 8~15로 올리기**
+
+### Q: 머리카락/귀가 잘려요
+**A**: **BBox Dilate 15~25로 올리기**
+
+### Q: 여러 얼굴인데 하나만 보정돼요
+**A**: **SAM Hint 모드 변경** → `horizontal-2` (좌우), `rect-4` (그리드), `vertical-2` (상하)
+
 ### Q: 보정이 너무 느립니다
 **A**: 
 - `Steps 15~20`으로 낮춤
 - `Guide Size 256` 유지 (512로 올리면 4배 느려짐)
 - 얼굴 1~2개만 있는 이미지에만 사용
 
+### Q: SAM 옵션이 안 먹혀요
+**A**: SAM 모델(`sam_vit_b_01ec64.pth`) 미설치 → ComfyUI Manager에서 설치 필수
+
 ---
 
-## 성능 및 하드웨어
+## ⚡ 성능 및 하드웨어
 
 ### Q: VRAM 8GB인데 FLUX 돌릴 수 있나요?
 **A**: **GGUF 양자화 모델** 사용 시 가능.
@@ -114,15 +161,30 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 - `flux1-schnell-Q4_K_S.gguf` → 더 빠름, 약 5~6GB
 - 일반 `.safetensors`는 12GB+ 필요
 
+### Q: VRAM 부족 (Out of Memory / CUDA OOM)
+**A**:
+- **GGUF 양자화 모델 사용**: `Q4_K_S` 버전 권장 (VRAM 6-8GB로 동작)
+- **해상도 낮추기**: 512×512 → 768×768 → 1024×1024 단계적 증가
+- **Steps 줄이기**: 15~20 이하로 설정
+- **FaceDetailer 끄기**: 얼굴 보정 비활성화
+- **ComfyUI 실행 옵션 추가**: `python main.py --listen --port 8188 --force-fp16`
+- **배치 크기 확인**: ComfyUI 설정에서 `max_batch_size` 낮추기
+
 ### Q: CPU만으로 돌릴 수 있나요?
 **A**: 가능하지만 **매우 느림** (이미지당 수 분~수십 분). GPU 필수 권장.
 
 ### Q: 맥(M1/M2/M3)에서 되나요?
 **A**: 네. LM Studio Metal 지원, ComfyUI MPS 지원. 단, 일부 노드(CUDA 전용) 호환성 확인 필요.
 
+### Q: 생성이 너무 느려요
+**A**: 
+- 해상도 512×512 → Steps 15 → FaceDetailer OFF → 테스트 후 단계적 올리기
+- ZImage Turbo / FLUX Schnell 모델 사용 (8~12 스텝)
+- Sampler: Euler a / UniPC (빠른 샘플러)
+
 ---
 
-## 설정 및 데이터
+## ⚙️ 설정 및 데이터
 
 ### Q: 설정을 초기화하고 싶습니다
 **A**: `workflows/` 폴더에서 다음 파일 삭제 후 재실행:
@@ -137,9 +199,25 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ### Q: 히스토리가 사라졌습니다
 **A**: 프로그램 재시작 시 메모리 히스토리는 초기화됩니다. 중요 이미지는 `💾 이미지 저장` 또는 출력 폴더에서 파일로 보관하세요.
 
+### Q: 모델 변경해도 설정(Steps/CFG/Sampler)이 안 바뀝니다
+**A**: 
+- 모델 이름이 프로파일 매칭 패턴과 다를 수 있음
+- 로그 창에서 `모델 프로파일 로드: [FAMILY] name` 확인
+- 수동으로 Steps/CFG/Sampler 조정 후 사용
+
+### Q: "VAE/CLIP 파일을 찾을 수 없음" 경고가 뜹니다
+**A**: 
+- FLUX: `vae/ae.safetensors`, `clip/clip_l.safetensors`, `clip/t5xxl_fp16.safetensors` 확인
+- ZImage: `vae/ae.safetensors`, `clip/Z-Image-Engineer-V6-Q5_K_M.gguf` 확인
+- SDXL: `vae/sdxl_vae.safetensors` 확인
+- 파일명이 정확히 일치해야 함 (대소문자 구분)
+
+### Q: Z-ANIME 스타일 선택 영역이 안 뜹니다
+**A**: 모델 이름이 `z-anime`, `zanime`, `z_anime_base`, `anime_aio` 중 하나를 포함해야 자동 표시됨
+
 ---
 
-## 기타
+## 💻 기타
 
 ### Q: 다국어 지원 되나요?
 **A**: 현재 한국어 UI만 지원. 프롬프트 입력은 한국어 권장 (AI 마법사 최적화됨). 영문 직접 입력도 가능.
@@ -153,11 +231,20 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ### Q: 업데이트는 어떻게 하나요?
 **A**: `git pull` 후 `pip install -r requirements.txt` 재실행. 설정 파일(`app_config.json`)은 유지됨.
 
+### Q: 외부 프롬프트 템플릿 수정하려면?
+**A**: `workflows/prompt.json` 수정:
+```json
+{
+  "system_prompt": "당신의 커스텀 시스템 프롬프트",
+  "negative_default": "당신의 기본 부정 프롬프트"
+}
+```
+
 ---
 
-## 여전히 해결 안 된다면?
+## 🆘 여전히 해결 안 된다면?
 
-1. **로그 창** 확인 (하단 로그 패널, `❓ 도움말` → 로그 복사)
+1. **로그 창** 확인 (하단 로그 패널, `Ctrl+L` 토글, `❓ 도움말` → 로그 복사)
 2. **ComfyUI 콘솔** 에러 메시지 확인
 3. **LM Studio 로그** 확인 (Local Server 탭 하단)
 4. GitHub Issues에 로그 첨부해 문의
@@ -166,6 +253,8 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ## 다음 단계
 
-- [설치 및 필수 노드](08_installation.html) - 상세 설치 가이드
-- [FaceDetailer 얼굴 보정](06_facedetailer.html) - 보정 상세 설정
-- [단축키/팁](11_shortcuts.html) - 효율적인 작업 팁
+- [시작하기](01_getting_started.html) - 설치부터 첫 생성까지 빠른 가이드
+- [모델 설정](03_model_settings.html) - 모델 프로파일, 다운로드, 폴더 설정
+- [FaceDetailer 얼굴 보정](06_facedetailer.html) - 17개 옵션 상세, 필수 설치
+- [생성 옵션 상세](05_generation_options.html) - Steps, CFG, Sampler 등 파라미터
+- [히스토리 & 단축키](07_history_shortcuts.html) - 썸네일 활용, 단축키, 숨겨진 기능

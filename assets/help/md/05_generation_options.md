@@ -235,4 +235,5 @@ FaceDetailer: ON
 
 - [FaceDetailer 얼굴 보정](06_facedetailer.html) - 얼굴 디테일 전문 보정
 - [모델 설정](03_model_settings.html) - 모델별 프로파일 상세
-- [프롬프트 작성](04_prompt_writing.html) - 프롬프트로 품질 제어
+- [프롬프트 작성 가이드](04_prompt_writing.html) - 프롬프트로 품질 제어
+- [기본 워크플로우](02_basic_usage.html) - 3단계 전체 플로우에서 옵션 설정 복습

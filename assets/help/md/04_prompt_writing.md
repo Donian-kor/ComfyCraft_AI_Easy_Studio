@@ -1,6 +1,8 @@
-# 프롬프트 작성
+# 프롬프트 작성 가이드
 
 좋은 이미지의 핵심은 **좋은 프롬프트**입니다. 이 프로그램은 한국어 아이디어를 AI가 영문 최적 프롬프트로 변환해 주지만, 원리를 알면 더 좋은 결과를 얻을 수 있습니다.
+
+---
 
 ## 프롬프트 구조
 
@@ -63,6 +65,8 @@
 | **Z-ANIME** | 태그형 + 스타일 태그 | "webtoon style", "japanime style" 등 스타일 태그 필수 |
 | **ZImage** | 혼합형 | 자연어 + 중요 키워드 콤마 구분 |
 
+> **자세한 모델별 특성**: [모델 설정](03_model_settings.html) 참조
+
 ---
 
 ## 고급 프롬프트 기법
@@ -81,6 +85,8 @@ ugly, deformed, blurry, low quality, bad anatomy,
 extra limbs, missing fingers, watermark, text, signature,
 cropped, jpeg artifacts, noise, grain
 ```
+
+> **참고**: FLUX, ZImage 계열은 부정 프롬프트 입력란이 자동 숨김 처리됩니다. ([모델 설정](03_model_settings.html)의 "네거티브 프롬프트 자동 제어" 참조)
 
 ### 프롬프트 템플릿 저장
 자주 쓰는 조합은 외부 프롬프트 파일(`prompts.json`)에 저장해 두고 불러오기 가능
@@ -146,6 +152,7 @@ detailed skin texture, depth of field
 
 ## 다음 단계
 
-- [이미지 생성 옵션](05_generation_options.html) - 파라미터로 품질 제어
+- [기본 워크플로우](02_basic_usage.html) - 3단계 전체 플로우에서 프롬프트 단계 복습
+- [생성 옵션 상세](05_generation_options.html) - 파라미터로 품질 제어
 - [FaceDetailer 얼굴 보정](06_facedetailer.html) - 얼굴 디테일 살리기
 - [모델 설정](03_model_settings.html) - 모델별 특성 이해

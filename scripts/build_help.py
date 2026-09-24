@@ -155,16 +155,13 @@ MD_EXTENSIONS = [
 
 HELP_SECTIONS = [
     {"id": "getting_started", "title": "시작하기", "icon": "play-circle", "file": "01_getting_started.html", "md": "01_getting_started.md"},
-    {"id": "basic_usage", "title": "기본 사용법", "icon": "book-open", "file": "02_basic_usage.html", "md": "02_basic_usage.md"},
+    {"id": "basic_usage", "title": "기본 워크플로우", "icon": "book-open", "file": "02_basic_usage.html", "md": "02_basic_usage.md"},
     {"id": "model_settings", "title": "모델 설정", "icon": "cpu", "file": "03_model_settings.html", "md": "03_model_settings.md"},
-    {"id": "prompt_writing", "title": "프롬프트 작성", "icon": "edit-3", "file": "04_prompt_writing.html", "md": "04_prompt_writing.md"},
-    {"id": "generation_options", "title": "이미지 생성 옵션", "icon": "sliders", "file": "05_generation_options.html", "md": "05_generation_options.md"},
+    {"id": "prompt_writing", "title": "프롬프트 작성 가이드", "icon": "edit-3", "file": "04_prompt_writing.html", "md": "04_prompt_writing.md"},
+    {"id": "generation_options", "title": "생성 옵션 상세", "icon": "sliders", "file": "05_generation_options.html", "md": "05_generation_options.md"},
     {"id": "facedetailer", "title": "FaceDetailer 얼굴 보정", "icon": "user", "file": "06_facedetailer.html", "md": "06_facedetailer.md"},
-    {"id": "history", "title": "히스토리/썸네일", "icon": "image", "file": "07_history.html", "md": "07_history.md"},
-    {"id": "installation", "title": "설치 및 필수 노드", "icon": "package", "file": "08_installation.html", "md": "08_installation.md"},
-    {"id": "lmstudio", "title": "LM Studio 연동", "icon": "message-square", "file": "09_lmstudio.html", "md": "09_lmstudio.md"},
-    {"id": "faq", "title": "자주 묻는 질문", "icon": "help-circle", "file": "10_faq.html", "md": "10_faq.md"},
-    {"id": "shortcuts", "title": "단축키/팁", "icon": "keyboard", "file": "11_shortcuts.html", "md": "11_shortcuts.md"},
+    {"id": "history_shortcuts", "title": "히스토리 & 단축키", "icon": "image", "file": "07_history_shortcuts.html", "md": "07_history_shortcuts.md"},
+    {"id": "faq", "title": "문제해결 (FAQ)", "icon": "help-circle", "file": "08_faq.html", "md": "08_faq.md"},
 ]
 
 def convert_md_to_html(md_path: Path, html_path: Path, title: str):

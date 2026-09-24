@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>기본 사용법</title>
+    <title>기본 워크플로우</title>
     
 <style>
 :root { 
@@ -146,128 +146,136 @@ blockquote {
 <body>
     <div class="toc"><div class="toc">
 <ul>
-<li><a href="#_1">기본 사용법</a><ul>
-<li><a href="#1-ai">1단계: 한국어 아이디어 입력 &amp; AI 프롬프트 변환</a><ul>
-<li><a href="#_2">언어 모델 선택</a></li>
-<li><a href="#_3">아이디어 입력</a></li>
-<li><a href="#ai">AI 프롬프트 마법사 실행</a></li>
-<li><a href="#_4">부정 프롬프트 (선택)</a></li>
+<li><a href="#_1">기본 워크플로우</a><ul>
+<li><a href="#1-ai">1단계: 아이디어 입력 &amp; AI 프롬프트 변환</a></li>
+<li><a href="#2">2단계: 생성 옵션 설정</a></li>
+<li><a href="#3">3단계: 생성 실행 &amp; 결과 활용</a><ul>
+<li><a href="#_2">후속 액션 버튼</a></li>
+<li><a href="#_3">히스토리 (우측 썸네일 패널)</a></li>
 </ul>
 </li>
-<li><a href="#2">2단계: 핵심 생성 옵션</a><ul>
-<li><a href="#ai_1">생성 모델 선택 (AI 엔진)</a></li>
-<li><a href="#_5">이미지 비율 선택</a></li>
-<li><a href="#_6">고급 설정 (체크박스로 열기)</a></li>
-<li><a href="#facedetailer">FaceDetailer (얼굴 보정)</a></li>
-</ul>
-</li>
-<li><a href="#3">3단계: 생성 실행 및 결과 확인</a><ul>
-<li><a href="#_7">생성 시작</a></li>
-<li><a href="#_8">결과 확인</a></li>
-<li><a href="#_9">후속 액션</a></li>
-<li><a href="#_10">히스토리 (우측 썸네일)</a></li>
-</ul>
-</li>
-<li><a href="#_11">워크플로우 요약</a></li>
-<li><a href="#_12">자주 쓰는 팁</a></li>
-<li><a href="#_13">다음 단계</a></li>
+<li><a href="#_4">워크플로우 한눈에 보기</a></li>
+<li><a href="#3_1">초보자를 위한 3가지 핵심 팁</a></li>
+<li><a href="#_5">다음 단계</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-    <h2 id="_1"><a class="toclink" href="#_1">기본 사용법</a><a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
-<p>전체 워크플로우는 <strong>3단계</strong>로 구성되어 있습니다. 순서대로 따라하면 누구나 쉽게 고품질 이미지를 생성할 수 있습니다.</p>
-<h3 id="1-ai"><a class="toclink" href="#1-ai">1단계: 한국어 아이디어 입력 &amp; AI 프롬프트 변환</a><a class="headerlink" href="#1-ai" title="Permanent link">&para;</a></h3>
-<h4 id="_2"><a class="toclink" href="#_2">언어 모델 선택</a><a class="headerlink" href="#_2" title="Permanent link">&para;</a></h4>
-<ul>
-<li>드롭다운에서 사용할 LM Studio 모델 선택</li>
-<li>모델이 안 보이면 LM Studio에서 모델 로드 후 서버 재시작</li>
-</ul>
-<h4 id="_3"><a class="toclink" href="#_3">아이디어 입력</a><a class="headerlink" href="#_3" title="Permanent link">&para;</a></h4>
-<pre><code>입력 예시:
-&quot;비 오는 날 네온사인 빛나는 도시 창가에 앉은 은발 안드로이드 소녀, 
-영화 같은 조명, 사이버펑크 분위기, 8k 해상도&quot;
-</code></pre>
-<p><strong>팁</strong>: 구체적으로 적을수록 결과가 좋습니다. 분위기, 조명, 구도, 스타일 키워드를 넣어보세요.</p>
-<h4 id="ai"><a class="toclink" href="#ai">AI 프롬프트 마법사 실행</a><a class="headerlink" href="#ai" title="Permanent link">&para;</a></h4>
-<ul>
-<li><code>✨ AI 프롬프트 마법사로 영문 확장 생성</code> 버튼 클릭</li>
-<li>LM Studio가 한국어를 분석해 최적화된 영문 프롬프트 생성</li>
-<li>생성된 프롬프트는 하단 에디터에서 <strong>직접 수정 가능</strong></li>
-</ul>
-<h4 id="_4"><a class="toclink" href="#_4">부정 프롬프트 (선택)</a><a class="headerlink" href="#_4" title="Permanent link">&para;</a></h4>
-<ul>
-<li>SDXL 계열 모델용 품질 저하 방지 키워드</li>
-<li>FLUX, ZImage 계열은 자동 숨김 처리됨</li>
-<li>기본값으로 충분한 경우가 많음</li>
-</ul>
+    <h2 id="_1"><a class="toclink" href="#_1">기본 워크플로우</a><a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>전체 이미지 생성 과정은 <strong>3단계</strong>로 이루어집니다. 각 단계는 순차적으로 진행되며, 이전 단계의 결과가 다음 단계에 영향을 줍니다.</p>
 <hr />
-<h3 id="2"><a class="toclink" href="#2">2단계: 핵심 생성 옵션</a><a class="headerlink" href="#2" title="Permanent link">&para;</a></h3>
-<h4 id="ai_1"><a class="toclink" href="#ai_1">생성 모델 선택 (AI 엔진)</a><a class="headerlink" href="#ai_1" title="Permanent link">&para;</a></h4>
-<ul>
-<li>ComfyUI에 로드된 모델 목록에서 선택</li>
-<li>모델 변경 시 <strong>최적 설정 자동 적용</strong> (Steps, CFG, Sampler, Scheduler)</li>
-<li>모델별 권장 설정 배지 표시됨</li>
-</ul>
-<h4 id="_5"><a class="toclink" href="#_5">이미지 비율 선택</a><a class="headerlink" href="#_5" title="Permanent link">&para;</a></h4>
+<h3 id="1-ai"><a class="toclink" href="#1-ai">1단계: 아이디어 입력 &amp; AI 프롬프트 변환</a><a class="headerlink" href="#1-ai" title="Permanent link">&para;</a></h3>
+<p><strong>목표</strong>: 한국어 아이디어를 모델이 이해하기 좋은 영문 프롬프트로 변환</p>
 <table>
 <thead>
 <tr>
-<th>비율</th>
-<th>해상도</th>
-<th>용도</th>
+<th>순서</th>
+<th>동작</th>
+<th>설명</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>□ 정사각 (1:1)</td>
-<td>1024×1024</td>
-<td>프로필, 썸네일</td>
+<td>1</td>
+<td><strong>언어 모델 선택</strong></td>
+<td>드롭다운에서 LM Studio 모델 선택 (큰 모델일수록 상세한 프롬프트 생성)</td>
 </tr>
 <tr>
-<td>▯ 세로형 (9:16) ★</td>
-<td>896×1152</td>
-<td>모바일 배경, 세로 일러스트</td>
+<td>2</td>
+<td><strong>아이디어 입력</strong></td>
+<td>한국어로 원하는 이미지 묘사 (구체적일수록 좋음)</td>
 </tr>
 <tr>
-<td>▭ 와이드 (16:9)</td>
-<td>1152×896</td>
-<td>모니터 배경, 풍경</td>
+<td>3</td>
+<td><strong>AI 프롬프트 마법사 실행</strong></td>
+<td><code>✨ AI 프롬프트 마법사</code> 버튼 클릭 → 영문 프롬프트 자동 생성</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>프롬프트 확인/수정</strong></td>
+<td>생성된 영문 프롬프트 하단 에디터에서 직접 수정 가능</td>
 </tr>
 </tbody>
 </table>
-<ul>
-<li>프리셋 버튼 원클릭 적용</li>
-<li>직접 숫자 입력도 가능 (64의 배수 권장)</li>
-</ul>
-<h4 id="_6"><a class="toclink" href="#_6">고급 설정 (체크박스로 열기)</a><a class="headerlink" href="#_6" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>시드</strong>: -1 = 랜덤, 고정 시 같은 구도 재현 가능</li>
-<li><strong>Steps</strong>: 계산 횟수 (기본 20~30, 높을수록 정교하지만 느림)</li>
-<li><strong>CFG</strong>: 프롬프트 충실도 (기본 3.5~7, 높을수록 프롬프트 엄격 준수)</li>
-<li><strong>Sampler / Scheduler</strong>: 모델 프로파일 따라 자동 설정</li>
-<li><strong>Denoise</strong>: img2img 시 원본 유지 비율 (기본 1.0)</li>
-</ul>
-<h4 id="facedetailer"><a class="toclink" href="#facedetailer">FaceDetailer (얼굴 보정)</a><a class="headerlink" href="#facedetailer" title="Permanent link">&para;</a></h4>
-<ul>
-<li>체크박스 ON → 얼굴 자동 감지 후 픽셀 단위 보정</li>
-<li>기본값으로 충분함 (세부 조정은 <a href="06_facedetailer.html">얼굴 보정 가이드</a> 참조)</li>
-</ul>
+<blockquote>
+<p><strong>입력 팁</strong>: "무엇을 그릴지(주제) + 어떤 스타일로(화풍) + 분위기/조명/구도/품질 키워드" 조합이 가장 효과적입니다.</p>
+<p><strong>자세한 작성법</strong>: <a href="04_prompt_writing.html">프롬프트 작성 가이드</a> 참조</p>
+</blockquote>
 <hr />
-<h3 id="3"><a class="toclink" href="#3">3단계: 생성 실행 및 결과 확인</a><a class="headerlink" href="#3" title="Permanent link">&para;</a></h3>
-<h4 id="_7"><a class="toclink" href="#_7">생성 시작</a><a class="headerlink" href="#_7" title="Permanent link">&para;</a></h4>
-<ul>
-<li>초록색 <code>▶ 생성 시작</code> 버튼 클릭</li>
-<li>진행바, 경과시간, 퍼센트 실시간 표시</li>
-<li>중간에 <code>■ 중지</code> 버튼으로 중단 가능</li>
-</ul>
-<h4 id="_8"><a class="toclink" href="#_8">결과 확인</a><a class="headerlink" href="#_8" title="Permanent link">&para;</a></h4>
-<ul>
-<li>생성 완료 시 우측 패널에 이미지 표시</li>
-<li>하단 정보: 모델, 해상도, 시드, 소요시간, Steps, CFG</li>
-</ul>
-<h4 id="_9"><a class="toclink" href="#_9">후속 액션</a><a class="headerlink" href="#_9" title="Permanent link">&para;</a></h4>
+<h3 id="2"><a class="toclink" href="#2">2단계: 생성 옵션 설정</a><a class="headerlink" href="#2" title="Permanent link">&para;</a></h3>
+<p><strong>목표</strong>: 모델 선택 및 생성 파라미터 조정</p>
+<table>
+<thead>
+<tr>
+<th>설정 항목</th>
+<th>설명</th>
+<th>자동/수동</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>생성 모델</strong></td>
+<td>ComfyUI 모델 드롭다운에서 선택 → <strong>최적 설정 자동 적용</strong> (Steps, CFG, Sampler, VAE, CLIP)</td>
+<td>자동</td>
+</tr>
+<tr>
+<td><strong>이미지 비율</strong></td>
+<td>프리셋 버튼(정사각/세로/와이드) 또는 직접 입력 (64의 배수 권장)</td>
+<td>수동</td>
+</tr>
+<tr>
+<td><strong>고급 설정</strong></td>
+<td>시드, Steps, CFG, Sampler, Scheduler, Denoise (체크박스로 열기)</td>
+<td>자동+수동</td>
+</tr>
+<tr>
+<td><strong>FaceDetailer</strong></td>
+<td>얼굴 보정 ON/OFF (기본값 권장, 세부 조정은 별도 가이드)</td>
+<td>수동</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>모델별 자동 설정</strong>: 모델 선택 시 하단 배지로 <code>✓ FLUX_GGUF 최적 설정 적용됨 (CFG 1.0 / 20스텝)</code> 형태로 표시됩니다.</p>
+<p><strong>상세 파라미터</strong>: <a href="05_generation_options.html">생성 옵션 상세</a> 참조</p>
+<p><strong>얼굴 보정</strong>: <a href="06_facedetailer.html">FaceDetailer 얼굴 보정</a> 참조</p>
+</blockquote>
+<hr />
+<h3 id="3"><a class="toclink" href="#3">3단계: 생성 실행 &amp; 결과 활용</a><a class="headerlink" href="#3" title="Permanent link">&para;</a></h3>
+<p><strong>목표</strong>: 이미지 생성 및 후속 작업</p>
+<table>
+<thead>
+<tr>
+<th>단계</th>
+<th>동작</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>생성 시작</strong></td>
+<td>초록색 <code>▶ 생성 시작</code> 버튼 클릭</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>진행 확인</strong></td>
+<td>진행바, 경과시간, 퍼센트 실시간 표시 (<code>■ 중지</code>로 중단 가능)</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>결과 확인</strong></td>
+<td>우측 패널에 이미지 + 하단 정보(모델, 해상도, 시드, 소요시간, Steps, CFG)</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>후속 액션</strong></td>
+<td>아래 버튼으로 활용</td>
+</tr>
+</tbody>
+</table>
+<h4 id="_2"><a class="toclink" href="#_2">후속 액션 버튼</a><a class="headerlink" href="#_2" title="Permanent link">&para;</a></h4>
 <table>
 <thead>
 <tr>
@@ -277,50 +285,59 @@ blockquote {
 </thead>
 <tbody>
 <tr>
-<td>📋 프롬프트 복사</td>
+<td>📋 <strong>프롬프트 복사</strong></td>
 <td>영문 프롬프트 클립보드 복사</td>
 </tr>
 <tr>
-<td>📋 이미지 복사</td>
-<td>생성된 이미지 클립보드 복사 (다른 앱에 붙여넣기 가능)</td>
+<td>📋 <strong>이미지 복사</strong></td>
+<td>생성된 이미지 클립보드 복사 (다른 앱에 Ctrl+V로 붙여넣기)</td>
 </tr>
 <tr>
-<td>💾 이미지 저장</td>
-<td>파일로 저장 (자동 명명: 모델_시드_날짜.png)</td>
+<td>💾 <strong>이미지 저장</strong></td>
+<td>파일로 저장 (자동 명명: <code>모델_시드_날짜.png</code>)</td>
 </tr>
 <tr>
-<td>📁 출력 폴더 열기</td>
+<td>📁 <strong>출력 폴더 열기</strong></td>
 <td>저장 폴더 탐색기에서 열기</td>
 </tr>
 </tbody>
 </table>
-<h4 id="_10"><a class="toclink" href="#_10">히스토리 (우측 썸네일)</a><a class="headerlink" href="#_10" title="Permanent link">&para;</a></h4>
+<h4 id="_3"><a class="toclink" href="#_3">히스토리 (우측 썸네일 패널)</a><a class="headerlink" href="#_3" title="Permanent link">&para;</a></h4>
 <ul>
-<li>최근 4개 생성 결과 자동 저장</li>
-<li>썸네일 클릭 시 <strong>당시 설정 완전 복원</strong> (프롬프트, 시드, 모델, FaceDetailer 설정 등)</li>
+<li>최근 4개 생성 결과 <strong>자동 저장</strong> (프로그램 종료 시 초기화)</li>
+<li>썸네일 <strong>클릭 시 당시 설정 완전 복원</strong> (프롬프트, 시드, 모델, FaceDetailer 설정 등)</li>
 <li>썸네일 우측 <code>×</code>로 개별 삭제 가능</li>
 </ul>
+<blockquote>
+<p><strong>히스토리 활용법</strong>: <a href="07_history_shortcuts.html">히스토리 &amp; 단축키</a> 참조</p>
+</blockquote>
 <hr />
-<h3 id="_11"><a class="toclink" href="#_11">워크플로우 요약</a><a class="headerlink" href="#_11" title="Permanent link">&para;</a></h3>
-<pre><code>[아이디어 입력] → [AI 프롬프트 확장] → [모델/옵션 선택] → [생성] → [결과 활용]
-     │                │                   │              │          │
-  한국어           영문 최적화          자동/수동       진행바      복사/저장/
-  자연어           프롬프트             설정            실시간      히스토리
+<h3 id="_4"><a class="toclink" href="#_4">워크플로우 한눈에 보기</a><a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<pre><code>┌─────────────┐    ┌──────────────────┐    ┌─────────────┐    ┌─────────┐    ┌──────────────┐
+│ 1. 아이디어  │ →  │ 2. AI 프롬프트   │ →  │ 3. 옵션 설정 │ →  │ 4. 생성  │ →  │ 5. 결과 활용 │
+│    입력      │    │    마법사 실행    │    │   (모델/비율) │    │  실행    │    │ (복사/저장/  │
+│  (한국어)    │    │  (영문 변환)     │    │  + 고급설정   │    │ (진행바) │    │  히스토리)   │
+└─────────────┘    └──────────────────┘    └─────────────┘    └─────────┘    └──────────────┘
+     │                    │                      │                │               │
+  구체적 명사         자동/수정              자동 적용         실시간 표시      원클릭 액션
+  + 스타일 키워드       가능                  가능              중지 가능        썸네일 복원
 </code></pre>
 <hr />
-<h3 id="_12"><a class="toclink" href="#_12">자주 쓰는 팁</a><a class="headerlink" href="#_12" title="Permanent link">&para;</a></h3>
+<h3 id="3_1"><a class="toclink" href="#3_1">초보자를 위한 3가지 핵심 팁</a><a class="headerlink" href="#3_1" title="Permanent link">&para;</a></h3>
 <ol>
-<li><strong>같은 구도 재생성</strong>: 시드 고정(🔒) 후 프롬프트만 살짝 수정</li>
-<li><strong>빠른 테스트</strong>: Steps 낮추고(15~20), 해상도 작게(512×512) 테스트 후 본 생성</li>
-<li><strong>프롬프트 재사용</strong>: 히스토리 썸네일 클릭 → 프롬프트 복사 → 새 아이디어에 적용</li>
-<li><strong>모델별 특성</strong>: FLUX=자연스러움, ZImage=애니/웹툰, SDXL=실사/일반</li>
+<li><strong>같은 구도 재생성</strong>: 🔒 <strong>시드 고정</strong> 토글 ON → 프롬프트만 살짝 수정 → 생성</li>
+<li><strong>빠른 테스트</strong>: Steps 15~20, 해상도 512×512로 테스트 → 본 생성 시 올리기</li>
+<li><strong>모델별 강점</strong>: FLUX=자연스러운 실사/텍스트, ZImage=고속/애니, SDXL=범용 고품질, Z-ANIME=웹툰/애니</li>
 </ol>
 <hr />
-<h3 id="_13"><a class="toclink" href="#_13">다음 단계</a><a class="headerlink" href="#_13" title="Permanent link">&para;</a></h3>
+<h3 id="_5"><a class="toclink" href="#_5">다음 단계</a><a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
 <ul>
-<li><a href="03_model_settings.html">모델 설정</a> - 모델 프로파일 상세</li>
-<li><a href="04_prompt_writing.html">프롬프트 작성</a> - 고급 프롬프트 기법</li>
-<li><a href="05_generation_options.html">이미지 생성 옵션</a> - 세부 파라미터 설명</li>
+<li><a href="04_prompt_writing.html">프롬프트 작성 가이드</a> - 효과적인 프롬프트 작성법, 모델별 특성</li>
+<li><a href="05_generation_options.html">생성 옵션 상세</a> - Steps, CFG, Sampler, 해상도, Seed 등 파라미터 상세</li>
+<li><a href="03_model_settings.html">모델 설정</a> - 모델 프로파일, 다운로드, 폴더 설정, Z-ANIME 스타일</li>
+<li><a href="06_facedetailer.html">FaceDetailer 얼굴 보정</a> - 17개 옵션, 필수 설치, 문제해결</li>
+<li><a href="07_history_shortcuts.html">히스토리 &amp; 단축키</a> - 썸네일 활용, 단축키, 숨겨진 기능</li>
+<li><a href="08_faq.html">문제해결 (FAQ)</a> - 설치/연결/생성 오류 해결</li>
 </ul>
 </body>
 </html>

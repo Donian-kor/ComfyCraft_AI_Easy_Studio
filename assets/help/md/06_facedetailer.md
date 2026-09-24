@@ -163,5 +163,6 @@ SAM 정밀 마스크 (sam_vit_b_01ec64.pth, 설치 시)
 ## 다음 단계
 
 - [이미지 생성 옵션](05_generation_options.html) - 기본 생성 파라미터
-- [히스토리/썸네일](07_history.html) - 결과 관리
-- [설치 및 필수 노드](08_installation.html) - ComfyUI 노드 설치 상세
+- [히스토리 & 단축키](07_history_shortcuts.html) - 결과 관리
+- [문제해결 (FAQ)](08_faq.html) - FaceDetailer 문제 해결
+- [기본 워크플로우](02_basic_usage.html) - 3단계 전체 플로우에서 얼굴 보정 복습

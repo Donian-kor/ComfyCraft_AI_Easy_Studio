@@ -1,6 +1,6 @@
-# ComfyCraft AI Easy Studio (v0.3)
+# ComfyCraft AI Easy Studio (v0.3.0-dev)
 
-**버전**: v0.3
+**버전**: v0.3.0-dev (커밋 기준: `0648039`, 2026-09-19 기준)
 
 LM Studio의 똑똑한 프롬프트 작성 능력과 ComfyUI의 강력한 이미지 생성 기술을 하나로 합친 **통합 이미지 생성 프로그램**입니다. 파이썬이나 복잡한 노드 연결을 몰라도 누구나 쉽게 고품질 이미지를 생성할 수 있습니다.
 
@@ -16,6 +16,13 @@ LM Studio의 똑똑한 프롬프트 작성 능력과 ComfyUI의 강력한 이미
 - **시드 고정 및 고급 설정**: 동일한 얼굴이나 구도를 유지하고 싶을 때 '시드 고정' 기능을 제공하며, 전문가용 샘플러와 스텝 수 조절 패널이 깔끔하게 숨겨져 있습니다.
 - **클립보드 연동**: 생성된 영문 프롬프트나 완성된 이미지를 버튼 하나로 복사해 다른 곳에 바로 붙여넣을 수 있습니다.
 
+### v0.3.0-dev (커밋 `0648039`, 2026-09-19)
+
+> Git 태그가 존재하지 않아 커밋 해시를 기준으로 버전을 기록합니다.
+>
+> - **생성 파이프라인 안정성 강화**: 이미지 생성 파이프라인의 신뢰성 및 안정성을 향상시켰습니다.
+> - **환경 설정 업데이트**: 설정 파일 및 환경 구성을 최신 상태로 정리했습니다.
+
 ---
 
 ## ⚙️ 1. 프로그램 사용 및 설치법
@@ -28,6 +35,8 @@ LM Studio의 똑똑한 프롬프트 작성 능력과 ComfyUI의 강력한 이미
 | **권장 사양** | Intel i7 이상 | 16 GB      | RTX 3070 이상 | 100 GB 이상       |
 |  **고성능**   | Intel i9 이상 | 32 GB 이상 | RTX 4090 이상 | 500 GB 이상 (SSD) |
 
+> **얼굴 보정(FaceDetailer) 사용 시 참고**: 얼굴 보정 기능을 위해선 ComfyUI에 `Impact Pack`, `SAM 모델`, `YOLO 모델`을 별도로 설치해야 하며, 이는 GPU 메모리(VRAM) 사용량을 추가로 약 1~2GB 정도 더 요구할 수 있습니다. VRAM이 부족한 경우 최소 사양의 1단계 이상 여유 있는 사양을 권장합니다.
+
 ### 프로그램 다운로드 및 설치 (권장 방식)
 
 명령 프롬프트(CMD)나 PowerShell을 열고 아래 명령어를 순서대로 입력하세요.
@@ -39,9 +48,9 @@ cd comfyui_Lmstudio_gui
 
 # 2. 파이썬 가상 환경 만들기 및 켜기 (패키지 꼬임 방지)
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1   # (Windows PowerShell 기준)
+.venv\Scripts\Activate.ps1     # Windows PowerShell 기준 (실행 정책 문제 시: Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force)
 
-# 3. 필요한 파이썬 패키지 설치
+# 3. 필요한 파이썬 패키지 설치 (requirements.txt에 명시된 패키지: requests, websocket-client, PySide6, markdown)
 pip install -r requirements.txt
 ```
 

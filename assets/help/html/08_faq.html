@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문제해결 (FAQ)</title>
+    
+<style>
+:root { 
+    --text: #1a1a1a; 
+    --text-muted: #555; 
+    --primary: #0078d4; 
+    --bg: #ffffff; 
+    --code-bg: #f4f4f4; 
+    --border: #e0e0e0; 
+    --header-border: #e0e0e0;
+}
+[data-theme="dark"] { 
+    --text: #e0e0e0; 
+    --text-muted: #aaa; 
+    --primary: #60a5fa;
+    --bg: #1e1e1e; 
+    --code-bg: #2d2d2d; 
+    --border: #333; 
+    --header-border: #333;
+}
+body { 
+    font-family: 'Pretendard', 'Noto Sans KR', system-ui; 
+    font-size: 14px; 
+    line-height: 1.6; 
+    color: var(--text); 
+    background: var(--bg); 
+    padding: 24px; 
+    max-width: 720px; 
+    margin: 0 auto; 
+}
+h1 { 
+    font-size: 24px; 
+    font-weight: 700; 
+    margin: 0 0 16px; 
+    padding-bottom: 8px; 
+    border-bottom: 1px solid var(--header-border); 
+}
+h2 { 
+    font-size: 20px; 
+    font-weight: 700; 
+    margin: 24px 0 12px; 
+    color: var(--primary); 
+}
+h3 { 
+    font-size: 16px; 
+    font-weight: 600; 
+    margin: 18px 0 8px; 
+}
+p { 
+    margin: 0 0 12px; 
+}
+code { 
+    background: var(--code-bg); 
+    padding: 2px 6px; 
+    border-radius: 4px; 
+    font-family: 'JetBrains Mono', 'Consolas', monospace; 
+    font-size: 13px; 
+}
+pre { 
+    background: var(--code-bg); 
+    padding: 12px; 
+    border-radius: 6px; 
+    overflow-x: auto; 
+    margin: 16px 0; 
+}
+pre code { 
+    background: none; 
+    padding: 0; 
+}
+table { 
+    border-collapse: collapse; 
+    width: 100%; 
+    margin: 16px 0; 
+}
+th, td { 
+    border: 1px solid var(--border); 
+    padding: 8px 12px; 
+    text-align: left; 
+}
+th { 
+    background: var(--code-bg); 
+    font-weight: 600; 
+}
+a { 
+    color: var(--primary); 
+    text-decoration: none; 
+}
+a:hover { 
+    text-decoration: underline; 
+}
+img { 
+    max-width: 100%; 
+    height: auto; 
+    border-radius: 4px; 
+    display: block; 
+    margin: 16px auto; 
+}
+ul, ol { 
+    padding-left: 24px; 
+    margin: 8px 0; 
+}
+li { 
+    margin: 4px 0; 
+}
+hr { 
+    border: none; 
+    border-top: 1px solid var(--border); 
+    margin: 24px 0; 
+}
+blockquote { 
+    border-left: 3px solid var(--primary); 
+    padding-left: 16px; 
+    margin: 16px 0; 
+    color: var(--text-muted); 
+}
+.toc {
+    background: var(--code-bg);
+    padding: 16px;
+    border-radius: 6px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+}
+.toc ul {
+    list-style: none;
+    padding-left: 0;
+}
+.toc li {
+    margin: 4px 0;
+}
+.toc a {
+    text-decoration: none;
+    color: var(--text);
+}
+.toc a:hover {
+    color: var(--primary);
+}
+</style>
+
+</head>
+<body>
+    <div class="toc"><div class="toc">
+<ul>
+<li><a href="#faq">문제해결 (FAQ)</a><ul>
+<li><a href="#_1">📦 설치 및 실행</a><ul>
+<li><a href="#q-python-pip">Q: "Python을 찾을 수 없습니다" / "pip 명령이 없습니다"</a></li>
+<li><a href="#q-pyside6-microsoft-visual-c">Q: "PySide6 설치 실패" / "Microsoft Visual C++ 필요"</a></li>
+<li><a href="#q-powershell">Q: 가상환경 활성화 안 됨 (PowerShell 스크립트 오류)</a></li>
+<li><a href="#q-import">Q: 프로그램 실행 시 모듈 import 에러</a></li>
+</ul>
+</li>
+<li><a href="#_2">🔗 연결 및 서버</a><ul>
+<li><a href="#q-lm-studio-comfyui">Q: "연결 실패" 팝업이 뜹니다 (LM Studio / ComfyUI)</a></li>
+<li><a href="#q">Q: "로드된 모델 없음" 이라고 뜹니다</a></li>
+<li><a href="#q-comfyui">Q: ComfyUI 모델이 목록에 안 뜹니다</a></li>
+<li><a href="#q-lm-studio">Q: LM Studio 모델이 목록에 안 뜹니다</a></li>
+<li><a href="#q-url">Q: 자동으로 감지된 URL이 틀립니다</a></li>
+</ul>
+</li>
+<li><a href="#_3">🎨 생성 및 품질</a><ul>
+<li><a href="#q_1">Q: 생성이 너무 오래 걸립니다 / 멈춘 것 같습니다</a></li>
+<li><a href="#q_2">Q: 얼굴이 이상하게 나옵니다 (기형, 비대칭, 다른 사람)</a></li>
+<li><a href="#q_3">Q: 손/발가락이 이상합니다</a></li>
+<li><a href="#q_4">Q: 같은 시드인데 결과가 다릅니다</a></li>
+<li><a href="#q_5">Q: 검은 화면/깨진 이미지가 나옵니다</a></li>
+<li><a href="#q_6">Q: 프롬프트를 무시하는 것 같습니다</a></li>
+<li><a href="#q_7">Q: 이미지에 노이즈/아티팩트가 많습니다</a></li>
+<li><a href="#q_8">Q: 생성된 이미지가 너무 어둡거나 밝습니다</a></li>
+</ul>
+</li>
+<li><a href="#facedetailer">👤 FaceDetailer 전용</a><ul>
+<li><a href="#q-facedetailer">Q: FaceDetailer 체크해도 변화가 없습니다</a></li>
+<li><a href="#q-sam">Q: "SAM 모델이 없습니다" 경고</a></li>
+<li><a href="#q_9">Q: 얼굴을 못 찾아요 (감지 안 됨)</a></li>
+<li><a href="#q_10">Q: 보정된 얼굴이 다른 사람 같아요 / 너무 많이 변함</a></li>
+<li><a href="#q_11">Q: 얼굴 경계가 티나요 / 피부톤 차이 남</a></li>
+<li><a href="#q_12">Q: 머리카락/귀가 잘려요</a></li>
+<li><a href="#q_13">Q: 여러 얼굴인데 하나만 보정돼요</a></li>
+<li><a href="#q_14">Q: 보정이 너무 느립니다</a></li>
+<li><a href="#q-sam_1">Q: SAM 옵션이 안 먹혀요</a></li>
+</ul>
+</li>
+<li><a href="#_4">⚡ 성능 및 하드웨어</a><ul>
+<li><a href="#q-vram-8gb-flux">Q: VRAM 8GB인데 FLUX 돌릴 수 있나요?</a></li>
+<li><a href="#q-vram-out-of-memory-cuda-oom">Q: VRAM 부족 (Out of Memory / CUDA OOM)</a></li>
+<li><a href="#q-cpu">Q: CPU만으로 돌릴 수 있나요?</a></li>
+<li><a href="#q-m1m2m3">Q: 맥(M1/M2/M3)에서 되나요?</a></li>
+<li><a href="#q_15">Q: 생성이 너무 느려요</a></li>
+</ul>
+</li>
+<li><a href="#_5">⚙️ 설정 및 데이터</a><ul>
+<li><a href="#q_16">Q: 설정을 초기화하고 싶습니다</a></li>
+<li><a href="#q_17">Q: 생성된 이미지는 어디에 저장되나요?</a></li>
+<li><a href="#q_18">Q: 히스토리가 사라졌습니다</a></li>
+<li><a href="#q-stepscfgsampler">Q: 모델 변경해도 설정(Steps/CFG/Sampler)이 안 바뀝니다</a></li>
+<li><a href="#q-vaeclip">Q: "VAE/CLIP 파일을 찾을 수 없음" 경고가 뜹니다</a></li>
+<li><a href="#q-z-anime">Q: Z-ANIME 스타일 선택 영역이 안 뜹니다</a></li>
+</ul>
+</li>
+<li><a href="#_6">💻 기타</a><ul>
+<li><a href="#q_19">Q: 다국어 지원 되나요?</a></li>
+<li><a href="#q_20">Q: 배치 생성(여러 장 한 번에) 되나요?</a></li>
+<li><a href="#q-lora">Q: LoRA 사용하려면?</a></li>
+<li><a href="#q_21">Q: 업데이트는 어떻게 하나요?</a></li>
+<li><a href="#q_22">Q: 외부 프롬프트 템플릿 수정하려면?</a></li>
+</ul>
+</li>
+<li><a href="#_7">🆘 여전히 해결 안 된다면?</a></li>
+<li><a href="#_8">다음 단계</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+    <h2 id="faq"><a class="toclink" href="#faq">문제해결 (FAQ)</a><a class="headerlink" href="#faq" title="Permanent link">&para;</a></h2>
+<p>설치, 연결, 생성, FaceDetailer, 성능 등 모든 트러블슈팅을 한 곳에 모았습니다. 증상별로 빠르게 찾아보세요.</p>
+<hr />
+<h3 id="_1"><a class="toclink" href="#_1">📦 설치 및 실행</a><a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<h4 id="q-python-pip"><a class="toclink" href="#q-python-pip">Q: "Python을 찾을 수 없습니다" / "pip 명령이 없습니다"</a><a class="headerlink" href="#q-python-pip" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: 파이썬이 설치되지 않았거나 PATH에 등록되지 않았습니다.
+1. <a href="https://python.org/">python.org</a>에서 Python 3.10+ 다운로드 설치
+2. 설치 시 <strong>"Add Python to PATH" 체크 필수</strong>
+3. 터미널 재시작 후 <code>python --version</code> 확인</p>
+<h4 id="q-pyside6-microsoft-visual-c"><a class="toclink" href="#q-pyside6-microsoft-visual-c">Q: "PySide6 설치 실패" / "Microsoft Visual C++ 필요"</a><a class="headerlink" href="#q-pyside6-microsoft-visual-c" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: 파이썬 버전이 낮거나 빌드 도구 부족.
+- Python 3.10 이상 사용
+- Windows: <code>Visual Studio Build Tools</code> 설치 또는 <code>pip install --upgrade pip setuptools wheel</code> 후 재시도</p>
+<h4 id="q-powershell"><a class="toclink" href="#q-powershell">Q: 가상환경 활성화 안 됨 (PowerShell 스크립트 오류)</a><a class="headerlink" href="#q-powershell" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: PowerShell 실행 정책 제한.</p>
+<pre><code class="language-powershell">Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+# 또는
+.venv\Scripts\Activate.ps1 대신 .venv\Scripts\activate.bat 사용 (CMD)
+</code></pre>
+<h4 id="q-import"><a class="toclink" href="#q-import">Q: 프로그램 실행 시 모듈 import 에러</a><a class="headerlink" href="#q-import" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: 가상환경이 활성화되지 않았거나 의존성 미설치.</p>
+<pre><code class="language-bash">.venv\Scripts\Activate.ps1  # 가상환경 활성화
+pip install -r requirements.txt  # 의존성 설치
+</code></pre>
+<hr />
+<h3 id="_2"><a class="toclink" href="#_2">🔗 연결 및 서버</a><a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<h4 id="q-lm-studio-comfyui"><a class="toclink" href="#q-lm-studio-comfyui">Q: "연결 실패" 팝업이 뜹니다 (LM Studio / ComfyUI)</a><a class="headerlink" href="#q-lm-studio-comfyui" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: 다음 체크리스트 순서대로 확인:
+1. <strong>LM Studio</strong>: Local Server 탭에서 초록불(시작됨) 인가?
+2. <strong>ComfyUI</strong>: 터미널에서 <code>python main.py --listen --port 8188</code> 실행 중인가?
+3. <strong>포트</strong>: 1234(LM), 8188(ComfyUI) 다른 프로그램에서 안 쓰는가?
+4. <strong>방화벽</strong>: Windows 방화벽에서 Python/터미널 허용인가?
+5. <strong>주소</strong>: 프로그램 설정에서 <code>http://localhost:1234</code>, <code>http://localhost:8188</code> 정확히 입력했는가?</p>
+<h4 id="q"><a class="toclink" href="#q">Q: "로드된 모델 없음" 이라고 뜹니다</a><a class="headerlink" href="#q" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: 
+- <strong>LM Studio</strong>: 모델이 Load 되어 있고 서버가 시작됐는지 확인
+- <strong>ComfyUI</strong>: 웹 UI(http://localhost:8188)에서 모델이 로드되어 있는지 확인
+- 프로그램에서 <code>모델 폴더 경로</code>가 정확한지 설정 확인 (<code>checkpoints</code> 또는 <code>unet</code> / <code>diffusion_models</code> 폴더 존재해야 함)</p>
+<h4 id="q-comfyui"><a class="toclink" href="#q-comfyui">Q: ComfyUI 모델이 목록에 안 뜹니다</a><a class="headerlink" href="#q-comfyui" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>:
+1. 설정 대화상자에서 <code>모델 폴더</code> 경로 확인 (예: <code>C:\ComfyUI\models</code>)
+2. 해당 폴더 하위에 <code>checkpoints</code> 또는 <code>unet</code> / <code>diffusion_models</code> 폴더 존재하는지 확인
+3. 모델 파일(.safetensors, .gguf)이 해당 폴더에 있는지 확인
+4. 프로그램 재시작 후 <code>모델 새로고침</code> 버튼 클릭</p>
+<h4 id="q-lm-studio"><a class="toclink" href="#q-lm-studio">Q: LM Studio 모델이 목록에 안 뜹니다</a><a class="headerlink" href="#q-lm-studio" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>:
+1. LM Studio에서 모델을 <strong>Load</strong> 했는지 확인 (단순 다운로드만으로는 안 뜸)
+2. Local Server에서 해당 모델이 선택되어 있는지 확인
+3. 서버 재시작 후 프로그램에서 <code>모델 새로고침</code></p>
+<h4 id="q-url"><a class="toclink" href="#q-url">Q: 자동으로 감지된 URL이 틀립니다</a><a class="headerlink" href="#q-url" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: 프로그램은 기본 경로에서 ComfyUI/LM Studio를 자동 탐색합니다. 수동으로 설정 대화상자에서 정확한 경로/주소 입력 후 <code>연결 확인</code> 하세요.</p>
+<hr />
+<h3 id="_3"><a class="toclink" href="#_3">🎨 생성 및 품질</a><a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<h4 id="q_1"><a class="toclink" href="#q_1">Q: 생성이 너무 오래 걸립니다 / 멈춘 것 같습니다</a><a class="headerlink" href="#q_1" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: 
+- <strong>VRAM 부족</strong>: GPU 메모리 꽉 차서 스왑 발생 → 해상도↓, Steps↓, GGUF 모델 사용
+- <strong>첫 실행</strong>: 모델 로딩 시간 포함됨 (두 번째부터 빠름)
+- <strong>FaceDetailer</strong>: 켜져 있으면 2~5초 추가 소요
+- <strong>진행바 확인</strong>: 0%에서 오래 머무르면 모델 로딩 중, 50% 이후면 생성 중</p>
+<h4 id="q_2"><a class="toclink" href="#q_2">Q: 얼굴이 이상하게 나옵니다 (기형, 비대칭, 다른 사람)</a><a class="headerlink" href="#q_2" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>:
+1. <strong>FaceDetailer ON</strong> → 기본값으로 생성
+2. 그래도 안 되면: <code>Denoise 0.25~0.30</code>, <code>CFG 3~4</code>로 낮춤
+3. 여러 얼굴: <code>SAM Hint</code> → <code>horizontal-2</code> 또는 <code>rect-4</code> 변경
+4. 프롬프트에 <code>perfect face, symmetrical face, detailed eyes</code> 추가</p>
+<h4 id="q_3"><a class="toclink" href="#q_3">Q: 손/발가락이 이상합니다</a><a class="headerlink" href="#q_3" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: 현재 FaceDetailer는 <strong>얼굴만</strong> 보정합니다. 손/발은 모델 자체 능력에 의존.
+- SDXL: <code>bad hands, missing fingers</code> 부정 프롬프트에 추가
+- FLUX: 상대적으로 손 표현 우수
+- 인페인팅/후보정 별도 필요</p>
+<h4 id="q_4"><a class="toclink" href="#q_4">Q: 같은 시드인데 결과가 다릅니다</a><a class="headerlink" href="#q_4" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: 다음 설정 중 하나라도 다르면 결과 다름:
+- 모델, 해상도, Steps, CFG, Sampler, Scheduler, Denoise
+- FaceDetailer ON/OFF 또는 세부 설정
+- 프롬프트(공백/줄바꿈 포함) 완전 동일해야 함
+- <strong>확인</strong>: 히스토리 썸네일 클릭으로 설정 완전 복원 후 생성</p>
+<h4 id="q_5"><a class="toclink" href="#q_5">Q: 검은 화면/깨진 이미지가 나옵니다</a><a class="headerlink" href="#q_5" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>:
+- VAE 누락: 모델에 맞는 VAE 파일 필요 (FLUX: <code>ae.safetensors</code>, SDXL: <code>sdxl_vae.safetensors</code>)
+- 모델 파일 손상: 재다운로드
+- ComfyUI 버전 구형: 최신 버전으로 업데이트</p>
+<h4 id="q_6"><a class="toclink" href="#q_6">Q: 프롬프트를 무시하는 것 같습니다</a><a class="headerlink" href="#q_6" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: CFG가 너무 낮음 → 모델 권장값으로 올리기 (FLUX=1~3.5, SDXL=6~7.5, Z-ANIME=4~5)</p>
+<h4 id="q_7"><a class="toclink" href="#q_7">Q: 이미지에 노이즈/아티팩트가 많습니다</a><a class="headerlink" href="#q_7" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: Steps 부족 또는 CFG 과도 → Steps↑ (20~30), CFG↓ (권장값으로)</p>
+<h4 id="q_8"><a class="toclink" href="#q_8">Q: 생성된 이미지가 너무 어둡거나 밝습니다</a><a class="headerlink" href="#q_8" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: VAE 누락 또는 잘못된 VAE → 모델에 맞는 VAE 파일(<code>vae/</code> 폴더) 확인</p>
+<hr />
+<h3 id="facedetailer"><a class="toclink" href="#facedetailer">👤 FaceDetailer 전용</a><a class="headerlink" href="#facedetailer" title="Permanent link">&para;</a></h3>
+<h4 id="q-facedetailer"><a class="toclink" href="#q-facedetailer">Q: FaceDetailer 체크해도 변화가 없습니다</a><a class="headerlink" href="#q-facedetailer" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>:
+1. ComfyUI에 <strong>Impact Pack</strong> 설치 후 <strong>서버 완전 재시작</strong> 했는가?
+2. <code>sam_vit_b_01ec64.pth</code> (SAM), <code>face_yolov8m.pt</code> (YOLO) 모델 설치했는가?
+3. ComfyUI 콘솔에 에러 로그 없는가?
+4. 얼굴 크기가 너무 작지 않은가? (<code>Drop Size</code> 기본 10px, 더 작으면 <code>Guide Size</code> 올리기)</p>
+<h4 id="q-sam"><a class="toclink" href="#q-sam">Q: "SAM 모델이 없습니다" 경고</a><a class="headerlink" href="#q-sam" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: ComfyUI Manager → Install Models → <code>sam_vit_b</code> 검색 → <code>sam_vit_b_01ec64.pth</code> 설치
+- 미설치 시 YOLO 박스 기준으로만 동작 (기본값으로도 보통 충분)</p>
+<h4 id="q_9"><a class="toclink" href="#q_9">Q: 얼굴을 못 찾아요 (감지 안 됨)</a><a class="headerlink" href="#q_9" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: <strong>BBox Thresh 0.40~0.45로 낮추기</strong> (가장 흔한 해결)</p>
+<h4 id="q_10"><a class="toclink" href="#q_10">Q: 보정된 얼굴이 다른 사람 같아요 / 너무 많이 변함</a><a class="headerlink" href="#q_10" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: <strong>Denoise 0.25~0.30으로 낮추기</strong>, CFG 3~4로 낮추기</p>
+<h4 id="q_11"><a class="toclink" href="#q_11">Q: 얼굴 경계가 티나요 / 피부톤 차이 남</a><a class="headerlink" href="#q_11" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: <strong>Feather 8~15로 올리기</strong></p>
+<h4 id="q_12"><a class="toclink" href="#q_12">Q: 머리카락/귀가 잘려요</a><a class="headerlink" href="#q_12" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: <strong>BBox Dilate 15~25로 올리기</strong></p>
+<h4 id="q_13"><a class="toclink" href="#q_13">Q: 여러 얼굴인데 하나만 보정돼요</a><a class="headerlink" href="#q_13" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: <strong>SAM Hint 모드 변경</strong> → <code>horizontal-2</code> (좌우), <code>rect-4</code> (그리드), <code>vertical-2</code> (상하)</p>
+<h4 id="q_14"><a class="toclink" href="#q_14">Q: 보정이 너무 느립니다</a><a class="headerlink" href="#q_14" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: 
+- <code>Steps 15~20</code>으로 낮춤
+- <code>Guide Size 256</code> 유지 (512로 올리면 4배 느려짐)
+- 얼굴 1~2개만 있는 이미지에만 사용</p>
+<h4 id="q-sam_1"><a class="toclink" href="#q-sam_1">Q: SAM 옵션이 안 먹혀요</a><a class="headerlink" href="#q-sam_1" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: SAM 모델(<code>sam_vit_b_01ec64.pth</code>) 미설치 → ComfyUI Manager에서 설치 필수</p>
+<hr />
+<h3 id="_4"><a class="toclink" href="#_4">⚡ 성능 및 하드웨어</a><a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<h4 id="q-vram-8gb-flux"><a class="toclink" href="#q-vram-8gb-flux">Q: VRAM 8GB인데 FLUX 돌릴 수 있나요?</a><a class="headerlink" href="#q-vram-8gb-flux" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: <strong>GGUF 양자화 모델</strong> 사용 시 가능.
+- <code>flux1-dev-Q4_K_S.gguf</code> → 약 6~7GB VRAM 사용
+- <code>flux1-schnell-Q4_K_S.gguf</code> → 더 빠름, 약 5~6GB
+- 일반 <code>.safetensors</code>는 12GB+ 필요</p>
+<h4 id="q-vram-out-of-memory-cuda-oom"><a class="toclink" href="#q-vram-out-of-memory-cuda-oom">Q: VRAM 부족 (Out of Memory / CUDA OOM)</a><a class="headerlink" href="#q-vram-out-of-memory-cuda-oom" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>:
+- <strong>GGUF 양자화 모델 사용</strong>: <code>Q4_K_S</code> 버전 권장 (VRAM 6-8GB로 동작)
+- <strong>해상도 낮추기</strong>: 512×512 → 768×768 → 1024×1024 단계적 증가
+- <strong>Steps 줄이기</strong>: 15~20 이하로 설정
+- <strong>FaceDetailer 끄기</strong>: 얼굴 보정 비활성화
+- <strong>ComfyUI 실행 옵션 추가</strong>: <code>python main.py --listen --port 8188 --force-fp16</code>
+- <strong>배치 크기 확인</strong>: ComfyUI 설정에서 <code>max_batch_size</code> 낮추기</p>
+<h4 id="q-cpu"><a class="toclink" href="#q-cpu">Q: CPU만으로 돌릴 수 있나요?</a><a class="headerlink" href="#q-cpu" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: 가능하지만 <strong>매우 느림</strong> (이미지당 수 분~수십 분). GPU 필수 권장.</p>
+<h4 id="q-m1m2m3"><a class="toclink" href="#q-m1m2m3">Q: 맥(M1/M2/M3)에서 되나요?</a><a class="headerlink" href="#q-m1m2m3" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: 네. LM Studio Metal 지원, ComfyUI MPS 지원. 단, 일부 노드(CUDA 전용) 호환성 확인 필요.</p>
+<h4 id="q_15"><a class="toclink" href="#q_15">Q: 생성이 너무 느려요</a><a class="headerlink" href="#q_15" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: 
+- 해상도 512×512 → Steps 15 → FaceDetailer OFF → 테스트 후 단계적 올리기
+- ZImage Turbo / FLUX Schnell 모델 사용 (8~12 스텝)
+- Sampler: Euler a / UniPC (빠른 샘플러)</p>
+<hr />
+<h3 id="_5"><a class="toclink" href="#_5">⚙️ 설정 및 데이터</a><a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<h4 id="q_16"><a class="toclink" href="#q_16">Q: 설정을 초기화하고 싶습니다</a><a class="headerlink" href="#q_16" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: <code>workflows/</code> 폴더에서 다음 파일 삭제 후 재실행:
+- <code>app_config.json</code> (서버 주소, 모델 경로, 생성 설정 등)
+- <code>prompt.json</code> (프롬프트 템플릿)</p>
+<h4 id="q_17"><a class="toclink" href="#q_17">Q: 생성된 이미지는 어디에 저장되나요?</a><a class="headerlink" href="#q_17" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: 프로젝트 폴더 <code>output/</code> 하위 폴더에 날짜별 자동 저장.
+- 파일명: <code>{모델명}_{시드}_{날짜시간}.png</code>
+- <code>📁 출력 폴더 열기</code> 버튼으로 바로 접근 가능</p>
+<h4 id="q_18"><a class="toclink" href="#q_18">Q: 히스토리가 사라졌습니다</a><a class="headerlink" href="#q_18" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: 프로그램 재시작 시 메모리 히스토리는 초기화됩니다. 중요 이미지는 <code>💾 이미지 저장</code> 또는 출력 폴더에서 파일로 보관하세요.</p>
+<h4 id="q-stepscfgsampler"><a class="toclink" href="#q-stepscfgsampler">Q: 모델 변경해도 설정(Steps/CFG/Sampler)이 안 바뀝니다</a><a class="headerlink" href="#q-stepscfgsampler" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: 
+- 모델 이름이 프로파일 매칭 패턴과 다를 수 있음
+- 로그 창에서 <code>모델 프로파일 로드: [FAMILY] name</code> 확인
+- 수동으로 Steps/CFG/Sampler 조정 후 사용</p>
+<h4 id="q-vaeclip"><a class="toclink" href="#q-vaeclip">Q: "VAE/CLIP 파일을 찾을 수 없음" 경고가 뜹니다</a><a class="headerlink" href="#q-vaeclip" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: 
+- FLUX: <code>vae/ae.safetensors</code>, <code>clip/clip_l.safetensors</code>, <code>clip/t5xxl_fp16.safetensors</code> 확인
+- ZImage: <code>vae/ae.safetensors</code>, <code>clip/Z-Image-Engineer-V6-Q5_K_M.gguf</code> 확인
+- SDXL: <code>vae/sdxl_vae.safetensors</code> 확인
+- 파일명이 정확히 일치해야 함 (대소문자 구분)</p>
+<h4 id="q-z-anime"><a class="toclink" href="#q-z-anime">Q: Z-ANIME 스타일 선택 영역이 안 뜹니다</a><a class="headerlink" href="#q-z-anime" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: 모델 이름이 <code>z-anime</code>, <code>zanime</code>, <code>z_anime_base</code>, <code>anime_aio</code> 중 하나를 포함해야 자동 표시됨</p>
+<hr />
+<h3 id="_6"><a class="toclink" href="#_6">💻 기타</a><a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<h4 id="q_19"><a class="toclink" href="#q_19">Q: 다국어 지원 되나요?</a><a class="headerlink" href="#q_19" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: 현재 한국어 UI만 지원. 프롬프트 입력은 한국어 권장 (AI 마법사 최적화됨). 영문 직접 입력도 가능.</p>
+<h4 id="q_20"><a class="toclink" href="#q_20">Q: 배치 생성(여러 장 한 번에) 되나요?</a><a class="headerlink" href="#q_20" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: 현재 단일 생성만 지원. 히스토리 썸네일 클릭 → 생성 반복으로 연속 생성 가능.</p>
+<h4 id="q-lora"><a class="toclink" href="#q-lora">Q: LoRA 사용하려면?</a><a class="headerlink" href="#q-lora" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: ComfyUI 웹 UI에서 워크플로우에 LoRA 노드 추가 후 모델로 저장 → 이 프로그램에서 해당 모델 선택. 또는 ComfyUI에서 직접 워크플로우 실행 권장.</p>
+<h4 id="q_21"><a class="toclink" href="#q_21">Q: 업데이트는 어떻게 하나요?</a><a class="headerlink" href="#q_21" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: <code>git pull</code> 후 <code>pip install -r requirements.txt</code> 재실행. 설정 파일(<code>app_config.json</code>)은 유지됨.</p>
+<h4 id="q_22"><a class="toclink" href="#q_22">Q: 외부 프롬프트 템플릿 수정하려면?</a><a class="headerlink" href="#q_22" title="Permanent link">&para;</a></h4>
+<p><strong>A</strong>: <code>workflows/prompt.json</code> 수정:</p>
+<pre><code class="language-json">{
+  &quot;system_prompt&quot;: &quot;당신의 커스텀 시스템 프롬프트&quot;,
+  &quot;negative_default&quot;: &quot;당신의 기본 부정 프롬프트&quot;
+}
+</code></pre>
+<hr />
+<h3 id="_7"><a class="toclink" href="#_7">🆘 여전히 해결 안 된다면?</a><a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>로그 창</strong> 확인 (하단 로그 패널, <code>Ctrl+L</code> 토글, <code>❓ 도움말</code> → 로그 복사)</li>
+<li><strong>ComfyUI 콘솔</strong> 에러 메시지 확인</li>
+<li><strong>LM Studio 로그</strong> 확인 (Local Server 탭 하단)</li>
+<li>GitHub Issues에 로그 첨부해 문의</li>
+</ol>
+<hr />
+<h3 id="_8"><a class="toclink" href="#_8">다음 단계</a><a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="01_getting_started.html">시작하기</a> - 설치부터 첫 생성까지 빠른 가이드</li>
+<li><a href="03_model_settings.html">모델 설정</a> - 모델 프로파일, 다운로드, 폴더 설정</li>
+<li><a href="06_facedetailer.html">FaceDetailer 얼굴 보정</a> - 17개 옵션 상세, 필수 설치</li>
+<li><a href="05_generation_options.html">생성 옵션 상세</a> - Steps, CFG, Sampler 등 파라미터</li>
+<li><a href="07_history_shortcuts.html">히스토리 &amp; 단축키</a> - 썸네일 활용, 단축키, 숨겨진 기능</li>
+</ul>
+</body>
+</html>

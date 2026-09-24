@@ -2,6 +2,8 @@
 
 ComfyCraft AI Easy Studio는 **모델 프로파일 시스템**을 통해 선택한 모델에 최적화된 생성 파라미터를 자동으로 적용합니다.
 
+---
+
 ## 모델 프로파일이란?
 
 각 모델마다 최적의 생성 설정(Steps, CFG, Sampler, Scheduler, VAE, CLIP 등)이 다릅니다. 이 프로그램은 모델 이름을 분석해 자동으로 적절한 프로파일을 매칭하고 설정을 적용합니다.
@@ -14,7 +16,6 @@ ComfyCraft AI Easy Studio는 **모델 프로파일 시스템**을 통해 선택�
 | **ZImage** | zimage_turbo, zimage_base | 고속 생성, 실사/일러스트 모두 강함 | zimage |
 | **Z-ANIME** | z_anime_base, zanime_aio | 애니메이션/웹툰 특화 | zanime / anime_aio |
 | **SDXL** | juggernaut_xl, dreamshaper_xl | 범용 고품질, 실사/일러스트 | sdxl |
-| **SD 1.5** | revAnimated, dreamshaper | 구형 모델, 로라 호환성 좋음 | sd15 |
 | **GGUF** | *-Q4_K_S, *-Q8_0 등 | 양자화 모델, VRAM 절약 | gguf |
 
 ### 프로파일 자동 적용 확인
@@ -74,6 +75,63 @@ models/
 ```
 
 **중요**: `checkpoints` 또는 `unet` / `diffusion_models` 폴더가 있어야 모델을 인식합니다.
+
+---
+
+## 📦 모델 파일 다운로드 가이드
+
+### HuggingFace에서 다운로드 (권장)
+
+| 모델 패밀리 | 추천 저장소 | 주요 파일 예시 |
+|------------|-------------|----------------|
+| **FLUX GGUF** | [city96/FLUX.1-dev-gguf](https://huggingface.co/city96/FLUX.1-dev-gguf) | `flux1-dev-Q4_K_S.gguf`, `flux1-dev-Q8_0.gguf` |
+| **FLUX (원본)** | [black-forest-labs/FLUX.1-dev](https://huggingface.co/black-forest-labs/FLUX.1-dev) | `flux1-dev.safetensors` |
+| **ZImage Turbo** | [lllyasviel/zimage_turbo](https://huggingface.co/lllyasviel/zimage_turbo) | `zimage_turbo-Q4_K_S.gguf` |
+| **Z-ANIME** | [z-animator/z_anime_base](https://huggingface.co/z-animator/z_anime_base) | `z_anime_base.safetensors` |
+| **SDXL (Juggernaut)** | [RunDiffusion/Juggernaut-XL-v10](https://huggingface.co/RunDiffusion/Juggernaut-XL-v10) | `juggernaut_xl_v10.safetensors` |
+| **SDXL (RealVis)** | [SG161222/RealVisXL_V5.0](https://huggingface.co/SG161222/RealVisXL_V5.0) | `realvisxl_v5.safetensors` |
+| **VAE (FLUX)** | [black-forest-labs/FLUX.1-dev](https://huggingface.co/black-forest-labs/FLUX.1-dev) | `ae.safetensors` (vae/ 폴더에) |
+| **CLIP (FLUX)** | [comfyanonymous/flux_text_encoders](https://huggingface.co/comfyanonymous/flux_text_encoders) | `clip_l.safetensors`, `t5xxl_fp16.safetensors` (clip/ 폴더에) |
+
+**다운로드 단계**:
+1. 위 링크 클릭 → **Files and versions** 탭
+2. 원하는 양자화 버전(Q4_K_S, Q8_0 등) 클릭
+3. **Download** 버튼으로 파일 저장
+4. 위 폴더 구조에 맞게 해당 폴더(`checkpoints`, `unet`, `vae`, `clip` 등)에 이동
+
+### Civitai에서 다운로드 (대안)
+- [Civitai 모델 검색](https://civitai.com/models) → 모델명 검색 → **Download** 버튼
+- `.safetensors` 파일 우선 권장 (보안/호환성)
+- 다운로드 후 `models/checkpoints/` 폴더에 배치
+
+---
+
+## ⚙️ GGUF 양자화 모델 선택 가이드
+
+이 프로그램은 **GGUF 양자화 모델**을 적극 권장합니다 (VRAM 절약, 로딩 속도 향상).
+
+| 양자화 버전 | VRAM 사용량 | 품질 | 추천 대상 |
+|------------|-------------|------|-----------|
+| **Q4_K_S** | ~6-8 GB | ★★★★☆ | **최적 균형** (기본 추천) |
+| **Q4_K_M** | ~8-10 GB | ★★★★★ | 품질 중시, VRAM 10GB+ |
+| **Q5_K_S** | ~8-10 GB | ★★★★★ | 고품질, VRAM 10GB+ |
+| **Q8_0** | ~12-16 GB | ★★★★★ | 최고 품질, VRAM 16GB+ |
+| **FP16 (원본)** | ~24 GB+ | ★★★★★ | RTX 4090 등 고사양만 |
+
+> **초보자 팁**: `Q4_K_S` 버전부터 시작하세요. 대부분의 모델에서 품질 저하 체감 없이 VRAM을 절반 이하로 줄일 수 있습니다.
+
+---
+
+## 모델 패밀리별 필수 보조 파일
+
+| 모델 패밀리 | 필수 보조 파일 | 저장 위치 |
+|------------|----------------|-----------|
+| **FLUX GGUF** | `clip_l.safetensors`, `t5xxl_fp16.safetensors` (또는 `t5-v1_1-xxl-encoder-Q4_K_M.gguf`), `ae.safetensors` | `clip/`, `vae/` |
+| **ZImage** | `Z-Image-Engineer-V6-Q5_K_M.gguf` (CLIP), `ae.safetensors` (VAE) | `clip/`, `vae/` |
+| **Z-ANIME** | (내장됨, 별도 CLIP/VAE 불필요) | - |
+| **SDXL (Juggernaut/RealVis)** | `sdxl_vae.safetensors` (VAE) | `vae/` |
+
+> **자동 적용**: 모델 선택 시 프로그램이 패밀리를 감지해 **최적 Steps/CFG/Sampler/VAE/CLIP을 자동 설정**합니다. (로그 창에서 `모델 프로파일 로드: [FAMILY] name` 확인)
 
 ---
 
@@ -138,6 +196,6 @@ Z-ANIME 계열 모델(z_anime_base, zanime_aio 등) 선택 시 **스타일 선�
 
 ## 다음 단계
 
-- [프롬프트 작성](04_prompt_writing.html) - 모델별 효과적인 프롬프트
-- [이미지 생성 옵션](05_generation_options.html) - 세부 파라미터 튜닝
-- [설치 및 필수 노드](08_installation.html) - ComfyUI 필수 노드 설치
+- [프롬프트 작성 가이드](04_prompt_writing.html) - 모델별 효과적인 프롬프트
+- [생성 옵션 상세](05_generation_options.html) - 세부 파라미터 튜닝
+- [FaceDetailer 얼굴 보정](06_facedetailer.html) - 얼굴 보정 옵션 및 활용

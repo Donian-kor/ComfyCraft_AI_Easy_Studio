@@ -162,16 +162,23 @@ blockquote {
 <li><a href="#_7">폴더 구조 요구사항</a></li>
 </ul>
 </li>
+<li><a href="#_8">📦 모델 파일 다운로드 가이드</a><ul>
+<li><a href="#huggingface">HuggingFace에서 다운로드 (권장)</a></li>
+<li><a href="#civitai">Civitai에서 다운로드 (대안)</a></li>
+</ul>
+</li>
+<li><a href="#gguf">⚙️ GGUF 양자화 모델 선택 가이드</a></li>
+<li><a href="#_9">모델 패밀리별 필수 보조 파일</a></li>
 <li><a href="#z-anime">Z-ANIME 스타일 선택 (필수)</a></li>
-<li><a href="#_8">네거티브 프롬프트 자동 제어</a></li>
+<li><a href="#_10">네거티브 프롬프트 자동 제어</a></li>
 <li><a href="#seed">시드(Seed) 관리</a></li>
-<li><a href="#_9">문제 해결</a><ul>
-<li><a href="#_10">"로드된 모델 없음" 표시</a></li>
-<li><a href="#_11">모델 변경해도 설정 안 바뀜</a></li>
+<li><a href="#_11">문제 해결</a><ul>
+<li><a href="#_12">"로드된 모델 없음" 표시</a></li>
+<li><a href="#_13">모델 변경해도 설정 안 바뀜</a></li>
 <li><a href="#vram-oom">VRAM 부족 (OOM)</a></li>
 </ul>
 </li>
-<li><a href="#_12">다음 단계</a></li>
+<li><a href="#_14">다음 단계</a></li>
 </ul>
 </li>
 </ul>
@@ -179,6 +186,7 @@ blockquote {
 </div>
     <h2 id="_1"><a class="toclink" href="#_1">모델 설정</a><a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
 <p>ComfyCraft AI Easy Studio는 <strong>모델 프로파일 시스템</strong>을 통해 선택한 모델에 최적화된 생성 파라미터를 자동으로 적용합니다.</p>
+<hr />
 <h3 id="_2"><a class="toclink" href="#_2">모델 프로파일이란?</a><a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
 <p>각 모델마다 최적의 생성 설정(Steps, CFG, Sampler, Scheduler, VAE, CLIP 등)이 다릅니다. 이 프로그램은 모델 이름을 분석해 자동으로 적절한 프로파일을 매칭하고 설정을 적용합니다.</p>
 <h4 id="_3"><a class="toclink" href="#_3">지원 모델 패밀리</a><a class="headerlink" href="#_3" title="Permanent link">&para;</a></h4>
@@ -215,12 +223,6 @@ blockquote {
 <td>juggernaut_xl, dreamshaper_xl</td>
 <td>범용 고품질, 실사/일러스트</td>
 <td>sdxl</td>
-</tr>
-<tr>
-<td><strong>SD 1.5</strong></td>
-<td>revAnimated, dreamshaper</td>
-<td>구형 모델, 로라 호환성 좋음</td>
-<td>sd15</td>
 </tr>
 <tr>
 <td><strong>GGUF</strong></td>
@@ -279,6 +281,155 @@ blockquote {
 </code></pre>
 <p><strong>중요</strong>: <code>checkpoints</code> 또는 <code>unet</code> / <code>diffusion_models</code> 폴더가 있어야 모델을 인식합니다.</p>
 <hr />
+<h3 id="_8"><a class="toclink" href="#_8">📦 모델 파일 다운로드 가이드</a><a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
+<h4 id="huggingface"><a class="toclink" href="#huggingface">HuggingFace에서 다운로드 (권장)</a><a class="headerlink" href="#huggingface" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>모델 패밀리</th>
+<th>추천 저장소</th>
+<th>주요 파일 예시</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>FLUX GGUF</strong></td>
+<td><a href="https://huggingface.co/city96/FLUX.1-dev-gguf">city96/FLUX.1-dev-gguf</a></td>
+<td><code>flux1-dev-Q4_K_S.gguf</code>, <code>flux1-dev-Q8_0.gguf</code></td>
+</tr>
+<tr>
+<td><strong>FLUX (원본)</strong></td>
+<td><a href="https://huggingface.co/black-forest-labs/FLUX.1-dev">black-forest-labs/FLUX.1-dev</a></td>
+<td><code>flux1-dev.safetensors</code></td>
+</tr>
+<tr>
+<td><strong>ZImage Turbo</strong></td>
+<td><a href="https://huggingface.co/lllyasviel/zimage_turbo">lllyasviel/zimage_turbo</a></td>
+<td><code>zimage_turbo-Q4_K_S.gguf</code></td>
+</tr>
+<tr>
+<td><strong>Z-ANIME</strong></td>
+<td><a href="https://huggingface.co/z-animator/z_anime_base">z-animator/z_anime_base</a></td>
+<td><code>z_anime_base.safetensors</code></td>
+</tr>
+<tr>
+<td><strong>SDXL (Juggernaut)</strong></td>
+<td><a href="https://huggingface.co/RunDiffusion/Juggernaut-XL-v10">RunDiffusion/Juggernaut-XL-v10</a></td>
+<td><code>juggernaut_xl_v10.safetensors</code></td>
+</tr>
+<tr>
+<td><strong>SDXL (RealVis)</strong></td>
+<td><a href="https://huggingface.co/SG161222/RealVisXL_V5.0">SG161222/RealVisXL_V5.0</a></td>
+<td><code>realvisxl_v5.safetensors</code></td>
+</tr>
+<tr>
+<td><strong>VAE (FLUX)</strong></td>
+<td><a href="https://huggingface.co/black-forest-labs/FLUX.1-dev">black-forest-labs/FLUX.1-dev</a></td>
+<td><code>ae.safetensors</code> (vae/ 폴더에)</td>
+</tr>
+<tr>
+<td><strong>CLIP (FLUX)</strong></td>
+<td><a href="https://huggingface.co/comfyanonymous/flux_text_encoders">comfyanonymous/flux_text_encoders</a></td>
+<td><code>clip_l.safetensors</code>, <code>t5xxl_fp16.safetensors</code> (clip/ 폴더에)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>다운로드 단계</strong>:
+1. 위 링크 클릭 → <strong>Files and versions</strong> 탭
+2. 원하는 양자화 버전(Q4_K_S, Q8_0 등) 클릭
+3. <strong>Download</strong> 버튼으로 파일 저장
+4. 위 폴더 구조에 맞게 해당 폴더(<code>checkpoints</code>, <code>unet</code>, <code>vae</code>, <code>clip</code> 등)에 이동</p>
+<h4 id="civitai"><a class="toclink" href="#civitai">Civitai에서 다운로드 (대안)</a><a class="headerlink" href="#civitai" title="Permanent link">&para;</a></h4>
+<ul>
+<li><a href="https://civitai.com/models">Civitai 모델 검색</a> → 모델명 검색 → <strong>Download</strong> 버튼</li>
+<li><code>.safetensors</code> 파일 우선 권장 (보안/호환성)</li>
+<li>다운로드 후 <code>models/checkpoints/</code> 폴더에 배치</li>
+</ul>
+<hr />
+<h3 id="gguf"><a class="toclink" href="#gguf">⚙️ GGUF 양자화 모델 선택 가이드</a><a class="headerlink" href="#gguf" title="Permanent link">&para;</a></h3>
+<p>이 프로그램은 <strong>GGUF 양자화 모델</strong>을 적극 권장합니다 (VRAM 절약, 로딩 속도 향상).</p>
+<table>
+<thead>
+<tr>
+<th>양자화 버전</th>
+<th>VRAM 사용량</th>
+<th>품질</th>
+<th>추천 대상</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Q4_K_S</strong></td>
+<td>~6-8 GB</td>
+<td>★★★★☆</td>
+<td><strong>최적 균형</strong> (기본 추천)</td>
+</tr>
+<tr>
+<td><strong>Q4_K_M</strong></td>
+<td>~8-10 GB</td>
+<td>★★★★★</td>
+<td>품질 중시, VRAM 10GB+</td>
+</tr>
+<tr>
+<td><strong>Q5_K_S</strong></td>
+<td>~8-10 GB</td>
+<td>★★★★★</td>
+<td>고품질, VRAM 10GB+</td>
+</tr>
+<tr>
+<td><strong>Q8_0</strong></td>
+<td>~12-16 GB</td>
+<td>★★★★★</td>
+<td>최고 품질, VRAM 16GB+</td>
+</tr>
+<tr>
+<td><strong>FP16 (원본)</strong></td>
+<td>~24 GB+</td>
+<td>★★★★★</td>
+<td>RTX 4090 등 고사양만</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>초보자 팁</strong>: <code>Q4_K_S</code> 버전부터 시작하세요. 대부분의 모델에서 품질 저하 체감 없이 VRAM을 절반 이하로 줄일 수 있습니다.</p>
+</blockquote>
+<hr />
+<h3 id="_9"><a class="toclink" href="#_9">모델 패밀리별 필수 보조 파일</a><a class="headerlink" href="#_9" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>모델 패밀리</th>
+<th>필수 보조 파일</th>
+<th>저장 위치</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>FLUX GGUF</strong></td>
+<td><code>clip_l.safetensors</code>, <code>t5xxl_fp16.safetensors</code> (또는 <code>t5-v1_1-xxl-encoder-Q4_K_M.gguf</code>), <code>ae.safetensors</code></td>
+<td><code>clip/</code>, <code>vae/</code></td>
+</tr>
+<tr>
+<td><strong>ZImage</strong></td>
+<td><code>Z-Image-Engineer-V6-Q5_K_M.gguf</code> (CLIP), <code>ae.safetensors</code> (VAE)</td>
+<td><code>clip/</code>, <code>vae/</code></td>
+</tr>
+<tr>
+<td><strong>Z-ANIME</strong></td>
+<td>(내장됨, 별도 CLIP/VAE 불필요)</td>
+<td>-</td>
+</tr>
+<tr>
+<td><strong>SDXL (Juggernaut/RealVis)</strong></td>
+<td><code>sdxl_vae.safetensors</code> (VAE)</td>
+<td><code>vae/</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>자동 적용</strong>: 모델 선택 시 프로그램이 패밀리를 감지해 <strong>최적 Steps/CFG/Sampler/VAE/CLIP을 자동 설정</strong>합니다. (로그 창에서 <code>모델 프로파일 로드: [FAMILY] name</code> 확인)</p>
+</blockquote>
+<hr />
 <h3 id="z-anime"><a class="toclink" href="#z-anime">Z-ANIME 스타일 선택 (필수)</a><a class="headerlink" href="#z-anime" title="Permanent link">&para;</a></h3>
 <p>Z-ANIME 계열 모델(z_anime_base, zanime_aio 등) 선택 시 <strong>스타일 선택 영역이 자동 표시</strong>됩니다.</p>
 <table>
@@ -309,7 +460,7 @@ blockquote {
 </table>
 <p><strong>필수</strong>: 생성 전 스타일 버튼 중 하나를 <strong>반드시 선택</strong>해야 합니다. (기본값 없음)</p>
 <hr />
-<h3 id="_8"><a class="toclink" href="#_8">네거티브 프롬프트 자동 제어</a><a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
+<h3 id="_10"><a class="toclink" href="#_10">네거티브 프롬프트 자동 제어</a><a class="headerlink" href="#_10" title="Permanent link">&para;</a></h3>
 <p>모델에 따라 네거티브 프롬프트 입력란 표시 여부 자동 전환:</p>
 <table>
 <thead>
@@ -362,15 +513,15 @@ blockquote {
 </table>
 <p><strong>활용</strong>: 캐릭터 고정하며 포즈/배경만 바꿀 때 시드 고정 + 프롬프트 부분 수정</p>
 <hr />
-<h3 id="_9"><a class="toclink" href="#_9">문제 해결</a><a class="headerlink" href="#_9" title="Permanent link">&para;</a></h3>
-<h4 id="_10"><a class="toclink" href="#_10">"로드된 모델 없음" 표시</a><a class="headerlink" href="#_10" title="Permanent link">&para;</a></h4>
+<h3 id="_11"><a class="toclink" href="#_11">문제 해결</a><a class="headerlink" href="#_11" title="Permanent link">&para;</a></h3>
+<h4 id="_12"><a class="toclink" href="#_12">"로드된 모델 없음" 표시</a><a class="headerlink" href="#_12" title="Permanent link">&para;</a></h4>
 <ol>
 <li>ComfyUI 서버가 실행 중인지 확인 (포트 8188)</li>
 <li>모델 폴더 경로가 올바른지 설정에서 확인</li>
 <li>ComfyUI 웹 UI에서 모델이 로드되어 있는지 확인</li>
 <li>프로그램 재시작 후 <code>모델 새로고침</code></li>
 </ol>
-<h4 id="_11"><a class="toclink" href="#_11">모델 변경해도 설정 안 바뀜</a><a class="headerlink" href="#_11" title="Permanent link">&para;</a></h4>
+<h4 id="_13"><a class="toclink" href="#_13">모델 변경해도 설정 안 바뀜</a><a class="headerlink" href="#_13" title="Permanent link">&para;</a></h4>
 <ul>
 <li>모델 이름이 프로파일 매칭 패턴과 다를 수 있음</li>
 <li>로그 창에서 <code>모델 프로파일 로드: [FAMILY] name</code> 확인</li>
@@ -384,11 +535,11 @@ blockquote {
 <li>FaceDetailer 끄기</li>
 </ul>
 <hr />
-<h3 id="_12"><a class="toclink" href="#_12">다음 단계</a><a class="headerlink" href="#_12" title="Permanent link">&para;</a></h3>
+<h3 id="_14"><a class="toclink" href="#_14">다음 단계</a><a class="headerlink" href="#_14" title="Permanent link">&para;</a></h3>
 <ul>
-<li><a href="04_prompt_writing.html">프롬프트 작성</a> - 모델별 효과적인 프롬프트</li>
-<li><a href="05_generation_options.html">이미지 생성 옵션</a> - 세부 파라미터 튜닝</li>
-<li><a href="08_installation.html">설치 및 필수 노드</a> - ComfyUI 필수 노드 설치</li>
+<li><a href="04_prompt_writing.html">프롬프트 작성 가이드</a> - 모델별 효과적인 프롬프트</li>
+<li><a href="05_generation_options.html">생성 옵션 상세</a> - 세부 파라미터 튜닝</li>
+<li><a href="06_facedetailer.html">FaceDetailer 얼굴 보정</a> - 얼굴 보정 옵션 및 활용</li>
 </ul>
 </body>
 </html>
