@@ -118,7 +118,9 @@ class ModelPresetConfig:
 class PromptsConfig:
     # 프롬프트 설정은 prompt.json에서 로드됨 (load_external_prompts 사용)
     system_prompt_flux_en: str = ""
-    system_prompt_flux_kr: str = ""    
+    system_prompt_flux_kr: str = ""
+    system_prompt_ernie_en: str = ""
+    system_prompt_ernie_kr: str = ""
     system_prompt_sdxl_en: str = ""
     system_prompt_sdxl_kr: str = ""
     system_prompt_zanime_webtoon_en: str = ""
@@ -228,6 +230,8 @@ class ConfigManager:
         prompts = PromptsConfig(
             system_prompt_flux_en=ext_prompts.get("system_prompt_flux_en", ""),
             system_prompt_flux_kr=ext_prompts.get("system_prompt_flux_kr", ""),
+            system_prompt_ernie_en=ext_prompts.get("system_prompt_ernie_en", ""),
+            system_prompt_ernie_kr=ext_prompts.get("system_prompt_ernie_kr", ""),
             system_prompt_sdxl_en=ext_prompts.get("system_prompt_sdxl_en", ""),
             system_prompt_sdxl_kr=ext_prompts.get("system_prompt_sdxl_kr", ""),
             system_prompt_zanime_webtoon_en=ext_prompts.get("system_prompt_zanime_webtoon_en", ""),

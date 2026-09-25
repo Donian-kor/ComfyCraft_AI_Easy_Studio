@@ -20,6 +20,13 @@ class ProjectBasicsTests(unittest.TestCase):
             with self.subTest(path=path.name), path.open(encoding="utf-8") as file:
                 json.load(file)
 
+    def test_prompt_configuration_includes_ernie_templates(self) -> None:
+        with (WORKFLOWS_DIR / "prompt.json").open(encoding="utf-8") as file:
+            prompts = json.load(file)
+
+        self.assertIn("ERNIE-AIO", prompts["system_prompt_ernie_en"])
+        self.assertIn("ERNIE-AIO", prompts["system_prompt_ernie_kr"])
+
     def test_app_config_references_existing_workflow_templates(self) -> None:
         with (WORKFLOWS_DIR / "app_config.json").open(encoding="utf-8") as file:
             config = json.load(file)

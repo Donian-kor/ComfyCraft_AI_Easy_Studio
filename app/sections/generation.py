@@ -871,9 +871,16 @@ class GenerationWorker:
                 self.emit_log(
                     f"[ZANIME 스타일] '{zanime_style}' 스타일 프롬프트 지시문을 사용합니다."
                 )
-        elif is_flux or is_zimage or is_zanime or is_ernie:
-                self.emit_log(f"[AI 자동 분석] '{comfy_model_name}' 모델 감지: '문장형' 프롬프트 지시문을 사용합니다.")
-                system_prompt = ext_prompts.get("system_prompt_flux_kr" if use_korean else "system_prompt_flux_en") or ""
+        elif is_ernie:
+            self.emit_log(
+                f"[AI 자동 분석] '{comfy_model_name}' 모델 감지: 'ERNIE 전용' 프롬프트 지시문을 사용합니다."
+            )
+            system_prompt = ext_prompts.get(
+                "system_prompt_ernie_kr" if use_korean else "system_prompt_ernie_en"
+            ) or ext_prompts.get("system_prompt_flux_kr" if use_korean else "system_prompt_flux_en") or ""
+        elif is_flux or is_zimage or is_zanime:
+            self.emit_log(f"[AI 자동 분석] '{comfy_model_name}' 모델 감지: '문장형' 프롬프트 지시문을 사용합니다.")
+            system_prompt = ext_prompts.get("system_prompt_flux_kr" if use_korean else "system_prompt_flux_en") or ""
         
        # 2. 저거넛, 리얼비스를 포함한 나머지 모든 SDXL 계열일 때 ➡️ '태그형' 프롬프트 분기
         else:

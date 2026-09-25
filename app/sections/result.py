@@ -31,17 +31,34 @@ def ensure_output_directory(path: str) -> Path:
     return output_dir
 
 
+def resize_preview(preview_label: QLabel) -> bool:
+    """기억해 둔 원본 픽스맵을 현재 라벨 크기에 맞춰 다시 표시합니다.
+
+    메인창 크기와 무관하게 미리보기가 항상 라벨 영역을 채우도록 합니다.
+    """
+    original: Optional[QPixmap] = getattr(preview_label, "_original_pixmap", None)
+    if original is None or original.isNull():
+        return False
+    target = preview_label.size()
+    if target.width() <= 0 or target.height() <= 0:
+        return False
+    preview_label.setPixmap(
+        original.scaled(
+            target,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation
+        )
+    )
+    return True
+
+
 def show_image(preview_label: QLabel, path: str) -> bool:
     """이미지를 미리보기 라벨에 표시합니다."""
     pixmap = QPixmap(path)
     if not pixmap.isNull():
-        preview_label.setPixmap(
-            pixmap.scaled(
-                preview_label.size(),
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation
-            )
-        )
+        # 원본 픽스맵을 보관해 두어야 창 크기 변경 시 다시 확대해도 화질이 유지된다.
+        preview_label._original_pixmap = pixmap
+        resize_preview(preview_label)
         preview_label.setText("")
         return True
     return False

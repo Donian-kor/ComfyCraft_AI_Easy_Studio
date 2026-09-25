@@ -100,6 +100,7 @@ from app import (
     load_external_prompts,
     normalize_prompt,
     open_output_folder,
+    resize_preview,
     resolve_live_url,
     resolve_model_directory,
     save_image_as,
@@ -383,6 +384,12 @@ class MainController(QObject):
         # 사이드바 애니메이션 설정
         self.setup_sidebar_animation()
 
+        # 미리보기 라벨: 창 크기 변경 시 이미지도 함께 확대/축소되도록 필터 설치
+        preview_label = self.find(QLabel, "previewLabel")
+        if preview_label is not None:
+            self._preview_label = preview_label
+            preview_label.installEventFilter(self)
+
         # 사이드바 버튼 → 해당 탭 전환 (NEW.ui 구조)
         sidebar_tabs = self.find(QTabWidget, "tabWidget")
         if sidebar_tabs is not None:
@@ -529,7 +536,13 @@ class MainController(QObject):
             self.sidebar_frame.setMinimumWidth(int(value))
 
     def eventFilter(self, obj, event):
-        """마우스가 사이드바에 들어오고 나갈 때 애니메이션을 실행합니다."""
+        # 미리보기 라벨 크기가 바뀌면 원본 이미지를 새 크기에 맞춰 다시 스케일
+        if obj is getattr(self, "_preview_label", None):
+            if event.type() == QEvent.Type.Resize:
+                resize_preview(obj)
+            return super().eventFilter(obj, event)
+
+        # 마우스가 사이드바에 들어오고 나갈 때 애니메이션을 실행합니다.
         # 사이드바에서 발생한 이벤트인지 확인
         if hasattr(self, "sidebar_frame") and obj == self.sidebar_frame:
             if event.type() == QEvent.Type.HoverEnter:
@@ -1800,7 +1813,12 @@ class MainController(QObject):
             self.append_log(
                 f"[AI 자동 분석] '{comfy_model_name}' 모델 감지: '문장형' 프롬프트 지시문을 사용합니다."
             )
-        elif is_flux or is_zimage or is_zanime or is_ernie:
+        elif is_ernie:
+            self.append_log(
+                f"[AI 자동 분석] '{comfy_model_name}' 모델 감지: 'ERNIE 전용' 프롬프트 지시문을 사용합니다."
+            )
+            system_prompt = ext_prompts.get("system_prompt_ernie_en") or ext_prompts.get("system_prompt_flux_en") or ""
+        elif is_flux or is_zimage or is_zanime:
             self.append_log(
                 f"[AI 자동 분석] '{comfy_model_name}' 모델 감지: '문장형' 프롬프트 지시문을 사용합니다."
             )
@@ -2305,6 +2323,19 @@ class MainController(QObject):
             self.append_log("프롬프트가 클립보드에 복사되었습니다.")
 
     def _copy_image_to_clipboard(self):
+        # 항상 원본 파일 우선 복사 (미리보기용으로 축소된 픽스맵 화질 손실 방지)
+        if self.current_image_path and Path(self.current_image_path).exists():
+            pix = QPixmap(str(self.current_image_path))
+            if not pix.isNull():
+                QApplication.clipboard().setPixmap(pix)
+                btn = self.find(QPushButton, "copyImageButton")
+                if btn:
+                    orig_text = btn.text()
+                    btn.setText("✓ 복사 완료!")
+                    QTimer.singleShot(1500, lambda: btn.setText(orig_text))
+                self.append_log("결과 이미지가 클립보드에 복사되었습니다. (Ctrl+V로 붙여넣기 가능)")
+                return
+
         label = self.find(QLabel, "previewLabel")
         if label and label.pixmap() and not label.pixmap().isNull():
             QApplication.clipboard().setPixmap(label.pixmap())
@@ -2314,11 +2345,6 @@ class MainController(QObject):
                 btn.setText("✓ 복사 완료!")
                 QTimer.singleShot(1500, lambda: btn.setText(orig_text))
             self.append_log("결과 이미지가 클립보드에 복사되었습니다. (Ctrl+V로 붙여넣기 가능)")
-        elif self.current_image_path and Path(self.current_image_path).exists():
-            pix = QPixmap(str(self.current_image_path))
-            if not pix.isNull():
-                QApplication.clipboard().setPixmap(pix)
-                self.append_log("결과 이미지가 클립보드에 복사되었습니다.")
         else:
             show_message_box(self.window, QMessageBox.Icon.Information, "알림", "복사할 이미지가 없습니다.")
 

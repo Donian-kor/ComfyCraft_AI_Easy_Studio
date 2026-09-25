@@ -55,6 +55,12 @@ class CoreComponentsTests(unittest.TestCase):
         self.assertTrue(manager.is_zimage_model("zimage_turbo-Q4_K_S.gguf"))
         self.assertFalse(manager.is_zimage_model(""))
 
+    def test_ernie_system_prompts_are_configured(self) -> None:
+        prompts = ConfigManager().get().prompts
+
+        self.assertIn("ERNIE-AIO", prompts.system_prompt_ernie_en)
+        self.assertIn("ERNIE-AIO", prompts.system_prompt_ernie_kr)
+
     def test_config_manager_accessors(self) -> None:
         mgr = ConfigManager()
         cfg = mgr.get()
