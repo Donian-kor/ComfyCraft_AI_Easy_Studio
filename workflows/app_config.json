@@ -41,7 +41,7 @@
     "flux_gguf_template": "workflows/flux_gguf.json",
     "zimage_template": "workflows/zimage.json",
     "sampler_name": "dpmpp_2m",
-    "scheduler": "karras",
+    "scheduler": "normal",
     "denoise": 1.0
   },
   "output": {
