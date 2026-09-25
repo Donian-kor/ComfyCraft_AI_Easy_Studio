@@ -70,6 +70,8 @@ from app.gui.theme_manager import (
 )
 from app.gui.ui_loader import load_dialog_ui, load_ui
 
+PROMPT_MAX_CHARACTERS = 5000
+
 BASE_DIR = Path(__file__).resolve().parent
 
 SETTINGS_DIALOG_FILE = BASE_DIR / "assets" / "ui" / "settings_dialog.ui"
@@ -112,6 +114,7 @@ from app import (
 
 # 추가 모듈 import
 from app.core.model_status_service import ModelStatusService
+from app.sections.prompt import enforce_prompt_character_limit
 
 UI_FILE = BASE_DIR / "assets" / "ui" / "main.ui"
 
@@ -2081,10 +2084,14 @@ class MainController(QObject):
     def update_counter(self, edit_name, label_name):
         editor = self.find(QPlainTextEdit, edit_name)
         text = editor.toPlainText()
-        if len(text) > 2000:
-            editor.setPlainText(text[:2000])
-            text = text[:2000]
-        self.find(QLabel, label_name).setText(f"{len(text)} / 2000")
+        limited_text = enforce_prompt_character_limit(
+            text, PROMPT_MAX_CHARACTERS
+        )
+        if limited_text != text:
+            editor.setPlainText(limited_text)
+        self.find(QLabel, label_name).setText(
+            f"{len(limited_text)} / {PROMPT_MAX_CHARACTERS}"
+        )
 
     def append_log(self, message):
         editor = self.find(QPlainTextEdit, "logTextEdit")

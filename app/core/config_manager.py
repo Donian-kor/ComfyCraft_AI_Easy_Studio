@@ -19,7 +19,7 @@ class LMStudioConfig:
     model: str = ""
     timeout_seconds: int = 30
     enhance_temperature: float = 0.7
-    enhance_max_tokens: int = 250
+    enhance_max_tokens: int = 5000
 
 
 @dataclass
@@ -189,7 +189,7 @@ class ConfigManager:
             model=lm_raw.get("model", ""),
             timeout_seconds=lm_raw.get("timeout_seconds", 30),
             enhance_temperature=lm_raw.get("enhance_temperature", 0.7),
-            enhance_max_tokens=lm_raw.get("enhance_max_tokens", 250),
+            enhance_max_tokens=lm_raw.get("enhance_max_tokens", 5000),
         )
         
         # ComfyUI 설정

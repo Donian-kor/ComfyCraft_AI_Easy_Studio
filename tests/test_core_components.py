@@ -8,6 +8,7 @@ from pathlib import Path
 from app.core.config_manager import AppConfig, ConfigManager
 from app.core.model_registry import ModelRegistry, get_model_registry
 from app.sections.connection import check_connection_silent
+from app.sections.prompt import _build_chat_payload, enforce_prompt_character_limit
 
 
 class CoreComponentsTests(unittest.TestCase):
@@ -60,6 +61,19 @@ class CoreComponentsTests(unittest.TestCase):
 
         self.assertIn("ERNIE-AIO", prompts.system_prompt_ernie_en)
         self.assertIn("ERNIE-AIO", prompts.system_prompt_ernie_kr)
+
+    def test_prompt_request_uses_5000_output_token_limit(self) -> None:
+        payload = _build_chat_payload("test-model", "test-system", "test-prompt")
+
+        self.assertEqual(payload["max_tokens"], 5000)
+
+    def test_prompt_character_limit_accepts_5000_characters(self) -> None:
+        prompt = "a" * 5000
+
+        self.assertEqual(enforce_prompt_character_limit(prompt), prompt)
+        self.assertEqual(
+            len(enforce_prompt_character_limit(prompt + "extra")), 5000
+        )
 
     def test_config_manager_accessors(self) -> None:
         mgr = ConfigManager()

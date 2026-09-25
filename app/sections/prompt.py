@@ -25,6 +25,14 @@ def prompt_character_count(text: str) -> int:
     return len(normalize_prompt(text))
 
 
+def enforce_prompt_character_limit(
+    text: str,
+    max_characters: int = 5000,
+) -> str:
+    """Return prompt text within the GUI's character limit."""
+    return text[:max_characters] if len(text) > max_characters else text
+
+
 def build_negative_prompt(default_text: str) -> str:
     return normalize_prompt(default_text) or "low quality, blurry, bad anatomy"
 
@@ -60,7 +68,14 @@ def load_external_prompts() -> dict[str, Any]:
             try:
                 with open(file_path, "r", encoding="utf-8") as f:
                     # 2. 파일이 있다면, 그 파일 안의 내용으로 통째로 교체합니다!
-                    return cast(dict[str, Any], json.load(f))
+                    prompts = cast(dict[str, Any], json.load(f))
+                    # ERNIE-AIO 키를 사용하는 외부 설정과 기존 호출 코드의 호환 유지
+                    for key in ("en", "kr"):
+                        aio_key = f"system_prompt_ernie_aio_{key}"
+                        legacy_key = f"system_prompt_ernie_{key}"
+                        if aio_key in prompts and legacy_key not in prompts:
+                            prompts[legacy_key] = prompts[aio_key]
+                    return prompts
             except Exception:
                 # 파일 읽다가 에러가 나면 1단계의 백업본을 씁니다.
                 return dict(_FALLBACK_PROMPTS)
@@ -126,7 +141,7 @@ def _build_chat_payload(model: str, system_prompt: str, user_prompt: str) -> dic
         "temperature": 0.2,
         # Give the model enough room for the final prompt without encouraging
         # a long chain-of-thought.
-        "max_tokens": 2000,
+        "max_tokens": 5000,
         "reasoning": False,
         "enable_thinking": False,
         "chat_template_kwargs": {"enable_thinking": False},
@@ -365,7 +380,7 @@ def _request_native_chat(
         "system_prompt": system_prompt,
         "stream": False,
         "temperature": 0.2,
-        "max_output_tokens": 2000,
+        "max_output_tokens": 5000,
         "reasoning": "off",
     }
     response = requests.post(
@@ -448,7 +463,7 @@ class PromptEnhanceWorker(QThread):
                 "system_prompt": self.system_prompt,
                 "stream": False,
                 "temperature": 0.2,
-                "max_output_tokens": 2000,
+                "max_output_tokens": 5000,
                 "reasoning": "off",
             }
 
