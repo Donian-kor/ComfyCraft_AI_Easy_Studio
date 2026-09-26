@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import random
 
+import logging
 import sys
 import threading
 import time
@@ -118,6 +119,8 @@ from app.sections.prompt import enforce_prompt_character_limit
 
 UI_FILE = BASE_DIR / "assets" / "ui" / "main.ui"
 
+logger = logging.getLogger(__name__)
+
 # FaceDetailer 슬라이더 설정 명세: (키, 슬라이더 위젯 이름, 기본값, 배율, 64단위 여부)
 FACEDETAILER_SLIDER_SPECS = [
     ("facedetailer_denoise", "facedetailerDenoiseSlider", 0.40, 100.0, False),
@@ -182,6 +185,12 @@ class MainController(QObject):
 
     def find(self, widget_type, name):
         return self.window.findChild(widget_type, name)
+
+    def _find_or_raise(self, widget_type, name):
+        widget = self.find(widget_type, name)
+        if widget is None:
+            raise RuntimeError(f"필수 UI 위젯 '{name}'을(를) 찾을 수 없습니다.")
+        return widget
 
     def setup(self):
         generation = self.config.generation
@@ -626,7 +635,7 @@ class MainController(QObject):
             try:
                 button.setStyleSheet(qss)
             except Exception:
-                pass
+                logger.debug("zanime 스타일 버튼 적용 실패: %s", button.objectName(), exc_info=True)
         self.refresh_zanime_style_buttons()
 
     def _should_show_negative_prompt(self, model_name: str) -> bool:
@@ -654,6 +663,7 @@ class MainController(QObject):
             profile = self.model_registry.detect(model_name)
             return profile.family in ("realvisxl", "juggernautxl", "zanime")
         except Exception:
+            logger.debug("부정 프롬프트 표시 판별 실패", exc_info=True)
             return False
 
     def _apply_negative_prompt_height(self) -> None:
@@ -676,7 +686,7 @@ class MainController(QObject):
             edit.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
             edit.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         except Exception:
-            pass
+            logger.debug("부정 프롬프트 높이 계산 실패", exc_info=True)
 
     def _apply_positive_prompt_height(self) -> None:
         """긍정 프롬프트 입력칸 높이를 2줄 크기로 고정한다.
@@ -698,7 +708,7 @@ class MainController(QObject):
             edit.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
             edit.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         except Exception:
-            pass
+            logger.debug("긍정 프롬프트 높이 계산 실패", exc_info=True)
 
     def _setup_dynamic_enhance_prompt_height(self) -> None:
         """향상 프롬프트 입력칸 높이가 내용에 따라 늘고 줄게 만든다.
@@ -749,7 +759,7 @@ class MainController(QObject):
             edit.setMinimumHeight(target)
             edit.setMaximumHeight(target)
         except Exception:
-            pass
+            logger.debug("향상 프롬프트 높이 설정 실패", exc_info=True)
 
     def _setup_zanime_style_buttons(self):
         """핵심 생성 옵션의 모델 바로 아래에 zanime 스타일 버튼을 만든다."""
@@ -822,17 +832,9 @@ class MainController(QObject):
         try:
             combo = self.find(QComboBox, "comfyModelCombo")
             model_name = combo.currentText() if combo is not None else ""
-            profile = self.model_registry.detect(model_name)
-            lowered = (model_name or "").lower()
-            return bool(
-                "z-anime" in lowered
-                or "zanime" in lowered
-                or "z_anime_base" in lowered
-                or "anime_aio" in lowered
-                or profile.family == "zanime"
-                or profile.name == "zanime_aio"
-            )
+            return self.model_registry.is_zanime(model_name)
         except Exception:
+            logger.debug("zanime 선택 판별 실패", exc_info=True)
             return False
 
     def current_zanime_style(self) -> str:
@@ -840,6 +842,7 @@ class MainController(QObject):
         try:
             return (self.config.prompts.zanime_style or "").strip().lower()
         except Exception:
+            logger.debug("zanime 스타일 가져오기 실패", exc_info=True)
             return ""
 
     def refresh_zanime_style_buttons(self) -> None:
@@ -859,12 +862,12 @@ class MainController(QObject):
                     button.style().polish(button)
                     button.update()
                 except Exception:
-                    pass
+                    logger.debug("zanime 버튼 UI 강제 업데이트 실패", exc_info=True)
             finally:
                 try:
                     button.blockSignals(False)
                 except Exception:
-                    pass
+                    logger.debug("zanime 버튼 시그널 차단 해제 실패", exc_info=True)
 
     def update_zanime_style_visibility(self) -> None:
         """zanime이 선택됐을 때만 스타일 선택 영역을 보여준다."""
@@ -926,6 +929,7 @@ class MainController(QObject):
             )
             animation.start(QPropertyAnimation.DeletionPolicy.DeleteWhenStopped)
         except Exception:
+            logger.debug("버튼 애니메이션 시작 실패", exc_info=True)
             return
 
     def _setup_progress_label_overlay(self):
@@ -1431,7 +1435,7 @@ class MainController(QObject):
                 # 여기서는 최대 너비를 펼친 상태(210px)로 열어둔다.
                 sidebar.setMaximumWidth(sidebar.maximumWidth() or 210)
         except Exception:  # noqa: BLE001, S110  (화면 배치 실패는 무시하고 계속 진행하는 것이 의도)
-            pass
+            logger.debug("스플리터/사이드바 비율 적용 실패", exc_info=True)
         # (이전 QSplitter 비율 코드는 구조 변경으로 제거됨)
 
     def _render_markdown_file(self, file_path: Path) -> str:
@@ -1479,6 +1483,7 @@ class MainController(QObject):
                 try:
                     html = target_file.read_text(encoding="utf-8")
                 except Exception:
+                    logger.debug("도움말 HTML 파일 읽기 실패", exc_info=True)
                     html = "<p style='color:red;'>HTML 파일을 읽을 수 없습니다.</p>"
                 browser.setHtml(html)
                 browser.document().setBaseUrl(QUrl.fromLocalFile(str(target_file)))
@@ -1575,7 +1580,7 @@ class MainController(QObject):
             try:
                 slider.setValue(int(value))
             except Exception:
-                pass
+                logger.debug("FaceDetailer 슬라이더 '%s' 설정 실패", slider_name, exc_info=True)
 
     def _reset_facedetailer_to_defaults(self):
         """FaceDetailer 체크박스/슬라이더/콤보박스를 기본값으로 되돌림."""
@@ -1605,9 +1610,9 @@ class MainController(QObject):
             neg_combo.setCurrentText("False")
 
     def capture_snapshot(self):
-        prompt_text = self.find(QPlainTextEdit, "positivePromptEdit").toPlainText()
-        negative_text = self.find(QPlainTextEdit, "negativePromptEdit").toPlainText()
-        comfy_model_name = self.find(QComboBox, "comfyModelCombo").currentText()
+        prompt_text = self._find_or_raise(QPlainTextEdit, "positivePromptEdit").toPlainText()
+        negative_text = self._find_or_raise(QPlainTextEdit, "negativePromptEdit").toPlainText()
+        comfy_model_name = self._find_or_raise(QComboBox, "comfyModelCombo").currentText()
         # zanime 모델이면 스타일 선택이 끝난 뒤에만 생성 가능
         if self.is_zanime_selected() and self.current_zanime_style() not in (
             "webtoon",
@@ -1618,18 +1623,18 @@ class MainController(QObject):
                 "Z-ANIME 스타일을 먼저 선택해 주세요. (웹툰 / 일본애니 / 기본 중 하나)"
             )
         # enhancePromptEdit 내용도 스냅샷에 포함 (이미지 생성 시 LM Studio 재요청 방지용)
-        enhance_prompt_text = self.find(
+        enhance_prompt_text = self._find_or_raise(
             QPlainTextEdit, "enhancePromptEdit"
         ).toPlainText()
         generation_settings = build_generation_snapshot(
             {
-                "width": self.find(QSpinBox, "widthSpinBox").value(),
-                "height": self.find(QSpinBox, "heightSpinBox").value(),
+                "width": self._find_or_raise(QSpinBox, "widthSpinBox").value(),
+                "height": self._find_or_raise(QSpinBox, "heightSpinBox").value(),
                 "steps": self.get_steps_value(),
                 "cfg": self.get_cfg_value(),
-                "seed": self.find(QSpinBox, "seedSpinBox").value(),
+                "seed": self._find_or_raise(QSpinBox, "seedSpinBox").value(),
                 "sampler": SAMPLER_NAMES.get(
-                    self.find(QComboBox, "samplerComboBox").currentText(), "euler"
+                    self._find_or_raise(QComboBox, "samplerComboBox").currentText(), "euler"
                 ),
                 "scheduler": self.find(QComboBox, "schedulerComboBox").currentText()
                 if self.find(QComboBox, "schedulerComboBox") is not None
@@ -1708,7 +1713,7 @@ class MainController(QObject):
                         slider_val = int(val)
                     self._set_fd_slider(slider_name, slider_val)
                 except Exception:
-                    pass
+                    logger.debug("FD 스냅샷 키 '%s' 복원 실패", key, exc_info=True)
 
         if "facedetailer_sam_detection_hint" in snap:
             hint_combo = self.find(QComboBox, "facedetailerSamDetectionHintComboBox")
@@ -1770,25 +1775,10 @@ class MainController(QObject):
         profile = self.model_registry.detect(comfy_model_name)
         manager = self.workflow_manager
 
-        is_flux = bool(
-            profile.workflow_type == "flux_gguf"
-            or manager.is_flux_model(comfy_model_name)
-            or profile.family == "flux"
-        )
-        is_zimage = bool(
-            manager.is_zimage_model(comfy_model_name)
-            or profile.workflow_type == "zimage"
-        )
-        is_ernie = bool(profile.family == "ernie")
-        lowered_model_name = (comfy_model_name or "").lower()
-        is_zanime = bool(
-            "z-anime" in lowered_model_name
-            or "zanime" in lowered_model_name
-            or "z_anime_base" in lowered_model_name
-            or "anime_aio" in lowered_model_name
-            or profile.family == "zanime"
-            or profile.name == "zanime_aio"
-        )
+        is_flux = self.model_registry.is_flux(comfy_model_name)
+        is_zimage = self.model_registry.is_zimage(comfy_model_name)
+        is_ernie = self.model_registry.is_ernie(comfy_model_name)
+        is_zanime = self.model_registry.is_zanime(comfy_model_name)
 
         # zanime 모델일 때만: 저장된 스타일 설정을 따라 별도 시스템 프롬프트 사용
         zanime_style = (self.config.prompts.zanime_style or "").strip().lower()
@@ -1835,6 +1825,12 @@ class MainController(QObject):
         # 백업용 기본값
         if not system_prompt:
             system_prompt = ext_prompts.get("system_prompt_sdxl_en") or ""
+
+        # 기존 워커가 실행 중이면 먼저 중단 (메모리 누수/스레드 누수 방지)
+        old_worker = getattr(self, '_prompt_enhance_worker', None)
+        if old_worker is not None and old_worker.isRunning():
+            old_worker.quit()
+            old_worker.wait(2000)
 
         # PromptEnhanceWorker 사용
         self._prompt_enhance_worker = PromptEnhanceWorker(
@@ -1901,7 +1897,7 @@ class MainController(QObject):
                         try:
                             btn.blockSignals(False)
                         except Exception:
-                            pass
+                            logger.debug("생성 버튼 시그널 복원 실패", exc_info=True)
                 return
             if not snapshot["prompt"]:
                 show_message_box(
@@ -2038,7 +2034,7 @@ class MainController(QObject):
             try:
                 widget.setEnabled(enabled)
             except Exception:
-                pass
+                logger.debug("위젯 활성화 토글 실패: %s", getattr(widget, 'objectName', lambda: '?')(), exc_info=True)
 
     # ──────────────────────────────────────────────────────────────────────
     # 생성 시작/종료 시 UI 토글 통합 호출부
@@ -2082,24 +2078,29 @@ class MainController(QObject):
         self.find(QLabel, "progressPercentLabel").setText(f"{value}%")
 
     def update_counter(self, edit_name, label_name):
-        editor = self.find(QPlainTextEdit, edit_name)
+        editor = self._find_or_raise(QPlainTextEdit, edit_name)
         text = editor.toPlainText()
         limited_text = enforce_prompt_character_limit(
             text, PROMPT_MAX_CHARACTERS
         )
         if limited_text != text:
             editor.setPlainText(limited_text)
-        self.find(QLabel, label_name).setText(
+        self._find_or_raise(QLabel, label_name).setText(
             f"{len(limited_text)} / {PROMPT_MAX_CHARACTERS}"
         )
 
     def append_log(self, message):
         editor = self.find(QPlainTextEdit, "logTextEdit")
-        editor.appendPlainText(f"[{datetime.now():%H:%M:%S}] {message}")  # noqa: DTZ005  (로그 표시용 로컬 시간이므로 의도됨)
+        if editor:
+            editor.appendPlainText(f"[{datetime.now():%H:%M:%S}] {message}")  # noqa: DTZ005  (로그 표시용 로컬 시간이므로 의도됨)
+        else:
+            logger.info("Log: %s", message)
 
     def clear_logs(self):
-        self.find(QPlainTextEdit, "logTextEdit").clear()
-        self.append_log("로그를 초기화했습니다.")
+        editor = self.find(QPlainTextEdit, "logTextEdit")
+        if editor:
+            editor.clear()
+            self.append_log("로그를 초기화했습니다.")
 
     def show_image(self, path, add_history=False):
         self.current_image_path = path
@@ -2110,7 +2111,7 @@ class MainController(QObject):
                 snapshot = self.capture_snapshot()
                 self.add_to_history(path, snapshot)
             except Exception as e:
-                print(f"[경고] 히스토리 추가 실패: {e}")
+                logger.warning("히스토리 추가 실패: %s", e, exc_info=True)
 
     def save_image_as(self):
         if not self.current_image_path:
@@ -2143,13 +2144,31 @@ class MainController(QObject):
         if self.close_timer.isActive():
             return
         self.window.setEnabled(False)
+
+        progress_label = self.find(QLabel, "progressStatusLabel")
+        if progress_label is not None:
+            progress_label.setText("종료 중...")
+        percent_label = self.find(QLabel, "progressPercentLabel")
+        if percent_label is not None:
+            percent_label.setText("")
+
+        # PromptEnhanceWorker 정리
+        pw = getattr(self, '_prompt_enhance_worker', None)
+        if pw is not None and pw.isRunning():
+            pw.quit()
+            pw.wait(2000)
+
         if self.worker:
             self.worker.stop()
             self.append_log("작업을 정리한 뒤 종료합니다...")
-
-        self.find(QLabel, "progressStatusLabel").setText("종료 중...")
-        self.find(QLabel, "progressPercentLabel").setText("")
-        self.close_timer.start(300)
+            # Worker 완료 시그널 연결 + 최대 5초 대기 후 강제 종료
+            self.worker.signals.finished.connect(
+                lambda _: self.close_timer.start(100)
+            )
+            from PySide6.QtCore import QTimer
+            QTimer.singleShot(5000, lambda: self.close_timer.start(0) if not self.close_timer.isActive() else None)
+        else:
+            self.close_timer.start(100)
 
     def toggle_log(self):
         """로그창을 보이거나 숨기는 토글 함수 (아이콘 변경 포함)"""
@@ -2233,13 +2252,13 @@ class MainController(QObject):
                     try:
                         _lbl.setText(_fmt(val))
                     except Exception:
-                        pass
+                        logger.debug("FD 슬라이더 라벨 동기화 실패", exc_info=True)
                 slider.valueChanged.connect(on_val)
                 # 초기 표시도 맞춤
                 try:
                     label.setText(fmt(slider.value()))
                 except Exception:
-                    pass
+                    logger.debug("FD 슬라이더 초기 라벨 설정 실패", exc_info=True)
 
         _sync_fd_label("facedetailerDenoiseSlider", "facedetailerDenoiseValueLabel", lambda v: f"{v / 100.0:.2f}")
         _sync_fd_label("facedetailerStepsSlider", "facedetailerStepsValueLabel", lambda v: f"{int(v)}")
@@ -2743,6 +2762,7 @@ class MainController(QObject):
             try:
                 html = guide_file.read_text(encoding="utf-8")
             except Exception:
+                logger.debug("FaceDetailer 가이드 파일 읽기 실패", exc_info=True)
                 html = "<p>설명서 파일을 불러올 수 없습니다.</p>"
         else:
             html = "<p>설명서 파일이 존재하지 않습니다.</p>"
@@ -2796,7 +2816,7 @@ class MainController(QObject):
                 self.config_manager.set_config(self.config)
                 self.refresh_zanime_style_buttons()
             except Exception:
-                pass
+                logger.debug("zanime 스타일 복원 실패", exc_info=True)
         self.update_zanime_style_visibility()
 
         # 4. FaceDetailer 옵션 복원

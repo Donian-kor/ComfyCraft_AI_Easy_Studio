@@ -460,7 +460,7 @@ class GenerationWorker:
         base_wf = None
 
         # ZImage/Turbo 모델 처리
-        if manager.is_zimage_model(model_name) or profile.workflow_type == "zimage":
+        if self.controller.model_registry.is_zimage(model_name):
             required_nodes = ["UnetLoaderGGUF", "CLIPLoaderGGUF", "VAELoader", "KSampler", "TextEncodeZImageOmni"]
             missing = [name for name in required_nodes if not self._comfyui_node_exists(name, comfy_url)]
             if missing:
@@ -504,7 +504,7 @@ class GenerationWorker:
                 )
 
         # Flux 모델 처리
-        if base_wf is None and (profile.workflow_type == "flux_gguf" or manager.is_flux_model(model_name) or profile.family == "flux"):
+        if base_wf is None and self.controller.model_registry.is_flux(model_name):
             required_nodes = ["UnetLoaderGGUF", "DualCLIPLoaderGGUF", "FluxGuidance", "VAELoader"]
             missing = [name for name in required_nodes if not self._comfyui_node_exists(name, comfy_url)]
             if missing:
@@ -830,18 +830,10 @@ class GenerationWorker:
         use_korean = self.controller.config.prompts.use_korean_prompt
 
         # 🌟 [개선안] 기존 소스 코드의 워크플로우 분기법과 100% 동일하게 오차 없이 판별
-        is_flux = bool(profile.workflow_type == "flux_gguf" or manager.is_flux_model(comfy_model_name) or profile.family == "flux")
-        is_zimage = bool(manager.is_zimage_model(comfy_model_name) or profile.workflow_type == "zimage")
-        is_ernie = bool(profile.family == "ernie")
-        lowered_model_name = (comfy_model_name or "").lower()
-        is_zanime = bool(
-            "z-anime" in lowered_model_name
-            or "zanime" in lowered_model_name
-            or "z_anime_base" in lowered_model_name
-            or "anime_aio" in lowered_model_name
-            or profile.family == "zanime"
-            or profile.name == "zanime_aio"
-        )
+        is_flux = self.controller.model_registry.is_flux(comfy_model_name)
+        is_zimage = self.controller.model_registry.is_zimage(comfy_model_name)
+        is_ernie = self.controller.model_registry.is_ernie(comfy_model_name)
+        is_zanime = self.controller.model_registry.is_zanime(comfy_model_name)
 
         # zanime 모델일 때만: 저장된 스타일 설정을 따라 별도 시스템 프롬프트 사용
         # - webtoon: 한국 웹툰 스타일 (국가/인종은 랜덤으로 유지, 랜덤 반영)

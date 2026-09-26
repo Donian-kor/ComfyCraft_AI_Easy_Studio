@@ -160,6 +160,43 @@ class ModelRegistry:
             priority=999,
         )
 
+    def is_zanime(self, model_name: str) -> bool:
+        """zanime 계열 모델인지 판별한다. (중복 방지를 위한 통합 로직)"""
+        profile = self.detect(model_name)
+        lowered = (model_name or "").lower()
+        return bool(
+            "z-anime" in lowered
+            or "zanime" in lowered
+            or "z_anime_base" in lowered
+            or "anime_aio" in lowered
+            or profile.family == "zanime"
+            or profile.name == "zanime_aio"
+        )
+
+    def is_flux(self, model_name: str) -> bool:
+        """Flux 계열 모델인지 판별한다."""
+        from app.core.workflow_manager import get_workflow_manager
+        profile = self.detect(model_name)
+        return bool(
+            profile.workflow_type == "flux_gguf"
+            or get_workflow_manager().is_flux_model(model_name)
+            or profile.family == "flux"
+        )
+
+    def is_zimage(self, model_name: str) -> bool:
+        """ZImage 계열 모델인지 판별한다."""
+        from app.core.workflow_manager import get_workflow_manager
+        profile = self.detect(model_name)
+        return bool(
+            get_workflow_manager().is_zimage_model(model_name)
+            or profile.workflow_type == "zimage"
+        )
+
+    def is_ernie(self, model_name: str) -> bool:
+        """ERNIE 계열 모델인지 판별한다."""
+        profile = self.detect(model_name)
+        return bool(profile.family == "ernie")
+
     def infer_from_directory(self, model_names: Iterable[str]) -> List[Tuple[str, ModelProfile]]:
         results: List[Tuple[str, ModelProfile]] = []
         for name in model_names:
