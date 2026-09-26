@@ -6,6 +6,7 @@ import logging
 import sys
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 
@@ -121,6 +122,21 @@ UI_FILE = BASE_DIR / "assets" / "ui" / "main.ui"
 
 logger = logging.getLogger(__name__)
 
+class QPlainTextEditLogger(logging.Handler):
+    def __init__(self, widget):
+        super().__init__()
+        self.widget = widget
+    def emit(self, record):
+        msg = self.format(record)
+        if self.widget is not None:
+            self.widget.appendPlainText(msg)
+
+# FileHandler 추가 (로그 파일 기록)
+file_handler = logging.FileHandler(BASE_DIR / "app.log", encoding="utf-8")
+file_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
+logger.addHandler(file_handler)
+logger.setLevel(logging.DEBUG)
+
 # FaceDetailer 슬라이더 설정 명세: (키, 슬라이더 위젯 이름, 기본값, 배율, 64단위 여부)
 FACEDETAILER_SLIDER_SPECS = [
     ("facedetailer_denoise", "facedetailerDenoiseSlider", 0.40, 100.0, False),
@@ -162,6 +178,8 @@ class MainController(QObject):
         )
         self.worker = None
         self.current_image_path = None
+        self._io_pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="IoWorker")
+        self._gen_pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="GenWorker")
         self.generation_started_at = None
         self.execution_status = create_execution_status()
 
@@ -176,12 +194,20 @@ class MainController(QObject):
 
         self.close_timer = QTimer(window)
         self.close_timer.setSingleShot(True)
-        self.close_timer.timeout.connect(self.window.close)
+        self.close_timer.timeout.connect(self._finalize_window_close)
+
+        # 창 X 버튼으로 닫힐 때도 close() 정리(스레드 풀 등)를 거치도록 상태 플래그.
+        # (MainController는 QObject라 closeEvent 오버라이드는 Qt가 호출하지 않으므로
+        #  window.installEventFilter + eventFilter로 대체 배선한다.)
+        self._closing = False
+        self._close_allowed = False
 
         self.model_list_ready.connect(self._apply_models_result)
         self.connection_result_ready.connect(self._apply_connection_result)
         self.lm_connected = False
         self.setup()
+        # 창의 close(X 버튼) 이벤트를 가로채서 정리 절차를 보장
+        window.installEventFilter(self)
 
     def find(self, widget_type, name):
         return self.window.findChild(widget_type, name)
@@ -548,6 +574,15 @@ class MainController(QObject):
             self.sidebar_frame.setMinimumWidth(int(value))
 
     def eventFilter(self, obj, event):
+        # 창 종료(X 버튼) → close() 정리가 끝날 때까지 종료를 보류하고,
+        # 정리 완료 후 close_timer의 _finalize_window_close가 실제 종료를 수행
+        if obj is self.window and event.type() == QEvent.Type.Close:
+            if getattr(self, "_close_allowed", False):
+                return False  # 정리 완료 → 실제 종료 허용
+            if not getattr(self, "_closing", False):
+                self.close()
+            return True  # 소비: close()가 완료될 때까지 창을 닫지 않음
+
         # 미리보기 라벨 크기가 바뀌면 원본 이미지를 새 크기에 맞춰 다시 스케일
         if obj is getattr(self, "_preview_label", None):
             if event.type() == QEvent.Type.Resize:
@@ -894,8 +929,9 @@ class MainController(QObject):
         self.append_log(f"Z-ANIME 스타일 선택: {label}")
         # ★ 새 스타일 선택 시 이전 향상 프롬프트 초기화 (스타일별 그림체 적용 보장)
         try:
-            if hasattr(self, "ui") and hasattr(self.ui, "enhancePromptEdit"):
-                self.ui.enhancePromptEdit.clear()
+            enhance_prompt_edit = self.find(QPlainTextEdit, "enhancePromptEdit")
+            if enhance_prompt_edit is not None:
+                enhance_prompt_edit.clear()
         except Exception as exc:
             self.append_log(f"프롬프트 편집창 초기화 실패: {exc}")
 
@@ -904,7 +940,7 @@ class MainController(QObject):
         buttons = getattr(self, "_zanime_style_buttons", {}) or {}
         self._play_button_pulse_animation(buttons.get(style_value))
 
-    def _play_button_pulse_animation(self, button: QPushButton) -> None:
+    def _play_button_pulse_animation(self, button: QPushButton | None) -> None:
         """버튼을 눌렀을 때 반짝이는 강조 애니메이션을 보여준다.
 
         스타일 버튼과 해상도 프리셋 버튼 등에서 함께 쓴다.
@@ -1071,7 +1107,7 @@ class MainController(QObject):
             self.connection_result_ready.emit("lm", lm_status)
             self.connection_result_ready.emit("comfy", comfy_status)
 
-        threading.Thread(target=fetch, daemon=True).start()
+        self._io_pool.submit(fetch)
 
     def _apply_models_result(self, lm_models, comfy_models):
         self.set_models(lm_models, comfy_models)
@@ -1149,7 +1185,7 @@ class MainController(QObject):
             status.message = "연결 성공" if status.ok else "연결 실패"
             self.connection_result_ready.emit(which, status)
 
-        threading.Thread(target=check, daemon=True).start()
+        self._io_pool.submit(check)
 
     def _apply_connection_result(self, which, status):
         self.apply_connection_result(which, status)
@@ -1937,7 +1973,7 @@ class MainController(QObject):
         self._set_ui_enabled(False)
 
         # 🚀 단 1번만 백그라운드 스레드를 가동합니다.
-        threading.Thread(target=self.worker.run, daemon=True).start()
+        self._gen_pool.submit(self.worker.run)
 
     def stop_generation(self):
         with self._generation_lock:
@@ -2090,11 +2126,11 @@ class MainController(QObject):
         )
 
     def append_log(self, message):
+        # Qt 로깅 핸들러 위임 (QPlainTextEditLogger + FileHandler)
+        logger.info("%s", message)
         editor = self.find(QPlainTextEdit, "logTextEdit")
         if editor:
-            editor.appendPlainText(f"[{datetime.now():%H:%M:%S}] {message}")  # noqa: DTZ005  (로그 표시용 로컬 시간이므로 의도됨)
-        else:
-            logger.info("Log: %s", message)
+            editor.appendPlainText(f"[{datetime.now():%H:%M:%S}] {message}")  # noqa: DTZ005
 
     def clear_logs(self):
         editor = self.find(QPlainTextEdit, "logTextEdit")
@@ -2140,7 +2176,18 @@ class MainController(QObject):
     def build_filename_prefix(self):
         return build_filename_prefix(self.config.output, self.output_dir)
 
+    def _close_thread_pools(self):
+        """스레드 풀을 안전하게 종료 (cancel_futures로 대기 중 작업 취소)"""
+        for pool in (self._io_pool, self._gen_pool):
+            if pool is not None:
+                try:
+                    pool.shutdown(wait=False, cancel_futures=True)
+                except Exception:
+                    logger.debug("스레드 풀 종료 실패", exc_info=True)
+
     def close(self):
+        self._closing = True
+        self._close_thread_pools()
         if self.close_timer.isActive():
             return
         self.window.setEnabled(False)
@@ -2169,6 +2216,11 @@ class MainController(QObject):
             QTimer.singleShot(5000, lambda: self.close_timer.start(0) if not self.close_timer.isActive() else None)
         else:
             self.close_timer.start(100)
+
+    def _finalize_window_close(self):
+        """정리(close())가 모두 끝난 뒤 실제 창 종료를 허용하고 수행한다."""
+        self._close_allowed = True
+        self.window.close()
 
     def toggle_log(self):
         """로그창을 보이거나 숨기는 토글 함수 (아이콘 변경 포함)"""
@@ -2532,6 +2584,8 @@ class MainController(QObject):
         # 뒤로가기/앞으로가기 버튼 생성 (헤더에 추가)
         header_frame = dlg.findChild(QFrame, "headerFrame")
         header_layout = header_frame.layout() if header_frame else None
+        if not isinstance(header_layout, QHBoxLayout):
+            header_layout = None
         back_btn = None
         forward_btn = None
         if header_layout:
@@ -2735,7 +2789,7 @@ class MainController(QObject):
         mouse_filter = HelpMouseEventFilter(content_browser)
         content_browser.installEventFilter(mouse_filter)
         # 필터 객체가 가비지 컬렉션되지 않도록 참조 유지
-        dlg._help_mouse_filter = mouse_filter
+        setattr(dlg, "_help_mouse_filter", mouse_filter)
 
         # ESC 키로 닫기
         dlg.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
@@ -2857,10 +2911,13 @@ def main():
 
     theme_key = load_theme_choice()
     apply_theme(app, theme_key)
-    print(f"[테마] 적용: {theme_key}")
+    logger.info(f"[테마] 적용: {theme_key}")
 
     window = load_ui(UI_FILE)
-    MainController(window)
+    controller = MainController(window)
+    # close()와 무관한 경로로 앱이 종료돼도 스레드 풀이 정리되도록 안전장치
+    # (shutdown은 멱등하므로 close()와 중복 호출되어도 무해)
+    app.aboutToQuit.connect(controller._close_thread_pools)
     window.show()
 
     return app.exec()
