@@ -1371,8 +1371,9 @@ class MainController(QObject):
             )
             self.append_log(message)
 
-        self.find(QLineEdit, "lmUrlEdit").setText(self.config.lmstudio.url)
-        self.find(QLineEdit, "comfyUrlEdit").setText(self.config.comfyui.url)
+        # 그룹A 위젯 삭제 완료 — self.config 직접 사용 (UI 입력칸 없음)
+        # self.find(QLineEdit, "lmUrlEdit").setText(self.config.lmstudio.url)  # 삭제됨
+        # self.find(QLineEdit, "comfyUrlEdit").setText(self.config.comfyui.url)  # 삭제됨
         if self.config.lmstudio.model:
             self.find(QComboBox, "lmModelCombo").setCurrentText(
                 self.config.lmstudio.model
@@ -1454,6 +1455,7 @@ class MainController(QObject):
     def _setup_help_tab(self):
         """도움말 탭의 helpBrowser(main.ui에 정의됨)에 README.md와 FAQ.md 내용을 채운다."""
         # helpBrowser 삭제 완료 (그룹C)
+        browser = self.find(QTextBrowser, "helpBrowser")
         if browser is None:
             return
 
@@ -1492,18 +1494,19 @@ class MainController(QObject):
 
     def save_config(self):
         """설정 값을 저장합니다."""
-        # LM Studio URL 및 모델 업데이트
-        self.config.lmstudio.url = self.find(QLineEdit, "lmUrlEdit").text().strip()
+        # LM Studio URL 및 모델 업데이트 (그룹A 위젯 삭제 — self.config 직접 사용)
+        # self.config.lmstudio.url = self.find(QLineEdit, "lmUrlEdit").text().strip()  # 삭제됨
         self.config.lmstudio.model = self.find(QComboBox, "lmModelCombo").currentText()
 
         # ComfyUI URL 및 모델 업데이트
-        self.config.comfyui.url = self.find(QLineEdit, "comfyUrlEdit").text().strip()
+        # self.config.comfyui.url = self.find(QLineEdit, "comfyUrlEdit").text().strip()  # 삭제됨
         self.config.comfyui.model = self.find(
             QComboBox, "comfyModelCombo"
         ).currentText()
 
-        # ComfyUI 모델 경로 업데이트 (첫 번째 경로만 저장하는 방식으로 유지)
-        model_path = self.find(QLineEdit, "comfyModelPathEdit").text().strip()
+        # ComfyUI 모델 경로 업데이트 (그룹A 위젯 삭제 — self.config 직접 사용)
+        # model_path = self.find(QLineEdit, "comfyModelPathEdit").text().strip()  # 삭제됨
+        model_path = self.config.comfyui_model_paths[0] if self.config.comfyui_model_paths else ""
         if model_path:
             self.config.comfyui_model_paths = [model_path] + [
                 p for p in self.config.comfyui_model_paths if p != model_path
@@ -1676,9 +1679,9 @@ class MainController(QObject):
             "prompt": normalize_prompt(prompt_text),
             "negative": build_negative_prompt(negative_text),
             "enhance_prompt": enhance_prompt_text,  # enhancePromptEdit 내용 추가
-            "lm_url": self.find(QLineEdit, "lmUrlEdit").text().strip(),
+            "lm_url": self.config.lmstudio.url or "",
             "lm_model": self.find(QComboBox, "lmModelCombo").currentText(),
-            "comfy_url": self.find(QLineEdit, "comfyUrlEdit").text().strip(),
+            "comfy_url": self.config.comfyui.url or "",
             "comfy_model": self.find(QComboBox, "comfyModelCombo").currentText(),
             "width": generation_settings.width,
             "height": generation_settings.height,
@@ -1741,7 +1744,7 @@ class MainController(QObject):
             )
             return
 
-        lm_url = self.find(QLineEdit, "lmUrlEdit").text().strip()
+        lm_url = self.config.lmstudio.url or ""
         lm_model = self.find(QComboBox, "lmModelCombo").currentText()
         if not lm_model or lm_model == "로드된 모델 없음":
             show_message_box(
@@ -1982,13 +1985,11 @@ class MainController(QObject):
                 "lmCheckButton",
                 "comfyCheckButton",
                 "browseModelFolderButton",
-                "comfyModelPathEdit",
                 # --- 설정 ---
                 "loadConfigButton",
                 "saveConfigButton",
                 "restoreDefaultsButton",
-                "lmUrlEdit",
-                "comfyUrlEdit",
+                # 그룹A 위젯(lmUrlEdit/comfyUrlEdit/comfyModelPathEdit) 삭제 완료 — self.config 직접 사용
                 # --- 생성 파라미터 ---
                 "widthSpinBox",
                 "heightSpinBox",
@@ -2414,21 +2415,22 @@ class MainController(QObject):
         model_path_dlg_label = _child(QLabel, "dlgModelPathStatusLabel")
         lm_status_dlg_label = _child(QLabel, "dlgLmStatusLabel")
 
-        # 다이얼로그에 현재 메인 화면 값 채우기
+        # 다이얼로그에 현재 메인 화면 값 채우기 (그룹A 위젯 삭제 완료 — self.config 직접 사용)
         if comfy_url_edit is not None:
-            comfy_url_edit.setText(self.find(QLineEdit, "comfyUrlEdit").text())
+            comfy_url_edit.setText(self.config.comfyui.url or "")
         if model_path_edit is not None:
-            model_path_edit.setText(self.find(QLineEdit, "comfyModelPathEdit").text())
+            model_path = self.config.comfyui_model_paths[0] if self.config.comfyui_model_paths else ""
+            model_path_edit.setText(model_path)
             # 모델 폴더 경로 체크 라벨을 설정창 안에서 바로 보여준다
-            self.update_model_path_status(model_path_edit.text(), model_path_dlg_label)
+            self.update_model_path_status(model_path, model_path_dlg_label)
         if lm_url_edit is not None:
-            lm_url_edit.setText(self.find(QLineEdit, "lmUrlEdit").text())
+            lm_url_edit.setText(self.config.lmstudio.url or "")
 
         # 연결 확인 버튼 (설정창 라벨에도 결과를 함께 표시)
         comfy_check_btn = _child(QPushButton, "dlgComfyCheckBtn")
         if comfy_check_btn is not None and comfy_url_edit is not None:
             def on_comfy_check():
-                self.find(QLineEdit, "comfyUrlEdit").setText(comfy_url_edit.text())
+                self.config.comfyui.url = comfy_url_edit.text()
                 self.check_connection("comfy")
                 # 비동기 결과는 update_connection_label에서 배지/메인 라벨에 반영되고,
                 # 설정창 라벨은 "확인 중"으로 먼저 표시해 준다
@@ -2440,7 +2442,7 @@ class MainController(QObject):
         lm_check_btn = _child(QPushButton, "dlgLmCheckBtn")
         if lm_check_btn is not None and lm_url_edit is not None:
             def on_lm_check():
-                self.find(QLineEdit, "lmUrlEdit").setText(lm_url_edit.text())
+                self.config.lmstudio.url = lm_url_edit.text()
                 self.check_connection("lm")
                 self._apply_status_label(
                     lm_status_dlg_label, None, "", "", "📡 연결 중..."
@@ -2454,7 +2456,10 @@ class MainController(QObject):
                 folder = QFileDialog.getExistingDirectory(dlg, "ComfyUI 모델 폴더 선택")
                 if folder:
                     model_path_edit.setText(folder)
-                    self.find(QLineEdit, "comfyModelPathEdit").setText(folder)
+                    # 그룹A 위젯 삭제 완료 — self.config 직접 사용
+                    self.config.comfyui_model_paths = [folder] + [
+                        p for p in self.config.comfyui_model_paths if p != folder
+                    ]
                     self.update_model_path_status(folder, model_path_dlg_label)
             browse_btn.clicked.connect(on_browse)
 
@@ -2465,16 +2470,13 @@ class MainController(QObject):
                 self.load_config()
                 # 불러온 값으로 다이얼로그 입력칸도 갱신
                 if comfy_url_edit is not None:
-                    comfy_url_edit.setText(self.find(QLineEdit, "comfyUrlEdit").text())
+                    comfy_url_edit.setText(self.config.comfyui.url or "")
                 if model_path_edit is not None:
-                    model_path_edit.setText(
-                        self.find(QLineEdit, "comfyModelPathEdit").text()
-                    )
-                    self.update_model_path_status(
-                        model_path_edit.text(), model_path_dlg_label
-                    )
+                    model_path = self.config.comfyui_model_paths[0] if self.config.comfyui_model_paths else ""
+                    model_path_edit.setText(model_path)
+                    self.update_model_path_status(model_path, model_path_dlg_label)
                 if lm_url_edit is not None:
-                    lm_url_edit.setText(self.find(QLineEdit, "lmUrlEdit").text())
+                    lm_url_edit.setText(self.config.lmstudio.url or "")
             load_btn.clicked.connect(on_load)
 
         # 초기화 버튼 -> 프로그램 기본값으로 다이얼로그 입력칸 되돌리기
@@ -2497,18 +2499,15 @@ class MainController(QObject):
         if save_btn is not None:
             def on_save_close():
                 if comfy_url_edit is not None:
-                    self.find(QLineEdit, "comfyUrlEdit").setText(
-                        comfy_url_edit.text()
-                    )
+                    self.config.comfyui.url = comfy_url_edit.text()
                 if model_path_edit is not None:
-                    self.find(QLineEdit, "comfyModelPathEdit").setText(
-                        model_path_edit.text()
-                    )
-                    self.update_model_path_status(
-                        model_path_edit.text(), model_path_dlg_label
-                    )
+                    path = model_path_edit.text()
+                    self.config.comfyui_model_paths = [path] + [
+                        p for p in self.config.comfyui_model_paths if p != path
+                    ]
+                    self.update_model_path_status(path, model_path_dlg_label)
                 if lm_url_edit is not None:
-                    self.find(QLineEdit, "lmUrlEdit").setText(lm_url_edit.text())
+                    self.config.lmstudio.url = lm_url_edit.text()
                 self.save_config()
                 dlg.accept()
             save_btn.clicked.connect(on_save_close)
