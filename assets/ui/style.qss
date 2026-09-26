@@ -186,6 +186,7 @@ QComboBox {
     border-radius: 8px;
     padding: 6px 12px;
     font-size: 12px;
+    outline: none;
 }
 QComboBox:hover {
     border: 1px solid #4cd7f6;
@@ -213,6 +214,7 @@ QSpinBox, QDoubleSpinBox {
     border-radius: 6px;
     padding: 3px 6px;
     font-size: 12px;
+    outline: none;
 }
 QSpinBox:focus, QDoubleSpinBox:focus {
     border: 1px solid #d0bcff;

@@ -1221,7 +1221,10 @@ class MainController(QObject):
         folder = QFileDialog.getExistingDirectory(self.window, "ComfyUI 모델 폴더 선택")
         if folder:
             # comfyModelPathEdit 삭제 완료 (그룹A) — self.config 직접 사용
-            self.config.comfyui.model_path = folder
+            # comfyui_model_paths 리스트에 추가 (중복 제거, 최신 순)
+            self.config.comfyui_model_paths = [folder] + [
+                p for p in self.config.comfyui_model_paths if p != folder
+            ]
             self.update_model_path_status(folder)
 
     def _apply_status_label(self, label, ok: bool | None, ok_text: str, fail_text: str, pending_text: str) -> None:

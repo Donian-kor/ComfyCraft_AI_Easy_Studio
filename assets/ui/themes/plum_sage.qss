@@ -184,21 +184,21 @@ QLineEdit, QPlainTextEdit, QSpinBox, QDoubleSpinBox, QComboBox {
 /* ---------- 키보드 포커스 링 (UI/UX 2단계: 키보드 사용자가 현재 위치 확인) ---------- */
 QPushButton:focus, QComboBox:focus, QSpinBox:focus,
 QDoubleSpinBox:focus, QCheckBox:focus {
-    border: 2px solid #7a3b69;
+    border: 2px solid #d0bcff;
 }
 QCheckBox:focus {
     border: none;
 }
 QCheckBox:focus::indicator {
-    border: 2px solid #7a3b69;
+    border: 2px solid #d0bcff;
 }
 QListWidget:focus, QTextBrowser:focus, QPlainTextEdit:focus {
-    border: 1px solid #7a3b69;
+    border: 1px solid #d0bcff;
 }
 
 QLineEdit:focus, QPlainTextEdit:focus, QSpinBox:focus,
 QDoubleSpinBox:focus, QComboBox:focus {
-    border: 1px solid #7a3b69;
+    border: 1px solid #d0bcff;
     background-color: #e6e1eb;
 }
 

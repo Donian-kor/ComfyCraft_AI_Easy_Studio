@@ -280,6 +280,7 @@ class PlayStopButton(QPushButton):
         self._draw_shadow(p, r)
         self._background(p, r)
         self._draw_text(p, r)
+        p.end()
 
     def enterEvent(self, event):
         self._hover_anim.stop()
