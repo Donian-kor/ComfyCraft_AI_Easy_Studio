@@ -29,6 +29,10 @@ logs/
 # Qt Designer 생성물(자동 생성 파이썬 UI)은 필요 시 재생성하므로 무시
 novel_studio/ui/forms/*_ui.py
 
+# 사용자 실설정 (로컬 전용 — 커밋 제외)
+workflows/app_config.json
+workflows/app_config.json.bak
+
 # 개발 도구 설정(로컬 전용) - Git 추적 제외
 .clinerules/
 .kilo/

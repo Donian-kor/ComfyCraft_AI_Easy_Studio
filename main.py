@@ -22,6 +22,7 @@ from PySide6.QtCore import (
     Signal,
     QUrl,
 )
+import shiboken6 as shiboken
 from PySide6.QtGui import QIcon, QRegularExpressionValidator, QPixmap, QShortcut, QKeySequence
 from PySide6.QtWidgets import (
     QApplication,
@@ -403,9 +404,6 @@ class MainController(QObject):
         self.find(QLabel, "progressPercentLabel").setText("0%")
         QTimer.singleShot(150, self.refresh_models)
 
-        # 도움말 탭 설정 (추가)
-        self._setup_help_tab()
-
         # 사이드바 애니메이션 설정
         self.setup_sidebar_animation()
 
@@ -547,42 +545,55 @@ class MainController(QObject):
             self.sidebar_frame.setMinimumWidth(int(value))
 
     def eventFilter(self, obj, event):
-        # 창 종료(X 버튼) → close() 정리가 끝날 때까지 종료를 보류하고,
-        # 정리 완료 후 close_timer의 _finalize_window_close가 실제 종료를 수행
-        if obj is self.window and event.type() == QEvent.Type.Close:
-            if getattr(self, "_close_allowed", False):
-                return False  # 정리 완료 → 실제 종료 허용
-            if not getattr(self, "_closing", False):
-                self.close()
-            return True  # 소비: close()가 완료될 때까지 창을 닫지 않음
+        # 프로세스 종료 시점(atexit)에는 C++ Qt 객체가 이미 파괴된 뒤
+        # 이 필터가 호출될 수 있다 — 무효한 객체는 조용히 통과시킨다.
+        try:
+            if not shiboken.isValid(obj) or not shiboken.isValid(event):
+                return False
+        except RuntimeError:
+            return False
 
-        # 미리보기 라벨 크기가 바뀌면 원본 이미지를 새 크기에 맞춰 다시 스케일
-        if obj is getattr(self, "_preview_label", None):
-            if event.type() == QEvent.Type.Resize:
-                resize_preview(obj)
+        try:
+            # 창 종료(X 버튼) → close() 정리가 끝날 때까지 종료를 보류하고,
+            # 정리 완료 후 close_timer의 _finalize_window_close가 실제 종료를 수행
+            if obj is self.window and event.type() == QEvent.Type.Close:
+                if getattr(self, "_close_allowed", False):
+                    return False  # 정리 완료 → 실제 종료 허용
+                if not getattr(self, "_closing", False):
+                    self.close()
+                return True  # 소비: close()가 완료될 때까지 창을 닫지 않음
+
+            # 미리보기 라벨 크기가 바뀌면 원본 이미지를 새 크기에 맞춰 다시 스케일
+            if obj is getattr(self, "_preview_label", None):
+                if event.type() == QEvent.Type.Resize:
+                    resize_preview(obj)
+                return super().eventFilter(obj, event)
+
+            # 마우스가 사이드바에 들어오고 나갈 때 애니메이션을 실행합니다.
+            # 사이드바에서 발생한 이벤트인지 확인
+            if hasattr(self, "sidebar_frame") and obj == self.sidebar_frame:
+                if event.type() == QEvent.Type.HoverEnter:
+                    # 마우스 올림 → 펼치기(왼쪽에서 오른쪽으로 확장)
+                    self.sidebar_anim.stop()
+                    self.sidebar_anim.setStartValue(self.sidebar_frame.maximumWidth())
+                    self.sidebar_anim.setEndValue(self.sidebar_expanded_width)
+                    self.sidebar_anim.start()
+                    return True
+
+                elif event.type() == QEvent.Type.HoverLeave:
+                    # 마우스 내림 → 접기(오른쪽에서 왼쪽으로 축소, 55px)
+                    self.sidebar_anim.stop()
+                    self.sidebar_anim.setStartValue(self.sidebar_frame.maximumWidth())
+                    self.sidebar_anim.setEndValue(self.sidebar_collapsed_width)
+                    self.sidebar_anim.start()
+                    return True
+
+            # 다른 위젯의 이벤트는 원래대로 처리
             return super().eventFilter(obj, event)
-
-        # 마우스가 사이드바에 들어오고 나갈 때 애니메이션을 실행합니다.
-        # 사이드바에서 발생한 이벤트인지 확인
-        if hasattr(self, "sidebar_frame") and obj == self.sidebar_frame:
-            if event.type() == QEvent.Type.HoverEnter:
-                # 마우스 올림 → 펼치기(왼쪽에서 오른쪽으로 확장)
-                self.sidebar_anim.stop()
-                self.sidebar_anim.setStartValue(self.sidebar_frame.maximumWidth())
-                self.sidebar_anim.setEndValue(self.sidebar_expanded_width)
-                self.sidebar_anim.start()
-                return True
-
-            elif event.type() == QEvent.Type.HoverLeave:
-                # 마우스 내림 → 접기(오른쪽에서 왼쪽으로 축소, 55px)
-                self.sidebar_anim.stop()
-                self.sidebar_anim.setStartValue(self.sidebar_frame.maximumWidth())
-                self.sidebar_anim.setEndValue(self.sidebar_collapsed_width)
-                self.sidebar_anim.start()
-                return True
-
-        # 다른 위젯의 이벤트는 원래대로 처리
-        return super().eventFilter(obj, event)
+        except RuntimeError:
+            # 종료 중 C++ 객체가 파괴되어 Python 오버라이드를 호출할 수 없음
+            # (libshiboken: Internal C++ object already deleted) — 무시한다.
+            return False
 
     def _on_sampler_changed(self, sampler_label: str):
         """ComfyUI KSampler와 호환되는 scheduler 값으로 보정한다."""
@@ -1168,14 +1179,10 @@ class MainController(QObject):
         """연결 상태를 라벨과 배지 버튼에 반영합니다 (속성 기반)."""
         from app.gui.split_text_button import SplitTextButton
 
-        label = self.find(
-            QLabel, "lmStatusLabel" if which == "lm" else "comfyStatusLabel"
-        )
+        # 메인 상태 라벨(lmStatusLabel/comfyStatusLabel)은 삭제됨 (그룹C) —
+        # 표시는 항상 배지 버튼(lmStatusBtn/comfyStatusBtn)으로만 수행한다.
         badge = self.find(
             QPushButton, "lmStatusBtn" if which == "lm" else "comfyStatusBtn"
-        )
-        self._apply_status_label(
-            label, ok, "🟢연결 성공", "🔴연결 실패", "📡 연결 중..."
         )
         if extra_label is not None:
             self._apply_status_label(
@@ -1386,7 +1393,7 @@ class MainController(QObject):
         model_paths = self.config_manager.get_model_base_paths()
         if model_paths:
             first_path = str(model_paths[0])
-            self.find(QLineEdit, "comfyModelPathEdit").setText(first_path)
+            # comfyModelPathEdit 위젯 삭제됨 (그룹A) — 경로는 self.config에 있으므로 검증만 갱신
             self.update_model_path_status(first_path)
 
         self.find(QSpinBox, "widthSpinBox").setValue(
@@ -1436,61 +1443,8 @@ class MainController(QObject):
         except Exception:  # noqa: BLE001, S110  (화면 배치 실패는 무시하고 계속 진행하는 것이 의도)
             logger.debug("스플리터/사이드바 비율 적용 실패", exc_info=True)
         # (이전 QSplitter 비율 코드는 구조 변경으로 제거됨)
-
-    def _render_markdown_file(self, file_path: Path) -> str:
-        """Markdown 파일을 읽어 HTML 문자열로 변환 (공통 헬퍼)"""
-        if not file_path.exists():
-            return f"<p style='color:red;'>⚠️ {file_path.name} 파일을 찾을 수 없습니다.</p>"
-        try:
-            readme_text = file_path.read_text(encoding="utf-8")
-            try:
-                import markdown
-
-                return markdown.markdown(readme_text, extensions=["tables"])
-            except ImportError:
-                return "<pre>" + readme_text + "</pre>"
-        except Exception as e:
-            return f"<p style='color:red;'>{file_path.name} 읽기 오류: {e}</p>"
-
-    def _setup_help_tab(self):
-        """도움말 탭의 helpBrowser(main.ui에 정의됨)에 README.md와 FAQ.md 내용을 채운다."""
-        # helpBrowser 삭제 완료 (그룹C)
-        browser = self.find(QTextBrowser, "helpBrowser")
-        if browser is None:
-            return
-
-        readme_path = BASE_DIR / "assets" / "help" / "README.md"
-        faq_path = BASE_DIR / "assets" / "help" / "md" / "08_faq.md"
-
-        html_parts = [
-            "<h1 style='color: #0f172a; font-size: 24px; margin-bottom: 8px;'>📖 프로그램 도움말 v0.3</h1><hr style='border-color: #e2e8f0;'>",
-            self._render_markdown_file(readme_path),
-            "<hr style='border-color: #e2e8f0; margin: 24px 0;'><h2 style='color: #0f172a; font-size: 20px;'>🔧 문제해결 (FAQ)</h2>",
-            self._render_markdown_file(faq_path),
-        ]
-
-        browser.setHtml("\n".join(html_parts))
-
-        # 도움말 내부 링크 클릭 처리 (상대 경로 링크 이동 지원)
-        def on_main_help_link_clicked(url: QUrl):
-            url_str = url.toString()
-            # 프래그먼트(#)만 있는 경우 현재 페이지 내 앵커 이동 -> 기본 동작 유지
-            if url_str.startswith("#"):
-                return
-            # 상대 경로(예: 02_basic_usage.html)인 경우 assets/help/html/ 기준으로 절대 경로 변환
-            target_file = BASE_DIR / "assets" / "help" / "html" / url_str
-            if target_file.exists():
-                try:
-                    html = target_file.read_text(encoding="utf-8")
-                except Exception:
-                    logger.debug("도움말 HTML 파일 읽기 실패", exc_info=True)
-                    html = "<p style='color:red;'>HTML 파일을 읽을 수 없습니다.</p>"
-                browser.setHtml(html)
-                browser.document().setBaseUrl(QUrl.fromLocalFile(str(target_file)))
-                browser.verticalScrollBar().setValue(0)
-            # 외부 링크(http/https)는 openExternalLinks=True로 자동 처리됨
-
-        browser.anchorClicked.connect(on_main_help_link_clicked)
+        # (helpBrowser 전용 헬퍼 _render_markdown_file/_setup_help_tab은
+        #  helpBrowser 위젯 삭제와 함께 제거됨 — 도움말은 help_dialog_v2가 담당)
 
     def save_config(self):
         """설정 값을 저장합니다."""
@@ -1982,14 +1936,6 @@ class MainController(QObject):
                 # --- 모델 선택 ---
                 "lmModelCombo",
                 "comfyModelCombo",
-                "lmCheckButton",
-                "comfyCheckButton",
-                "browseModelFolderButton",
-                # --- 설정 ---
-                "loadConfigButton",
-                "saveConfigButton",
-                "restoreDefaultsButton",
-                # 그룹A 위젯(lmUrlEdit/comfyUrlEdit/comfyModelPathEdit) 삭제 완료 — self.config 직접 사용
                 # --- 생성 파라미터 ---
                 "widthSpinBox",
                 "heightSpinBox",
