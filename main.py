@@ -259,22 +259,12 @@ class MainController(QObject):
         seed = self.find(QSpinBox, "seedSpinBox")
         seed.setRange(-1, 2147483647)
         seed.setValue(generation.default_seed)
-        # 그룹A 3개 위젯: self.config 직접 참조로 전환 (hiddenSettingsContainer 제거 2단계)
-        self.config.lmstudio.url = self.find(QLineEdit, "lmUrlEdit").text().strip()
-        self.config.comfyui.url = self.find(QLineEdit, "comfyUrlEdit").text().strip()
-        paths = self.config_manager.get_model_base_paths()
-        if paths:
-            self.config.comfyui_model_paths = [str(paths[0])] + [
-                p for p in self.config.comfyui_model_paths if p != str(paths[0])
-            ]
-        # URL 입력을 위한 유연한 정규식 (영문, 숫자, 특수문자 허용)
+        # 그룹A 3개 위젯 제거 완료 (2단계): self.config가 유일한 원본
+        # URL/경로는 설정창에서 self.config로 저장 후 save_config()로 파일 기록
+        # 초기 표시값은 self.config에서 직접 읽음 (위젯 경유 없음)
+        # URL 입력 validator는 설정창(dlg*)에서 처리
         regex = QRegularExpression(r"^[a-zA-Z0-9.:/\-]*$")
-        lm_url_widget.setValidator(QRegularExpressionValidator(regex, self.window))
-        self.find(QLineEdit, "comfyUrlEdit").setText(self.config.comfyui.url)
-        paths = self.config_manager.get_model_base_paths()
-        if paths:
-            self.find(QLineEdit, "comfyModelPathEdit").setText(str(paths[0]))
-            self.update_model_path_status(str(paths[0]))
+        # lmUrlEdit / comfyUrlEdit / comfyModelPathEdit 위젯 삭제됨 — self.config 직접 사용
         self.find(QPlainTextEdit, "positivePromptEdit").setPlainText(
             "깊은 숲속을 산책중인 현대 한국 여성"
         )
@@ -343,26 +333,11 @@ class MainController(QObject):
             self.enhance_prompt_only
         )
         self._setup_zanime_style_buttons()
-        self.find(QPushButton, "loadConfigButton").clicked.connect(self.load_config)
-        self.find(QPushButton, "saveConfigButton").clicked.connect(self.save_config)
-        self.find(QPushButton, "restoreDefaultsButton").clicked.connect(
-            self.restore_defaults
-        )
-        self.find(QPushButton, "exitButton").clicked.connect(self.close)
         self.find(QPushButton, "resetButton").clicked.connect(self.clear_logs)
         self.find(QPushButton, "openOutputFolderButton").clicked.connect(
             self.open_output_folder
         )
         self.find(QPushButton, "saveImageButton").clicked.connect(self.save_image_as)
-        self.find(QPushButton, "lmCheckButton").clicked.connect(
-            lambda: self.check_connection("lm")
-        )
-        self.find(QPushButton, "comfyCheckButton").clicked.connect(
-            lambda: self.check_connection("comfy")
-        )
-        self.find(QPushButton, "browseModelFolderButton").clicked.connect(
-            self.browse_model_folder
-        )
         self.find(QComboBox, "lmModelCombo").currentTextChanged.connect(
             lambda text: self.log_model_selection("LM Studio", text)
         )
@@ -1012,8 +987,9 @@ class MainController(QObject):
 
     def refresh_models(self):
         self.find(QLabel, "progressStatusLabel").setText("모델 목록 로딩 중...")
-        lm_url = self.find(QLineEdit, "lmUrlEdit").text().strip()
-        comfy_url = self.find(QLineEdit, "comfyUrlEdit").text().strip()
+        # 그룹A 위젯(lmUrlEdit/comfyUrlEdit) 삭제 완료 — self.config 직접 사용
+        lm_url = self.config.lmstudio.url or ""
+        comfy_url = self.config.comfyui.url or ""
 
         # 이전에 성공한 URL들을 후보로 전달 (설정에서 가져오기)
         lm_candidates = [self.config.lmstudio.url] if self.config.lmstudio.url else []
@@ -1022,34 +998,24 @@ class MainController(QObject):
         resolved_lm_url = resolve_live_url("lm", lm_url, lm_candidates)
         resolved_comfy_url = resolve_live_url("comfy", comfy_url, comfy_candidates)
 
-        # 살아있는 URL을 찾았을 때만 UI 업데이트 (못 찾으면 사용자 입력 유지)
+        # 살아있는 URL을 찾았을 때만 설정 갱신 (UI 위젯 없음 — self.config만 사용)
         if resolved_lm_url and resolved_lm_url != lm_url:
-            self.find(QLineEdit, "lmUrlEdit").setText(resolved_lm_url)
+            self.config.lmstudio.url = resolved_lm_url
             lm_url = resolved_lm_url
         elif not resolved_lm_url:
             self.append_log(
                 "[WARNING] LM Studio 서버를 찾을 수 없습니다. URL을 확인해주세요."
             )
-            lm_label = self.find(QLabel, "lmStatusLabel")
-            if lm_label:
-                lm_label.setText("🔴서버 없음")
-                lm_label.setProperty("status", "error")
-                lm_label.style().unpolish(lm_label)
-                lm_label.style().polish(lm_label)
+            # lmStatusLabel 삭제 완료 (그룹C) — 라벨 참조 제거
 
         if resolved_comfy_url and resolved_comfy_url != comfy_url:
-            self.find(QLineEdit, "comfyUrlEdit").setText(resolved_comfy_url)
+            self.config.comfyui.url = resolved_comfy_url
             comfy_url = resolved_comfy_url
         elif not resolved_comfy_url:
             self.append_log(
                 "[WARNING] ComfyUI 서버를 찾을 수 없습니다. URL을 확인해주세요."
             )
-            comfy_label = self.find(QLabel, "comfyStatusLabel")
-            if comfy_label:
-                comfy_label.setText("🔴서버 없음")
-                comfy_label.setProperty("status", "error")
-                comfy_label.style().unpolish(comfy_label)
-                comfy_label.style().polish(comfy_label)
+            # comfyStatusLabel 삭제 완료 (그룹C) — 라벨 참조 제거
 
         def fetch():
             # URL이 없으면 모델 목록 조회 건너뛰기
@@ -1148,16 +1114,15 @@ class MainController(QObject):
         self.append_log(f"{service_name} 모델 선택 변경: {model_name}")
 
     def check_connection(self, which):
-        raw_url = (
-            self.find(QLineEdit, "lmUrlEdit" if which == "lm" else "comfyUrlEdit")
-            .text()
-            .strip()
-        )
+        # 그룹A 위젯(lmUrlEdit/comfyUrlEdit) 삭제 완료 — self.config 직접 사용
+        raw_url = self.config.lmstudio.url if which == "lm" else self.config.comfyui.url
+        raw_url = (raw_url or "").strip()
         resolved_url = resolve_live_url(which, raw_url)
         if resolved_url and resolved_url != raw_url:
-            self.find(
-                QLineEdit, "lmUrlEdit" if which == "lm" else "comfyUrlEdit"
-            ).setText(resolved_url)
+            if which == "lm":
+                self.config.lmstudio.url = resolved_url
+            else:
+                self.config.comfyui.url = resolved_url
         self.update_connection_label(which, None)
 
         def check():
@@ -1197,10 +1162,7 @@ class MainController(QObject):
         )
 
     def is_lm_connected(self):
-        if self.lm_connected:
-            return True
-        label = self.find(QLabel, "lmStatusLabel")
-        return bool(label and "연결 성공" in label.text())
+        return bool(self.lm_connected)
 
     def update_connection_label(self, which, ok, extra_label=None):
         """연결 상태를 라벨과 배지 버튼에 반영합니다 (속성 기반)."""
@@ -1245,7 +1207,8 @@ class MainController(QObject):
     def browse_model_folder(self):
         folder = QFileDialog.getExistingDirectory(self.window, "ComfyUI 모델 폴더 선택")
         if folder:
-            self.find(QLineEdit, "comfyModelPathEdit").setText(folder)
+            # comfyModelPathEdit 삭제 완료 (그룹A) — self.config 직접 사용
+            self.config.comfyui.model_path = folder
             self.update_model_path_status(folder)
 
     def _apply_status_label(self, label, ok: bool | None, ok_text: str, fail_text: str, pending_text: str) -> None:
@@ -1275,7 +1238,8 @@ class MainController(QObject):
             )
         )
         if label is None:
-            label = self.find(QLabel, "modelPathStatusLabel")
+            # modelPathStatusLabel 삭제 완료 (그룹C) — 라벨 참조 제거
+            pass
         self._apply_status_label(
             label,
             valid,
@@ -1489,7 +1453,7 @@ class MainController(QObject):
 
     def _setup_help_tab(self):
         """도움말 탭의 helpBrowser(main.ui에 정의됨)에 README.md와 FAQ.md 내용을 채운다."""
-        browser = self.find(QTextBrowser, "helpBrowser")
+        # helpBrowser 삭제 완료 (그룹C)
         if browser is None:
             return
 
@@ -2045,7 +2009,6 @@ class MainController(QObject):
                 "preset_832x1216",
                 "preset_1216x832",
                 # --- 기타 기능 버튼 ---
-                "exitButton",
                 "resetButton",
                 "openOutputFolderButton",
                 "saveImageButton",
