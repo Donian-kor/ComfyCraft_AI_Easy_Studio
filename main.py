@@ -259,8 +259,14 @@ class MainController(QObject):
         seed = self.find(QSpinBox, "seedSpinBox")
         seed.setRange(-1, 2147483647)
         seed.setValue(generation.default_seed)
-        lm_url_widget = self.find(QLineEdit, "lmUrlEdit")
-        lm_url_widget.setText(self.config.lmstudio.url)
+        # 그룹A 3개 위젯: self.config 직접 참조로 전환 (hiddenSettingsContainer 제거 2단계)
+        self.config.lmstudio.url = self.find(QLineEdit, "lmUrlEdit").text().strip()
+        self.config.comfyui.url = self.find(QLineEdit, "comfyUrlEdit").text().strip()
+        paths = self.config_manager.get_model_base_paths()
+        if paths:
+            self.config.comfyui_model_paths = [str(paths[0])] + [
+                p for p in self.config.comfyui_model_paths if p != str(paths[0])
+            ]
         # URL 입력을 위한 유연한 정규식 (영문, 숫자, 특수문자 허용)
         regex = QRegularExpression(r"^[a-zA-Z0-9.:/\-]*$")
         lm_url_widget.setValidator(QRegularExpressionValidator(regex, self.window))
@@ -505,22 +511,8 @@ class MainController(QObject):
             combo.currentIndexChanged.connect(self._on_theme_changed)
             return
 
-        settings_layout = self.window.findChild(QVBoxLayout, "settingsLayout")
-        if settings_layout is None:
-            return
-
-        box = QGroupBox("🎨  테마")
-        row = QHBoxLayout(box)
-        row.setContentsMargins(12, 8, 12, 8)
-        row.addWidget(QLabel("테마 선택"))
-        combo = QComboBox()
-        combo.setObjectName("themeComboBox")
-        for key, display_name in AVAILABLE_THEMES.items():
-            combo.addItem(display_name, key)
-        combo.setCurrentIndex(max(0, combo.findData(load_theme_choice())))
-        combo.currentIndexChanged.connect(self._on_theme_changed)
-        row.addWidget(combo, 1)
-        settings_layout.insertWidget(0, box)
+        # 폴백 제거 완료 (3단계): themeComboBox는 UI에 직접 존재함
+        return
 
     def _on_theme_changed(self, index: int):
         """테마 선택이 바뀌면 즉시 적용하고 설정 파일에 저장한다."""

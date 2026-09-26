@@ -1,0 +1,111 @@
+{
+  "lmstudio": {
+    "url": "http://127.0.0.1:1234",
+    "model": "ornith-1.5-9b",
+    "timeout_seconds": 120,
+    "enhance_temperature": 0.7,
+    "enhance_max_tokens": 5000
+  },
+  "comfyui": {
+    "url": "http://127.0.0.1:8188",
+    "model": "juggernautXL_ragnarok.safetensors",
+    "timeout_seconds": 10,
+    "poll_interval_seconds": 1,
+    "max_wait_seconds": 600
+  },
+  "generation": {
+    "default_width": 896,
+    "default_height": 1152,
+    "default_steps": 30,
+    "default_cfg": 5.5,
+    "default_seed": 385706269,
+    "width_min": 256,
+    "width_max": 2048,
+    "height_min": 256,
+    "height_max": 2048,
+    "steps_min": 1,
+    "steps_max": 100,
+    "cfg_min": 1.0,
+    "cfg_max": 30.0,
+    "width_increment": 64,
+    "height_increment": 64,
+    "cfg_increment": 0.5
+  },
+  "prompts": {
+    "use_korean_prompt": false,
+    "zanime_style": "webtoon"
+  },
+  "workflow": {
+    "checkpoint_template": "workflows/checkpoint.json",
+    "gguf_template": "workflows/gguf_unet.json",
+    "flux_gguf_template": "workflows/flux_gguf.json",
+    "zimage_template": "workflows/zimage.json",
+    "sampler_name": "dpmpp_2m",
+    "scheduler": "normal",
+    "denoise": 1.0
+  },
+  "output": {
+    "directory": "outputs",
+    "filename_prefix": "ComfyUI_%date%"
+  },
+  "ui": {
+    "window_width": 960,
+    "window_height": 780,
+    "window_min_width": 840,
+    "window_min_height": 640,
+    "startup_window_width": 540,
+    "startup_window_height": 360,
+    "font_family": "NanumGothic",
+    "font_fallback": "Arial",
+    "font_size": 11,
+    "theme": {
+      "bg_color": "#0f172a",
+      "fg_color": "#e2e8f0",
+      "accent_color": "#38bdf8",
+      "panel_color": "#111827",
+      "surface_color": "#1f2937",
+      "border_color": "#334155",
+      "success_color": "#34d399",
+      "warning_color": "#fbbf24",
+      "error_color": "#f87171"
+    },
+    "resolution_presets": [
+      {
+        "label": "512x512 (SD 1.5)",
+        "width": 512,
+        "height": 512
+      },
+      {
+        "label": "768x768 (중간)",
+        "width": 768,
+        "height": 768
+      },
+      {
+        "label": "1024x1024 (SDXL)",
+        "width": 1024,
+        "height": 1024
+      },
+      {
+        "label": "832x1216 (세로)",
+        "width": 832,
+        "height": 1216
+      },
+      {
+        "label": "1216x832 (가로)",
+        "width": 1216,
+        "height": 832
+      }
+    ]
+  },
+  "cache": {
+    "model_cache_ttl_seconds": 10.0
+  },
+  "comfyui_model_paths": [
+    "C:\\Users\\donian\\AppData\\Local\\Comfy-Desktop\\ComfyUI-Shared\\models",
+    "~/AppData/Local/Comfy-Desktop/ComfyUI-Shared/models",
+    "~/AppData/Local/Comfy-Desktop/ComfyUI-Installs/ComfyUI/ComfyUI/models",
+    "C:/ComfyUI/models",
+    "C:/ComfyUI_windows_portable/ComfyUI/models"
+  ],
+  "model_presets": {}
+}

@@ -17,10 +17,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDoubleSpinBox,
     QFrame, QGridLayout, QGroupBox, QHBoxLayout,
-    QLabel, QLineEdit, QMainWindow, QPlainTextEdit,
-    QProgressBar, QPushButton, QScrollArea, QSizePolicy,
-    QSlider, QSpacerItem, QSpinBox, QTextBrowser,
-    QVBoxLayout, QWidget)
+    QLabel, QMainWindow, QPlainTextEdit, QProgressBar,
+    QPushButton, QScrollArea, QSizePolicy, QSlider,
+    QSpacerItem, QSpinBox, QVBoxLayout, QWidget)
 
 from app.gui.play_stop_button import PlayStopButton
 
@@ -32,89 +31,6 @@ class Ui_MainWindow(object):
         MainWindow.setMinimumSize(QSize(1100, 160))
         self.centralWidget = QWidget(MainWindow)
         self.centralWidget.setObjectName(u"centralWidget")
-        self.hiddenSettingsContainer = QFrame(self.centralWidget)
-        self.hiddenSettingsContainer.setObjectName(u"hiddenSettingsContainer")
-        self.hiddenSettingsContainer.setGeometry(QRect(0, 0, 100, 30))
-        self.hiddenSettingsContainer.setVisible(False)
-        self.settingsLayout = QVBoxLayout(self.hiddenSettingsContainer)
-        self.settingsLayout.setSpacing(6)
-        self.settingsLayout.setObjectName(u"settingsLayout")
-        self.comfyUrlEdit = QLineEdit(self.hiddenSettingsContainer)
-        self.comfyUrlEdit.setObjectName(u"comfyUrlEdit")
-
-        self.settingsLayout.addWidget(self.comfyUrlEdit)
-
-        self.comfyCheckButton = QPushButton(self.hiddenSettingsContainer)
-        self.comfyCheckButton.setObjectName(u"comfyCheckButton")
-
-        self.settingsLayout.addWidget(self.comfyCheckButton)
-
-        self.comfyStatusLabel = QLabel(self.hiddenSettingsContainer)
-        self.comfyStatusLabel.setObjectName(u"comfyStatusLabel")
-
-        self.settingsLayout.addWidget(self.comfyStatusLabel)
-
-        self.comfyModelPathEdit = QLineEdit(self.hiddenSettingsContainer)
-        self.comfyModelPathEdit.setObjectName(u"comfyModelPathEdit")
-
-        self.settingsLayout.addWidget(self.comfyModelPathEdit)
-
-        self.browseModelFolderButton = QPushButton(self.hiddenSettingsContainer)
-        self.browseModelFolderButton.setObjectName(u"browseModelFolderButton")
-
-        self.settingsLayout.addWidget(self.browseModelFolderButton)
-
-        self.modelPathStatusLabel = QLabel(self.hiddenSettingsContainer)
-        self.modelPathStatusLabel.setObjectName(u"modelPathStatusLabel")
-
-        self.settingsLayout.addWidget(self.modelPathStatusLabel)
-
-        self.lmUrlEdit = QLineEdit(self.hiddenSettingsContainer)
-        self.lmUrlEdit.setObjectName(u"lmUrlEdit")
-
-        self.settingsLayout.addWidget(self.lmUrlEdit)
-
-        self.lmCheckButton = QPushButton(self.hiddenSettingsContainer)
-        self.lmCheckButton.setObjectName(u"lmCheckButton")
-
-        self.settingsLayout.addWidget(self.lmCheckButton)
-
-        self.lmStatusLabel = QLabel(self.hiddenSettingsContainer)
-        self.lmStatusLabel.setObjectName(u"lmStatusLabel")
-
-        self.settingsLayout.addWidget(self.lmStatusLabel)
-
-        self.loadConfigButton = QPushButton(self.hiddenSettingsContainer)
-        self.loadConfigButton.setObjectName(u"loadConfigButton")
-        sizePolicy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.loadConfigButton.sizePolicy().hasHeightForWidth())
-        self.loadConfigButton.setSizePolicy(sizePolicy)
-        self.loadConfigButton.setMinimumSize(QSize(111, 111))
-
-        self.settingsLayout.addWidget(self.loadConfigButton)
-
-        self.saveConfigButton = QPushButton(self.hiddenSettingsContainer)
-        self.saveConfigButton.setObjectName(u"saveConfigButton")
-
-        self.settingsLayout.addWidget(self.saveConfigButton)
-
-        self.restoreDefaultsButton = QPushButton(self.hiddenSettingsContainer)
-        self.restoreDefaultsButton.setObjectName(u"restoreDefaultsButton")
-
-        self.settingsLayout.addWidget(self.restoreDefaultsButton)
-
-        self.exitButton = QPushButton(self.hiddenSettingsContainer)
-        self.exitButton.setObjectName(u"exitButton")
-
-        self.settingsLayout.addWidget(self.exitButton)
-
-        self.helpBrowser = QTextBrowser(self.hiddenSettingsContainer)
-        self.helpBrowser.setObjectName(u"helpBrowser")
-
-        self.settingsLayout.addWidget(self.helpBrowser)
-
         self.gridLayout_3 = QGridLayout(self.centralWidget)
         self.gridLayout_3.setObjectName(u"gridLayout_3")
         self.headerFrame = QFrame(self.centralWidget)
@@ -1316,11 +1232,11 @@ class Ui_MainWindow(object):
 
         self.previewLabel = QLabel(self.viewerCard)
         self.previewLabel.setObjectName(u"previewLabel")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.previewLabel.sizePolicy().hasHeightForWidth())
-        self.previewLabel.setSizePolicy(sizePolicy1)
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.previewLabel.sizePolicy().hasHeightForWidth())
+        self.previewLabel.setSizePolicy(sizePolicy)
         self.previewLabel.setMinimumSize(QSize(380, 380))
         self.previewLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -1483,18 +1399,18 @@ class Ui_MainWindow(object):
 
         self.logGroupBox = QGroupBox(self.centralWidget)
         self.logGroupBox.setObjectName(u"logGroupBox")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.logGroupBox.sizePolicy().hasHeightForWidth())
-        self.logGroupBox.setSizePolicy(sizePolicy2)
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.logGroupBox.sizePolicy().hasHeightForWidth())
+        self.logGroupBox.setSizePolicy(sizePolicy1)
         self.logGroupBox.setMaximumSize(QSize(16777215, 500))
         self.gridLayout_2 = QGridLayout(self.logGroupBox)
         self.gridLayout_2.setObjectName(u"gridLayout_2")
         self.logTextEdit = QPlainTextEdit(self.logGroupBox)
         self.logTextEdit.setObjectName(u"logTextEdit")
-        sizePolicy1.setHeightForWidth(self.logTextEdit.sizePolicy().hasHeightForWidth())
-        self.logTextEdit.setSizePolicy(sizePolicy1)
+        sizePolicy.setHeightForWidth(self.logTextEdit.sizePolicy().hasHeightForWidth())
+        self.logTextEdit.setSizePolicy(sizePolicy)
         self.logTextEdit.setMaximumSize(QSize(16777215, 11111111))
         self.logTextEdit.setReadOnly(True)
 
