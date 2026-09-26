@@ -56,8 +56,20 @@ from PySide6.QtCore import (
     QTimer,
     QVariantAnimation,
 )
-from PySide6.QtGui import QColor, QFont, QFontMetrics, QIcon, QPainter, QPainterPath
+from PySide6.QtGui import QColor, QFont, QFontMetrics, QIcon, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QGraphicsDropShadowEffect, QPushButton, QWidget
+
+from app.gui.design_tokens import (
+    CORNER_RADIUS_PILL,
+    DISABLED_OPACITY,
+    DISABLED_SHADOW_FACTOR,
+    DURATION_MEDIUM,
+    FOCUS_BORDER_WIDTH,
+    ICON_GAP,
+    LIFT_SPLITTEXT,
+    SHADOW_HOVER,
+    SHADOW_REST,
+)
 
 
 class SplitTextButton(QPushButton):
@@ -83,14 +95,14 @@ class SplitTextButton(QPushButton):
         # ---- style knobs (mirrors the CSS custom properties) --------------
         self._bg_color = QColor("#275efe")  # --background
         self._text_color = QColor("#ffffff")  # --text
-        self._corner_radius = 24  # border-radius: 24px
+        self._corner_radius = CORNER_RADIUS_PILL  # border-radius: 24px
         self._font_px = 16  # --font-size: 16px
-        self._duration_ms = 440  # --duration: .44s
-        self._lift_px = 4  # --move-hover: -4px
+        self._duration_ms = DURATION_MEDIUM  # --duration: .44s
+        self._lift_px = LIFT_SPLITTEXT  # --move-hover: -4px
         self._h_pad = 24  # padding: 16px 32px  (slightly reduced to fit UI)
         self._v_pad = 14
         self._letter_delay_ms = 50  # i / 20 * 1000s -> 50ms/letter
-        self._icon_gap_px = 8  # space between icon and text
+        self._icon_gap_px = ICON_GAP  # space between icon and text
 
         # 상태 속성 (속성 변경 시 색상 업데이트)
         self._status = "none"  # "none", "accent", "success", "error", "warning", "pending"
@@ -102,9 +114,9 @@ class SplitTextButton(QPushButton):
         self.setStyleSheet("QPushButton { border: none; background: transparent; }")
 
         self._shadow = QGraphicsDropShadowEffect(self)
-        self._shadow.setColor(QColor(39, 94, 254, 82))
-        self._shadow.setBlurRadius(16)
-        self._shadow.setOffset(0, 4)
+        self._shadow.setColor(QColor(39, 94, 254, SHADOW_REST["alpha"]))
+        self._shadow.setBlurRadius(SHADOW_REST["blur"])
+        self._shadow.setOffset(0, SHADOW_REST["offset_y"])
         self.setGraphicsEffect(self._shadow)
 
         # init 후 테마 색상 적용 (shadow 생성 후 호출)
@@ -256,8 +268,7 @@ class SplitTextButton(QPushButton):
         self._bg_color = QColor(bg_hex)
         self._text_color = QColor(text_hex)
         # 섀도우 색상도 배경색에 맞게 업데이트
-        self._shadow.setColor(QColor(self._bg_color.red(), self._bg_color.green(),
-                                       self._bg_color.blue(), 82))
+        self._apply_shadow_visual()
         self.update()
 
     def getStatus(self) -> str:
@@ -343,11 +354,26 @@ class SplitTextButton(QPushButton):
 
     def _on_shadow_changed(self, value) -> None:
         self._shadow_t = float(value)
-        blur = 16 + (30 - 16) * self._shadow_t  # ~ 0 2px 8px -> 0 4px 20px
-        off_y = 4 + (8 - 4) * self._shadow_t
-        alpha = int(82 + (128 - 82) * self._shadow_t)  # .32 -> .5 opacity
+        self._apply_shadow_visual()
+
+    def _apply_shadow_visual(self) -> None:
+        """hover 진행도 + 눌림 + 비활성 상태를 반영해 그림자를 갱신한다.
+
+        QGraphicsDropShadowEffect는 painter opacity의 영향을 받지 않으므로,
+        비활성/눌림 상태도 이곳에서 직접 어둡게 조정한다.
+        """
+        t = getattr(self, "_shadow_t", 0.0)
+        blur = SHADOW_REST["blur"] + (SHADOW_HOVER["blur"] - SHADOW_REST["blur"]) * t
+        off_y = SHADOW_REST["offset_y"] + (SHADOW_HOVER["offset_y"] - SHADOW_REST["offset_y"]) * t
+        alpha = SHADOW_REST["alpha"] + (SHADOW_HOVER["alpha"] - SHADOW_REST["alpha"]) * t
+        if self.isDown():
+            blur *= 0.6
+            alpha *= 0.6
+        if not self.isEnabled():
+            blur *= DISABLED_SHADOW_FACTOR
+            alpha *= DISABLED_OPACITY
         c = QColor(self._bg_color)
-        c.setAlpha(alpha)
+        c.setAlpha(max(0, min(255, int(alpha))))
         self._shadow.setBlurRadius(blur)
         self._shadow.setOffset(0, off_y)
         self._shadow.setColor(c)
@@ -365,13 +391,20 @@ class SplitTextButton(QPushButton):
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setRenderHint(QPainter.TextAntialiasing)
 
+        # 비활성/눌림 상태를 그림자에도 반영 (effect는 painter opacity 영향을 받지 않음)
+        self._apply_shadow_visual()
+        if not self.isEnabled():
+            painter.setOpacity(DISABLED_OPACITY)
+
         rect = self.rect()
         # reserve `lift_px` of head-room at the top for the hover "lift"
+        # 눌림(pressed) 순간 1.5px 더 내려앉아 촉각 피드백을 준다.
+        press = 1.5 if self.isDown() else 0.0
         button_rect = QRectF(
             0,
-            self._lift_px - self._rise,
+            self._lift_px - self._rise + press,
             rect.width(),
-            rect.height() - self._lift_px,
+            rect.height() - self._lift_px - press,
         )
 
         path = QPainterPath()
@@ -433,6 +466,25 @@ class SplitTextButton(QPushButton):
             # CSS `text-shadow` trick)
             painter.drawText(QPointF(cursor_x, baseline + self._font_px - off), ch)
             cursor_x += ch_w + 0.5
+        painter.restore()
+
+        if self.hasFocus():
+            self._draw_focus_ring(painter, button_rect)
+
+    def _draw_focus_ring(self, painter: QPainter, rect: QRectF) -> None:
+        """키보드 포커스 링 (WCAG 2.1 AA — 2px, 배경 대비 3:1 이상)."""
+        bg = self._bg_color
+        luma = 0.299 * bg.redF() + 0.587 * bg.greenF() + 0.114 * bg.blueF()
+        ring = QColor("#101828") if luma > 0.6 else QColor("#ffffff")
+        painter.save()
+        painter.setBrush(Qt.NoBrush)
+        pen = QPen(ring)
+        pen.setWidth(FOCUS_BORDER_WIDTH)
+        pen.setStyle(Qt.DashLine)
+        painter.setPen(pen)
+        painter.drawRoundedRect(
+            rect.adjusted(1, 1, -1, -1), self._corner_radius, self._corner_radius
+        )
         painter.restore()
 
 

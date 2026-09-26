@@ -183,4 +183,26 @@
 - **해결책**:
   - `weakref.WeakSet()`으로 인스턴스를 관리하거나, `main.py`의 중앙 관리 체계로 일원화.
 
+---
+
+## ✅ 8. 실행 완료 현황 (구현 반영 결과)
+
+아래 Phase는 코드에 실제 반영되어 오프스크린 실측까지 검증되었다.
+
+| Phase | 항목 | 상태 | 검증 결과 |
+|---|---|---|---|
+| 1 [P0] | PlayStopButton 텍스트 단일화 | 완료 | `design_tokens.PLAY_TEXT/STOP_TEXT` 일원화 (`__init__`/토글/페인팅/`.ui`) |
+| 1 [P0] | 아이콘 + 텍스트 통합 레이아웃 | 완료 | 아이콘·텍스트 컬럼 그룹 분리 확인(겹침 0, 간격 8px), `🚀` 이모지 라벨 정리 |
+| 2 [P1] | design_tokens 사실값 정정 후 실연동 | 완료 | radius 24 / shadow 16·30 / duration 440 유지(시각 변화 0) |
+| 2 [P1] | `main.py` Z-Anime QSS 보강 | 완료 | `CORNER_RADIUS` 토큰 참조 + `QPushButton:focus` 규칙 추가(QSS 파싱 경고 0) |
+| 3 [P1] | 명도 대비 4.5:1 확보 | 완료 | 실패 22건 → **0건** (split_text·zanime 최소 4.53:1) |
+| 3 [P1] | Disabled 시각 피드백 | 완료 | painter alpha 255→124, 그림자 blur 16→11.2 / alpha 82→36 |
+| 4 [P1] | Pressed 택틸 피드백 | 완료 | 눌림 시 2px 낙하 실측 |
+| 4 [P1] | `ZAnimeStyleButton._instances` WeakSet 전환 | 완료 | del + GC 후 인스턴스 0개(누수 방지) |
+| 5 [P2] | 커스텀 페인팅 버튼 포커스 링 | 완료 | PlayStop 575px / SplitText 801px 변화(2px 링, 테마 대비 자동 선택) |
+
+**회귀 검증**: `python -m unittest discover -s tests` → 33개 전체 통과, `python -m py_compile` 이상 없음.
+
+**남은 후속 과제(선택)**: `PlayStopButton._draw_stop()`은 기존부터 미사용 레거시라 최소 변경 원칙에 따라 유지했고, `ZAnimeStyleButton` 승격(실사용 연결 vs 삭제) 여부는 별도 결정이 필요하다.
+
 

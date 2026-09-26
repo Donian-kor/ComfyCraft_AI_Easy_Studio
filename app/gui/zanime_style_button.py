@@ -8,6 +8,7 @@
 """
 from __future__ import annotations
 
+import weakref
 from typing import ClassVar, Dict
 
 from PySide6.QtWidgets import QPushButton, QStyle
@@ -20,7 +21,7 @@ class ZAnimeStyleButton(QPushButton):
     * 테마가 바뀌면 ``update_theme_colors()``로 전체 색상을 갱신한다.
     """
 
-    _instances: ClassVar[list[ZAnimeStyleButton]] = []
+    _instances: ClassVar["weakref.WeakSet[ZAnimeStyleButton]"] = weakref.WeakSet()
     _current_key: ClassVar[str | None] = None
     _current_colors: ClassVar[dict[str, str] | None] = None
 
@@ -28,7 +29,7 @@ class ZAnimeStyleButton(QPushButton):
         super().__init__(text, parent)
         self.setCheckable(True)
         self._base_style_sheet = ""
-        ZAnimeStyleButton._instances.append(self)
+        ZAnimeStyleButton._instances.add(self)
         self._apply_current_colors()
 
     @classmethod

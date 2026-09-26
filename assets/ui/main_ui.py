@@ -1666,7 +1666,7 @@ class Ui_MainWindow(object):
         self.copyImageButton.setText(QCoreApplication.translate("MainWindow", u"\U0001f4cb \U0000d074\U0000b9bd\U0000bcf4\U0000b4dc \U0000bcf5\U0000c0ac", None))
         self.openOutputFolderButton.setText(QCoreApplication.translate("MainWindow", u"\U0001f4c1 \U0000d3f4\U0000b354 \U0000c5f4\U0000ae30", None))
         self.toggleLogButton.setText(QCoreApplication.translate("MainWindow", u"\U0001f4dc \U0000cf58\U0000c194 \U0000b85c\U0000adf8 \U0000bcf4\U0000ae30 / \U0000c811\U0000ae30  \U000025bc", None))
-        self.generateButton.setText(QCoreApplication.translate("MainWindow", u"\U0001f680 \U0000c774\U0000bbf8\U0000c9c0 \U0000c0dd\U0000c131\U0000d558\U0000ae30 (ComfyUI \U0000c804\U0000c1a1)", None))
+        self.generateButton.setText(QCoreApplication.translate("MainWindow", u"\uc774\ubbf8\uc9c0 \uc0dd\uc131 \uc2dc\uc791", None))
         self.historyTitle.setText(QCoreApplication.translate("MainWindow", u"\ucd5c\uadfc \uc0dd\uc131 \uae30\ub85d (\ud074\ub9ad \uc2dc \uc774\ubbf8\uc9c0 & \uc124\uc815 \ubcf5\uc6d0)", None))
         self.thumbBtn_0.setText(QCoreApplication.translate("MainWindow", u"\ub300\uae30 \uc911", None))
         self.thumbBtn_1.setText(QCoreApplication.translate("MainWindow", u"\ub300\uae30 \uc911", None))

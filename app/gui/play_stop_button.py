@@ -12,13 +12,23 @@ from PySide6.QtCore import (
 from PySide6.QtGui import QColor, QFont, QPainter, QPainterPath, QRadialGradient
 from PySide6.QtWidgets import QPushButton
 
+from app.gui.design_tokens import (
+    CORNER_RADIUS_PLAYSTOP,
+    DISABLED_OPACITY,
+    DURATION_SLOW,
+    FOCUS_BORDER_WIDTH,
+    LIFT_PLAYSTOP,
+    PLAY_TEXT,
+    STOP_TEXT,
+)
+
 
 class PlayStopButton(QPushButton):
     """Play/Stop toggle button - merges generate and stop into one animated button.
 
     Based on play_stop_button\uc0d0\ud50c.py's PlaystopButton(QWidget), adapted as a QPushButton subclass.
-    - Unchecked (red #C42B1C): '이미지생성 시작' text, play icon
-    - Checked (blue #0078D4): '정지' text, stop icon
+    - Unchecked (blue #0078D4): PLAY_TEXT('이미지 생성 시작') text, play icon
+    - Checked (red #C42B1C): STOP_TEXT('정지') text, stop icon
     """
 
     # 클래스 변수로 테마 색상 관리 (모든 인스턴스가 공유)
@@ -56,15 +66,15 @@ class PlayStopButton(QPushButton):
         self._font = f
 
         self.toggled.connect(self._on_toggled)
-        self.setText("이미지생성 시작")
+        self.setText(PLAY_TEXT)
 
     def _on_toggled(self, checked):
         self._anim.stop()
         self._anim.setStartValue(self._t)
         self._anim.setEndValue(1.0 if checked else 0.0)
-        self._anim.setDuration(1000)
+        self._anim.setDuration(DURATION_SLOW)
         self._anim.start()
-        self.setText("정지" if checked else "이미지생성 시작")
+        self.setText(STOP_TEXT if checked else PLAY_TEXT)
 
     def _set_t(self, v):
         self._t = float(v)
@@ -199,36 +209,6 @@ class PlayStopButton(QPushButton):
         )
         p.restore()
 
-    def _draw_icon(self, p, cx, cy):
-        t = max(0.0, min(1.0, self._t))
-        p.setPen(Qt.NoPen)
-        p.setBrush(QColor("#FFFFFF"))
-
-        if t < 0.60:
-            if t < 0.15:
-                sy = 1.0 + 0.10 * self._ease(t / 0.15)
-            elif t < 0.30:
-                sy = 1.10 - 0.20 * self._ease((t - 0.15) / 0.15)
-            elif t < 0.45:
-                sy = 0.90 + 0.25 * self._ease((t - 0.30) / 0.15)
-            else:
-                sy = 1.15 - 0.15 * self._ease((t - 0.45) / 0.15)
-            self._stop_bars(p, cx, cy, 0.78, x=6, sy=sy)
-        elif t < 1.0:
-            u = self._ease((t - 0.60) / 0.40)
-            p.save()
-            p.translate(cx + 6 * (1 - u), cy + 9 * u)
-            p.rotate(-270 * u)
-            p.scale(max(0.001, 1 - u), max(0.001, 1 - u))
-            p.drawRoundedRect(QRectF(-1.5, -6, 3, 12), 1, 1)
-            p.restore()
-            p.save()
-            p.setOpacity(u)
-            p.drawPath(self._play_path(cx, cy, 0.82, 1.0))
-            p.restore()
-        else:
-            self._draw_play(p, cx, cy)
-
     def _draw_play(self, p, cx, cy):
         p.setPen(Qt.NoPen)
         p.setBrush(QColor("#FFFFFF"))
@@ -239,32 +219,59 @@ class PlayStopButton(QPushButton):
         p.setBrush(QColor("#FFFFFF"))
         p.drawRoundedRect(QRectF(cx - 4, cy - 11, 8, 22), 1.0, 1.0)
 
-    def _draw_text(self, p, r):
+    def _draw_content(self, p, r):
         p.setFont(self._font)
         p.setPen(QColor("#FFFFFF"))
+        fm = p.fontMetrics()
+
         t = max(0.0, min(1.0, self._t))
         u = self._ease(t)
+
+        play_w = fm.horizontalAdvance(PLAY_TEXT)
+        stop_w = fm.horizontalAdvance(STOP_TEXT)
+
+        cur_text_w = play_w * (1.0 - u) + stop_w * u
+        icon_w = 16.0
+        gap = 8.0
+        total_w = icon_w + gap + cur_text_w
+
+        start_x = r.center().x() - total_w / 2.0
+        icon_cx = start_x + icon_w / 2.0
+        icon_cy = r.center().y()
+
+        text_start_x = start_x + icon_w + gap
         baseline = r.center().y() + 5
 
-        stop_text = "이미지 생성 시작"
-        play_text = "정지"
-
-        stop_alpha = 1.0 - u
-        play_alpha = u
-
-        if stop_alpha > 0.0:
+        # 1) 아이콘: Play 삼각형 <-> Stop 막대 (회전 + 페이드 모핑)
+        play_op = max(0.0, min(1.0, (0.7 - u) / 0.7))
+        if play_op > 0.01:
             p.save()
-            p.setOpacity(stop_alpha)
-            stop_width = p.fontMetrics().horizontalAdvance(stop_text)
-            stop_x = r.center().x() - stop_width // 2
-            p.drawText(stop_x, baseline, stop_text)
+            p.translate(icon_cx, icon_cy)
+            p.rotate(45 * u)
+            p.scale(1.0 - 0.2 * u, 1.0 - 0.2 * u)
+            p.setOpacity(play_op)
+            self._draw_play(p, 0, 0)
             p.restore()
-        if play_alpha > 0.0:
+        stop_op = max(0.0, min(1.0, (u - 0.3) / 0.7))
+        if stop_op > 0.01:
             p.save()
-            p.setOpacity(play_alpha)
-            play_width = p.fontMetrics().horizontalAdvance(play_text)
-            play_x = r.center().x() - play_width // 2
-            p.drawText(play_x, baseline, play_text)
+            p.translate(icon_cx, icon_cy)
+            p.rotate(-45 * (1.0 - u))
+            p.scale(0.8 + 0.2 * u, 0.8 + 0.2 * u)
+            p.setOpacity(stop_op)
+            self._stop_bars(p, 0, 0, scale=0.78, x=0)
+            p.restore()
+
+        # 2) 텍스트: PLAY_TEXT <-> STOP_TEXT 크로스페이드
+        if 1.0 - u > 0.01:
+            p.save()
+            p.setOpacity(1.0 - u)
+            p.drawText(int(text_start_x), int(baseline), PLAY_TEXT)
+            p.restore()
+        if u > 0.01:
+            p.save()
+            p.setOpacity(u)
+            p.drawText(int(text_start_x), int(baseline), STOP_TEXT)
             p.restore()
 
     def paintEvent(self, event):
@@ -272,15 +279,29 @@ class PlayStopButton(QPushButton):
         p.setRenderHint(QPainter.Antialiasing, True)
         p.setRenderHint(QPainter.TextAntialiasing, True)
         if not self.isEnabled():
-            p.setOpacity(0.5)
+            p.setOpacity(DISABLED_OPACITY)
         pad = 8
         r = QRectF(pad, 5, max(1, self.width() - 2 * pad), self.height() - 10)
-        dy = -1.0 * self._hover + 1.0 * self._pressed
+        dy = -LIFT_PLAYSTOP * self._hover + LIFT_PLAYSTOP * self._pressed
         r.translate(0, dy)
         self._draw_shadow(p, r)
         self._background(p, r)
-        self._draw_text(p, r)
+        self._draw_content(p, r)
+        if self.hasFocus():
+            self._draw_focus_ring(p, r)
         p.end()
+
+    def _draw_focus_ring(self, p, r):
+        """키보드 포커스 링 (WCAG 2.1 AA — 2px)."""
+        p.save()
+        p.setBrush(Qt.NoBrush)
+        pen = p.pen()
+        pen.setColor(QColor("#FFFFFF"))
+        pen.setWidth(FOCUS_BORDER_WIDTH)
+        pen.setStyle(Qt.SolidLine)
+        p.setPen(pen)
+        p.drawRoundedRect(r.adjusted(1, 1, -1, -1), CORNER_RADIUS_PLAYSTOP, CORNER_RADIUS_PLAYSTOP)
+        p.restore()
 
     def enterEvent(self, event):
         self._hover_anim.stop()

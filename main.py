@@ -65,6 +65,7 @@ ZANIME_STYLE_LABELS = {value: label for value, label in ZANIME_STYLE_CHOICES}
 from assets.icons import (
     icon_rc,  # noqa: F401  (SVG 아이콘 리소스 등록용 - 직접 사용하진 않지만 import 자체가 필요함)
 )
+from app.gui.design_tokens import CORNER_RADIUS
 from app.gui.theme_manager import (
     AVAILABLE_THEMES,
     apply_theme,
@@ -636,7 +637,7 @@ class MainController(QObject):
         unselected_selector = 'QPushButton[zanimeSelected="false"]'
 
         return (
-            "QPushButton { border-radius: 10px; padding: 6px 8px; "
+            f"QPushButton {{ border-radius: {CORNER_RADIUS}px; padding: 6px 8px; "
             f"border: 1px solid {unsel_border}; "
             f"background-color: {unsel_bg}; "
             f"color: {unsel_text}; }}"
@@ -648,6 +649,9 @@ class MainController(QObject):
             f"font-weight: 700; color: {sel_text}; }}"
             f"{unselected_selector} {{ border: 1px solid {unsel_border}; "
             f"background-color: {unsel_bg}; color: {unsel_text}; }}"
+            # 키보드 포커스 링 (WCAG 2.1 AA) — 선택/비선택 규칙보다 뒤에 두어 항상 우선되게 한다.
+            "QPushButton:focus { "
+            f"border: 2px solid {sel_border}; }}"
         )
 
     def _apply_zanime_style_theme(self, theme_key: str | None = None) -> None:

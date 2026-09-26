@@ -2368,7 +2368,7 @@
              <cursorShape>PointingHandCursor</cursorShape>
             </property>
             <property name="text">
-             <string>🚀 이미지 생성하기 (ComfyUI 전송)</string>
+             <string>이미지 생성 시작</string>
             </property>
            </widget>
           </item>
