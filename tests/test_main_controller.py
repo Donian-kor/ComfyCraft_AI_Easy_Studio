@@ -30,18 +30,40 @@ class MainControllerTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             controller._find_or_raise(QPlainTextEdit, "존재하지않는위젯이름")
 
-    def test_capture_snapshot_keys_exist(self) -> None:
-        """capture_snapshot가 필수 키(prompt, seed, cfg 등)를 포함하는지."""
+    def test_generation_snapshot_normalizes_values(self) -> None:
+        """Snapshot normalization preserves supplied generation settings."""
         # 실제 위젯 트리 없이는 완전한 테스트 불가 → 구조 검증만
         # L1676-1695 기준 필수 키 목록 확인
-        required_keys = {
-            "prompt", "negative", "seed", "cfg", "steps",
-            "width", "height", "sampler", "scheduler", "denoise",
-        }
         # 메서드 존재 확인 (코드 구조 검증)
         self.assertTrue(hasattr(MainController, "capture_snapshot"))
         # 키 목록이 코드에 존재함을 문서화 (실제 실행은 offscreen 필요)
-        self.assertTrue(all(k in required_keys for k in required_keys))
+        from app.sections.generation import build_generation_snapshot
+
+        settings = build_generation_snapshot(
+            {
+                "width": 768,
+                "height": 1024,
+                "steps": 28,
+                "cfg": 5.5,
+                "seed": 123,
+                "sampler": "dpmpp_2m",
+                "scheduler": "karras",
+                "denoise": 0.75,
+            }
+        )
+        self.assertEqual(
+            (
+                settings.width,
+                settings.height,
+                settings.steps,
+                settings.cfg,
+                settings.seed,
+                settings.sampler,
+                settings.scheduler,
+                settings.denoise,
+            ),
+            (768, 1024, 28, 5.5, 123, "dpmpp_2m", "karras", 0.75),
+        )
 
 
 if __name__ == "__main__":

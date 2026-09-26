@@ -543,8 +543,8 @@ class QPlainTextEditLogger(logging.Handler):
 from logging.handlers import RotatingFileHandler
 
 # main() 진입부 또는 MainController.__init__에서
-log_path = BASE_DIR / "logs" / "app.log"
-log_path.parent.mkdir(parents=True, exist_ok=True)
+# (위치 확정: 프로젝트 루트 옆 app.log — logs/ 하위 폴더 아님)
+log_path = BASE_DIR / "app.log"
 file_handler = RotatingFileHandler(
     log_path, maxBytes=2_000_000, backupCount=3, encoding="utf-8"
 )
@@ -571,7 +571,7 @@ logger.setLevel(logging.INFO)
 **6. 검증 방법**
 - 자동: `.\.venv\Scripts\python.exe -m unittest discover -s tests -v` → 14개 통과 유지
 - 수동: 로그 메시지가 **2줄씩 중복 출력되지 않는지** 확인 (중복 출력 회귀)
-- 수동: `logs/app.log` 파일이 생성되고 콘솔과 내용이 일치하는지 확인
+- 수동: `app.log` 파일(프로젝트 루트)이 생성되고 콘솔과 내용이 일치하는지 확인
 
 ---
 

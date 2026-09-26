@@ -5,6 +5,7 @@ Configuration Manager for ComfyUI + LMStudio Integration GUI
 
 import json
 import os
+import tempfile
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 from dataclasses import dataclass, field
@@ -356,14 +357,32 @@ class ConfigManager:
         if self._config is None:
             return False
         
+        temp_path = None
         try:
             raw = self._config_to_dict(self._config)
-            with open(self.config_path, "w", encoding="utf-8") as f:
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding="utf-8",
+                dir=self.config_path.parent,
+                prefix=f".{self.config_path.name}.",
+                suffix=".tmp",
+                delete=False,
+            ) as f:
+                temp_path = Path(f.name)
                 json.dump(raw, f, ensure_ascii=False, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(temp_path, self.config_path)
             return True
         except OSError as e:
             print(f"[ConfigManager] 설정 저장 실패: {e}")
             return False
+        finally:
+            if temp_path is not None:
+                try:
+                    temp_path.unlink(missing_ok=True)
+                except OSError:
+                    pass
     
     def _config_to_dict(self, config: AppConfig) -> Dict[str, Any]:
         """데이터클래스를 딕셔너리로 변환"""

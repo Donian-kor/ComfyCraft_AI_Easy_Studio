@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 import json
+import logging
 import random
 import time
 import traceback
@@ -21,6 +22,9 @@ from app.sections.prompt import (
     enhance_prompt_sync,
     load_external_prompts,
 )
+
+# 모듈 전용 로거 — 워크플로우 JSON 등 상세 디버그는 이 로거로 파일에만 기록한다.
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -207,7 +211,9 @@ class GenerationWorker:
 
         # (이후 ComfyUI 큐 등록 및 웹소켓 통신 코드는 기존과 동일)
         workflow_json_str = json.dumps(workflow, indent=2, ensure_ascii=False)
-        self.emit_log(f"[DEBUG] 워크플로우 JSON (전체):\n{workflow_json_str}")
+        # 전체 JSON은 파일 로그(app.log)로만 기록하고, 화면 로그창에는 노드 수 요약만 표시한다
+        logger.debug("워크플로우 JSON (전체):\n%s", workflow_json_str)
+        self.emit_log(f"워크플로우 준비: 노드 {len(workflow)}개")
 
         self.signals.status.emit("워크플로우 큐 등록 중...")
         try:
@@ -223,8 +229,8 @@ class GenerationWorker:
             except:
                 pass
             self.emit_log(f"[ERROR] ComfyUI 프롬프트 등록 실패: {str(e)}{error_detail}")
-            # 🌟 실패 시 워크플로우 JSON도 함께 로그로 남김 (디버깅용)
-            self.emit_log(f"[DEBUG] 실패한 워크플로우:\n{workflow_json_str}")
+            # 🌟 실패 시 워크플로우 JSON은 파일 로그에만 남김 (디버깅용, 화면에는 ERROR만 표시)
+            logger.debug("실패한 워크플로우 JSON:\n%s", workflow_json_str)
             raise
 
         prompt_id = response.json().get("prompt_id")
@@ -271,17 +277,33 @@ class GenerationWorker:
 
         interval = max(self.controller.config.comfyui.poll_interval_seconds, 0.2)
         max_wait = self.controller.config.comfyui.max_wait_seconds
-        attempts = int(max_wait / interval)
+        attempts = max(1, int(max_wait / interval))
         
         # 모델 로딩 단계 추적용
         model_loading_logged = False
         last_progress = 0
+        poll_error_logged = False
         
         for attempt in range(attempts):
             if self.stop_requested:
                 return False
             
-            history = self.comfy_api.history(prompt_id, timeout=5)
+            try:
+                history = self.comfy_api.history(prompt_id, timeout=5)
+            except requests.RequestException as exc:
+                if not poll_error_logged:
+                    self.emit_log(
+                        f"[경고] ComfyUI 상태 조회가 일시적으로 실패했습니다. "
+                        f"재시도합니다: {exc}"
+                    )
+                    poll_error_logged = True
+                time.sleep(interval)
+                continue
+
+            if poll_error_logged:
+                self.emit_log("ComfyUI 상태 조회가 복구되었습니다.")
+                poll_error_logged = False
+
             if history.status_code == 200:
                 item = history.json().get(prompt_id)
                 if item:

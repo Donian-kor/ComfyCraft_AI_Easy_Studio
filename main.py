@@ -3,6 +3,7 @@ from __future__ import annotations
 import random
 
 import logging
+from logging.handlers import RotatingFileHandler
 import sys
 import threading
 import time
@@ -131,11 +132,16 @@ class QPlainTextEditLogger(logging.Handler):
         if self.widget is not None:
             self.widget.appendPlainText(msg)
 
-# FileHandler 추가 (로그 파일 기록)
-file_handler = logging.FileHandler(BASE_DIR / "app.log", encoding="utf-8")
+# 로그 파일 (프로젝트 루트 옆 app.log) — 2MB 초과 시 회전하며 최대 3개 백업 유지
+file_handler = RotatingFileHandler(
+    BASE_DIR / "app.log", maxBytes=2_000_000, backupCount=3, encoding="utf-8"
+)
 file_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
-logger.addHandler(file_handler)
-logger.setLevel(logging.DEBUG)
+# root logger에 부착 → app.* 모듈 로거(예: generation.py의 debug)도 파일로 기록됨
+# (main 로거에 붙이면 propagate 경로와 이중 기록이 생기므로 root에만 붙인다)
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.DEBUG)
+root_logger.addHandler(file_handler)
 
 # FaceDetailer 슬라이더 설정 명세: (키, 슬라이더 위젯 이름, 기본값, 배율, 64단위 여부)
 FACEDETAILER_SLIDER_SPECS = [
