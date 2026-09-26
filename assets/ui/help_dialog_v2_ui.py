@@ -36,19 +36,15 @@ class Ui_HelpDialog(object):
         self.headerFrame.setMaximumSize(QSize(16777215, 48))
         self.headerFrame.setFrameShape(QFrame.Shape.StyledPanel)
         self.headerFrame.setStyleSheet(u"QFrame#headerFrame {\n"
-"    border-bottom: 1px solid #e0e0e0;\n"
-"    background-color: #fafafa;\n"
-"}\n"
-"[data-theme=\"dark\"] QFrame#headerFrame {\n"
-"    border-bottom: 1px solid #333;\n"
-"    background-color: #252525;\n"
+"    border-bottom: 1px solid palette(mid);\n"
+"    background-color: palette(window);\n"
 "}")
         self.headerLayout = QHBoxLayout(self.headerFrame)
         self.headerLayout.setObjectName(u"headerLayout")
         self.headerLayout.setContentsMargins(16, 4, 16, 4)
         self.helpTitleLabel = QLabel(self.headerFrame)
         self.helpTitleLabel.setObjectName(u"helpTitleLabel")
-        self.helpTitleLabel.setStyleSheet(u"font-size: 16px; font-weight: 600; color: #1a1a1a;")
+        self.helpTitleLabel.setStyleSheet(u"font-size: 16px; font-weight: 600;")
 
         self.headerLayout.addWidget(self.helpTitleLabel)
 
@@ -65,26 +61,14 @@ class Ui_HelpDialog(object):
 "    border: none;\n"
 "    border-radius: 18px;\n"
 "    background-color: transparent;\n"
-"    color: #555;\n"
 "    font-size: 16px;\n"
 "    font-weight: 600;\n"
 "}\n"
 "QPushButton:hover {\n"
-"    background-color: #e0e0e0;\n"
-"    color: #1a1a1a;\n"
+"    background-color: palette(midlight);\n"
 "}\n"
 "QPushButton:pressed {\n"
-"    background-color: #d0d0d0;\n"
-"}\n"
-"[data-theme=\"dark\"] QPushButton {\n"
-"    color: #aaa;\n"
-"}\n"
-"[data-theme=\"dark\"] QPushButton:hover {\n"
-"    background-color: #3a3a3a;\n"
-"    color: #fff;\n"
-"}\n"
-"[data-theme=\"dark\"] QPushButton:pressed {\n"
-"    background-color: #444;\n"
+"    background-color: palette(mid);\n"
 "}")
 
         self.headerLayout.addWidget(self.helpCloseBtn)
@@ -110,12 +94,8 @@ class Ui_HelpDialog(object):
         self.leftPanel.setSizePolicy(sizePolicy)
         self.leftPanel.setFrameShape(QFrame.Shape.StyledPanel)
         self.leftPanel.setStyleSheet(u"QFrame#leftPanel {\n"
-"    border-right: 1px solid #e0e0e0;\n"
-"    background-color: #fafafa;\n"
-"}\n"
-"[data-theme=\"dark\"] QFrame#leftPanel {\n"
-"    border-right: 1px solid #333;\n"
-"    background-color: #1e1e1e;\n"
+"    border-right: 1px solid palette(mid);\n"
+"    background-color: palette(window);\n"
 "}")
         self.leftPanelLayout = QVBoxLayout(self.leftPanel)
         self.leftPanelLayout.setSpacing(0)
@@ -136,36 +116,16 @@ class Ui_HelpDialog(object):
 "    padding: 10px 14px;\n"
 "    border: none;\n"
 "    border-radius: 0;\n"
-"    color: #1a1a1a;\n"
 "    font-size: 13px;\n"
 "    font-weight: 500;\n"
 "}\n"
-"QListWidget::item:hover {\n"
-"    background-color: #e8e8e8;\n"
-"    color: #1a1a1a;\n"
-"}\n"
 "QListWidget::item:selected {\n"
-"    background-color: #0078d4;\n"
-"    color: #ffffff;\n"
+"    background-color: palette(highlight);\n"
+"    color: palette(highlighted-text);\n"
 "}\n"
 "QListWidget::item:selected:!active {\n"
-"    background-color: #0066cc;\n"
-"    color: #ffffff;\n"
-"}\n"
-"[data-theme=\"dark\"] QListWidget::item {\n"
-"    color: #e0e0e0;\n"
-"}\n"
-"[data-theme=\"dark\"] QListWidget::item:hover {\n"
-"    background-color: #3a3a3a;\n"
-"    color: #fff;\n"
-"}\n"
-"[data-theme=\"dark\"] QListWidget::item:selected {\n"
-"    background-color: #0066cc;\n"
-"    color: #fff;\n"
-"}\n"
-"[data-theme=\"dark\"] QListWidget::item:selected:!active {\n"
-"    background-color: #0055aa;\n"
-"    color: #fff;\n"
+"    background-color: palette(highlight);\n"
+"    color: palette(highlighted-text);\n"
 "}")
 
         self.leftPanelLayout.addWidget(self.sectionListWidget)
@@ -191,16 +151,11 @@ class Ui_HelpDialog(object):
         self.helpContentBrowser.setFrameShape(QFrame.Shape.NoFrame)
         self.helpContentBrowser.setStyleSheet(u"QTextBrowser {\n"
 "    border: none;\n"
-"    background-color: #ffffff;\n"
+"    background-color: palette(base);\n"
 "    padding: 24px;\n"
 "    font-family: 'Pretendard', 'Noto Sans KR', system-ui;\n"
 "    font-size: 14px;\n"
 "    line-height: 1.6;\n"
-"    color: #1a1a1a;\n"
-"}\n"
-"[data-theme=\"dark\"] QTextBrowser {\n"
-"    background-color: #1e1e1e;\n"
-"    color: #e0e0e0;\n"
 "}\n"
 "QTextBrowser:focus {\n"
 "    border: none;\n"

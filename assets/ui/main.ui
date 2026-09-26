@@ -13,7 +13,7 @@
   <property name="minimumSize">
    <size>
     <width>1100</width>
-    <height>160</height>
+    <height>700</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -2149,6 +2149,38 @@
                 <widget class="QLabel" name="viewerTitle">
                  <property name="text">
                   <string>생성 결과 뷰어</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="errorBannerLabel">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="wordWrap">
+                  <bool>true</bool>
+                 </property>
+                 <property name="visible">
+                  <bool>false</bool>
+                 </property>
+                 <property name="toolTip">
+                  <string>클릭하면 로그창을 펼쳐 자세한 오류 내용을 보여줍니다.</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="errorBannerLabel">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="wordWrap">
+                  <bool>true</bool>
+                 </property>
+                 <property name="visible">
+                  <bool>false</bool>
+                 </property>
+                 <property name="toolTip">
+                  <string>클릭하면 로그창을 펼쳐 자세한 오류 내용을 보여줍니다.</string>
                  </property>
                 </widget>
                </item>

@@ -28,7 +28,7 @@ class Ui_MainWindow(object):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.resize(1624, 1024)
-        MainWindow.setMinimumSize(QSize(1100, 160))
+        MainWindow.setMinimumSize(QSize(1100, 700))
         self.centralWidget = QWidget(MainWindow)
         self.centralWidget.setObjectName(u"centralWidget")
         self.gridLayout_3 = QGridLayout(self.centralWidget)
@@ -1218,6 +1218,20 @@ class Ui_MainWindow(object):
 
         self.viewerHeaderLayout.addWidget(self.viewerTitle)
 
+        self.errorBannerLabel = QLabel(self.viewerCard)
+        self.errorBannerLabel.setObjectName(u"errorBannerLabel")
+        self.errorBannerLabel.setWordWrap(True)
+        self.errorBannerLabel.setVisible(False)
+
+        self.viewerHeaderLayout.addWidget(self.errorBannerLabel)
+
+        self.errorBannerLabel1 = QLabel(self.viewerCard)
+        self.errorBannerLabel1.setObjectName(u"errorBannerLabel1")
+        self.errorBannerLabel1.setWordWrap(True)
+        self.errorBannerLabel1.setVisible(False)
+
+        self.viewerHeaderLayout.addWidget(self.errorBannerLabel1)
+
         self.viewerSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.viewerHeaderLayout.addItem(self.viewerSpacer)
@@ -1636,6 +1650,14 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.viewerStatusDot.setText(QCoreApplication.translate("MainWindow", u"\u25cf", None))
         self.viewerTitle.setText(QCoreApplication.translate("MainWindow", u"\uc0dd\uc131 \uacb0\uacfc \ubdf0\uc5b4", None))
+        self.errorBannerLabel.setText("")
+#if QT_CONFIG(tooltip)
+        self.errorBannerLabel.setToolTip(QCoreApplication.translate("MainWindow", u"\ud074\ub9ad\ud558\uba74 \ub85c\uadf8\ucc3d\uc744 \ud3bc\uccd0 \uc790\uc138\ud55c \uc624\ub958 \ub0b4\uc6a9\uc744 \ubcf4\uc5ec\uc90d\ub2c8\ub2e4.", None))
+#endif // QT_CONFIG(tooltip)
+        self.errorBannerLabel1.setText("")
+#if QT_CONFIG(tooltip)
+        self.errorBannerLabel1.setToolTip(QCoreApplication.translate("MainWindow", u"\ud074\ub9ad\ud558\uba74 \ub85c\uadf8\ucc3d\uc744 \ud3bc\uccd0 \uc790\uc138\ud55c \uc624\ub958 \ub0b4\uc6a9\uc744 \ubcf4\uc5ec\uc90d\ub2c8\ub2e4.", None))
+#endif // QT_CONFIG(tooltip)
         self.elapsedLabel.setText(QCoreApplication.translate("MainWindow", u"0.0\ucd08", None))
         self.previewLabel.setText(QCoreApplication.translate("MainWindow", u"\uc0dd\uc131\ub41c \uc774\ubbf8\uc9c0\uac00 \uc5ec\uae30\uc5d0 \ud45c\uc2dc\ub429\ub2c8\ub2e4.", None))
         self.progressStatusLabel.setText(QCoreApplication.translate("MainWindow", u"\ub300\uae30 \uc911", None))

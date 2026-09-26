@@ -180,6 +180,22 @@ QLineEdit, QPlainTextEdit, QSpinBox, QDoubleSpinBox, QComboBox {
     selection-color: #ffffff;
 }
 
+
+/* ---------- 키보드 포커스 링 (UI/UX 2단계: 키보드 사용자가 현재 위치 확인) ---------- */
+QPushButton:focus, QComboBox:focus, QSpinBox:focus,
+QDoubleSpinBox:focus, QCheckBox:focus {
+    border: 2px solid #0078D4;
+}
+QCheckBox:focus {
+    border: none;
+}
+QCheckBox:focus::indicator {
+    border: 2px solid #0078D4;
+}
+QListWidget:focus, QTextBrowser:focus, QPlainTextEdit:focus {
+    border: 1px solid #0078D4;
+}
+
 QLineEdit:focus, QPlainTextEdit:focus, QSpinBox:focus,
 QDoubleSpinBox:focus, QComboBox:focus {
     border: 1px solid #0078D4;
@@ -364,6 +380,16 @@ QLabel#connectionStatus, QLabel#gpuStatus, QLabel#lmStatus, QLabel#comfyStatus {
     font-weight: 500;
     font-size: 12px;
     color: #b8b8b8;
+}
+
+/* 에러 배너 (UI/UX 4단계: 실패 시 뷰어 헤더에 한 줄 요약 표시) */
+QLabel#errorBannerLabel {
+    background-color: rgba(196, 43, 28, 0.14);
+    border: 1px solid #C42B1C;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
 }
 
 QLabel#progressStatusLabel, QLabel#progressPercentLabel, QLabel#elapsedLabel {

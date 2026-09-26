@@ -462,6 +462,12 @@ class MainController(QObject):
             toggle_btn.setIcon(self.icon_collapse)
             toggle_btn.setText("")  # 혹시 모를 텍스트 제거
 
+        # ===== 에러 배너 클릭 → 로그창 펼치기 (UI/UX 4단계) =====
+        banner = self.find(QLabel, "errorBannerLabel")
+        if banner is not None:
+            banner.setCursor(Qt.CursorShape.PointingHandCursor)
+            banner.mousePressEvent = lambda event: self._on_error_banner_clicked()
+
         # ===== 테마 선택기 (설정 탭) =====
         self._setup_theme_selector()
 
@@ -1809,6 +1815,8 @@ class MainController(QObject):
     def _on_prompt_enhance_error(self, error_msg: str):
         """프롬프트 향상 실패 시 호출"""
         self.append_log(f"프롬프트 향상 실패: {error_msg}")
+        self.show_error_banner(f"✖ 프롬프트 향상 실패 — {error_msg}")
+        self._reveal_log_on_error()
         show_message_box(
             self.window, QMessageBox.Icon.Warning, "프롬프트 향상 실패", error_msg
         )
@@ -1866,6 +1874,9 @@ class MainController(QObject):
             # 워커 인스턴스 생성
             self.worker = GenerationWorker(self, snapshot)
 
+        # 새 생성 시작 시 이전 에러 배너를 지운다
+        self.clear_error_banner()
+
         # 🚀 중복되지 않도록 시그널 이벤트를 딱 1번만 연결합니다.
         self.worker.signals.enhanced_prompt.connect(self._apply_enhanced_prompt)
         self.worker.signals.progress.connect(self.set_progress)
@@ -1874,11 +1885,7 @@ class MainController(QObject):
         )
         self.worker.signals.log.connect(self.append_log)
         self.worker.signals.image.connect(lambda path: self.show_image(path, add_history=True))
-        self.worker.signals.error.connect(
-            lambda text: show_message_box(
-                self.window, QMessageBox.Icon.Critical, "생성 오류", text
-            )
-        )
+        self.worker.signals.error.connect(self._on_generation_error)
         self.worker.signals.finished.connect(self.generation_finished)
 
         # UI 및 타이머 상태 업데이트
@@ -1985,6 +1992,15 @@ class MainController(QObject):
     # ──────────────────────────────────────────────────────────────────────
 
 
+    def _on_generation_error(self, text: str):
+        """이미지 생성 중 오류 발생 시 호출 (에러 배너 + 로그 펼치기 + 팝업)."""
+        self.append_log(f"생성 오류: {text}")
+        self.show_error_banner(f"✖ 생성 오류 — {text}")
+        self._reveal_log_on_error()
+        show_message_box(
+            self.window, QMessageBox.Icon.Critical, "생성 오류", text
+        )
+
     def generation_finished(self, success):
         self.elapsed_timer.stop()
         self.loading_animation.stop()
@@ -2039,6 +2055,42 @@ class MainController(QObject):
         editor = self.find(QPlainTextEdit, "logTextEdit")
         if editor:
             editor.appendPlainText(f"[{datetime.now():%H:%M:%S}] {message}")  # noqa: DTZ005
+
+    # ──────────────────────────────────────────────────────────────────────
+    # 에러 배너 (UI/UX 4단계: 실패 시 뷰어 헤더에 한 줄 요약을 보여줌)
+    # 사용법: show_error_banner("메시지") → 표시 / clear_error_banner() → 숨기기
+    # 배너를 클릭하면 로그창을 펼쳐 자세한 오류 내용을 보여준다.
+    # ──────────────────────────────────────────────────────────────────────
+
+    def show_error_banner(self, message: str):
+        """에러 배너에 메시지를 표시한다. 빈 메시지면 숨긴다."""
+        banner = self.find(QLabel, "errorBannerLabel")
+        if banner is None:
+            return
+        if not message:
+            banner.clear()
+            banner.setVisible(False)
+            return
+        banner.setText(message)
+        banner.setVisible(True)
+
+    def clear_error_banner(self):
+        """에러 배너를 숨긴다 (새 생성 시작 시 호출)."""
+        self.show_error_banner("")
+
+    def _reveal_log_on_error(self):
+        """에러 발생 시 접혀 있던 로그창을 자동으로 펼쳐준다."""
+        log_group = getattr(self, "log_group", None)
+        if log_group is not None and not log_group.isVisible():
+            log_group.setVisible(True)
+            self.log_visible = True
+            btn = self.find(QPushButton, "toggleLogButton")
+            if btn and hasattr(self, "icon_collapse"):
+                btn.setIcon(self.icon_collapse)
+
+    def _on_error_banner_clicked(self):
+        """에러 배너 클릭 시 로그창을 펼쳐 자세한 오류를 보여준다."""
+        self._reveal_log_on_error()
 
     def clear_logs(self):
         editor = self.find(QPlainTextEdit, "logTextEdit")
