@@ -111,8 +111,12 @@ class UiUxStepTests(unittest.TestCase):
                 )
 
     def test_step4_error_banner_logic(self) -> None:
-        """4단계: 에러 배너 표시/숨기기/에러핸들러가 main.py에 있어야 한다."""
-        source = (BASE_DIR / "main.py").read_text(encoding="utf-8")
+        """4단계: 에러 배너 표시/숨기기/에러핸들러가 MainController에 있어야 한다.
+
+        Phase 2 리팩토링으로 MainController가 app/main_controller.py로 이동했으므로
+        검사 대상 소스도 해당 파일을 읽는다.
+        """
+        source = (BASE_DIR / "app" / "main_controller.py").read_text(encoding="utf-8")
         for name in (
             "def show_error_banner",
             "def clear_error_banner",
@@ -120,7 +124,7 @@ class UiUxStepTests(unittest.TestCase):
             "def _on_generation_error",
             "def _on_error_banner_clicked",
         ):
-            self.assertIn(name, source, f"main.py에 없음: {name}")
+            self.assertIn(name, source, f"app/main_controller.py에 없음: {name}")
 
 
 if __name__ == "__main__":
