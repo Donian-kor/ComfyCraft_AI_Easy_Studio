@@ -122,6 +122,7 @@ from app.logging_config import setup_logging
 from app.gui.dialogs.settings_dialog import show_settings_dialog
 from app.gui.dialogs.help_dialog import show_help_dialog
 from app.gui.dialogs.facedetailer_guide_dialog import show_facedetailer_guide
+from app.gui.chat_widgets import ChatMessage, ImageCard
 
 UI_FILE = BASE_DIR / "assets" / "ui" / "main.ui"
 
@@ -358,6 +359,19 @@ class MainController(QObject):
         self.update_counter("negativePromptEdit", "negativePromptCounterLabel")
         self.update_counter("enhancePromptEdit", "enhancePromptCounterLabel")
 
+        # P2: 채팅 입력 행 연결 (카운터 + 전송 버튼 + Enter 전송)
+        chat_input = self.find(QPlainTextEdit, "chatInputEdit")
+        self._chat_input = chat_input
+        if chat_input is not None:
+            chat_input.textChanged.connect(self._on_chat_input_changed)
+            chat_input.installEventFilter(self)
+            self.update_counter("chatInputEdit", "chatCounterLabel")
+        send_button = self.find(QPushButton, "sendBtn")
+        if send_button is not None:
+            send_button.clicked.connect(self._on_chat_send_or_stop)
+        self._pending_chat = None
+        self._refresh_send_state()
+
         self.find(QPlainTextEdit, "logTextEdit").setVisible(True)
         # QSplitter를 사용하지 않는 레이아웃 구조이므로, 초기 배치는 레이아웃이 자동 처리
         QTimer.singleShot(0, lambda: self._apply_main_splitter_ratio())
@@ -575,6 +589,162 @@ class MainController(QObject):
         except RuntimeError:
             logger.debug("채팅 비우기 실패", exc_info=True)
 
+    # ──────────────────────────────────────────────────────────────────────
+    # P2: 채팅 송수신 (ChatMessage/ImageCard + 전송 배선)
+    # ──────────────────────────────────────────────────────────────────────
+
+    def _chat_layout(self):
+        """채팅 메시지 컨테이너 레이아웃 (없으면 None)."""
+        try:
+            container = self.find(QWidget, "chatContentWidget")
+            return container.layout() if container is not None else None
+        except RuntimeError:
+            return None
+
+    def _scroll_chat_to_bottom(self) -> None:
+        try:
+            scroll = self.find(object, "chatScrollArea")
+            if scroll is None:
+                return
+            bar = scroll.verticalScrollBar()
+            bar.setValue(bar.maximum())
+        except RuntimeError:
+            logger.debug("채팅 스크롤 실패", exc_info=True)
+
+    def _append_chat_message(self, role: str, text: str):
+        """채팅에 메시지 1개 추가하고 위젯 반환 (실패 시 None)."""
+        layout = self._chat_layout()
+        if layout is None:
+            return None
+        try:
+            message = ChatMessage(role, text, self.window)
+            # 하단 spacer 앞으로 삽입 (spacer가 있으면 그 앞, 없으면 맨 뒤)
+            insert_at = layout.count()
+            for i in range(layout.count()):
+                widget = layout.itemAt(i).widget()
+                if widget is not None and widget.objectName() == "chatSpacer":
+                    insert_at = i
+                    break
+            layout.insertWidget(insert_at, message)
+            self._scroll_chat_to_bottom()
+            return message
+        except RuntimeError:
+            logger.debug("채팅 메시지 추가 실패", exc_info=True)
+            return None
+
+    def _append_image_card(self, image_path: str, snapshot: dict,
+                           elapsed_text: str, prompt_text: str):
+        """AI 응답 + 이미지 카드 추가."""
+        model_name = str(snapshot.get("comfy_model", ""))
+        model_stem = Path(model_name).stem if model_name else "모델"
+        meta = (f"{model_stem} · {snapshot.get('width', '?')}x{snapshot.get('height', '?')} "
+                f"· 시드 {snapshot.get('seed', '?')} · {elapsed_text} 소요")
+        self._append_chat_message("ai", "이미지를 생성했어요!")
+        layout = self._chat_layout()
+        if layout is None:
+            return None
+        try:
+            card = ImageCard(
+                image_path, meta, prompt_text or "(프롬프트 없음)",
+                on_save=self.save_image_as,
+                on_copy_prompt=self._copy_enhanced_prompt,
+                on_copy_image=self._copy_image_to_clipboard,
+                parent=self.window,
+            )
+            insert_at = layout.count()
+            for i in range(layout.count()):
+                widget = layout.itemAt(i).widget()
+                if widget is not None and widget.objectName() == "chatSpacer":
+                    insert_at = i
+                    break
+            layout.insertWidget(insert_at, card)
+            self._scroll_chat_to_bottom()
+            return card
+        except RuntimeError:
+            logger.debug("이미지 카드 추가 실패", exc_info=True)
+            return None
+
+    def _on_chat_input_changed(self) -> None:
+        """채팅 입력 변경 → 카운터 + 전송 버튼 상태 갱신."""
+        try:
+            self.update_counter("chatInputEdit", "chatCounterLabel")
+        except RuntimeError:
+            logger.debug("채팅 카운터 갱신 실패", exc_info=True)
+        self._refresh_send_state()
+
+    def _is_generating(self) -> bool:
+        return getattr(self, "worker", None) is not None
+
+    def _set_send_button_state(self, generating: bool) -> None:
+        try:
+            button = self.find(QPushButton, "sendBtn")
+            if button is None:
+                return
+            if generating:
+                button.setText("■")
+                button.setToolTip("생성 중지")
+                button.setEnabled(True)
+            else:
+                button.setText("➤")
+                button.setToolTip("이미지 생성하기")
+                self._refresh_send_state()
+        except RuntimeError:
+            logger.debug("전송 버튼 상태 변경 실패", exc_info=True)
+
+    def _refresh_send_state(self) -> None:
+        """빈 입력이면 전송 비활성화. 생성 중이면 _set_send_button_state가 관리."""
+        try:
+            if self._is_generating():
+                return
+            button = self.find(QPushButton, "sendBtn")
+            edit = self.find(QPlainTextEdit, "chatInputEdit")
+            if button is None or edit is None:
+                return
+            button.setEnabled(bool(edit.toPlainText().strip()))
+        except RuntimeError:
+            logger.debug("전송 버튼 갱신 실패", exc_info=True)
+
+    def _on_send_btn_clicked(self) -> None:
+        """전송 버튼: 생성 중이면 중지, 아니면 채팅 전송."""
+        if self._is_generating():
+            self.stop_generation()
+            return
+        self._send_chat_text()
+
+    def _on_chat_enter_pressed(self) -> None:
+        """Enter: 생성 중이면 무시하고 안내, 아니면 채팅 전송."""
+        if self._is_generating():
+            self.append_log("생성 중이에요. 기다리거나 정지 버튼(■)으로 취소해주세요.")
+            return
+        self._send_chat_text()
+
+    def _on_chat_send_or_stop(self) -> None:
+        """하위 호환 별칭 (버튼 클릭과 동일)."""
+        self._on_send_btn_clicked()
+
+    def _send_chat_text(self) -> None:
+        try:
+            edit = self.find(QPlainTextEdit, "chatInputEdit")
+            if edit is None:
+                return
+            text = normalize_prompt(edit.toPlainText())
+            if not text:
+                return
+            # 사용자 메시지 표시
+            self._append_chat_message("user", text)
+            # 기존 프롬프트 경로와 동기화 + 오래된 향상문 초기화 (오염 방지)
+            positive = self.find(QPlainTextEdit, "positivePromptEdit")
+            if positive is not None:
+                positive.setPlainText(text)
+            enhanced = self.find(QPlainTextEdit, "enhancePromptEdit")
+            if enhanced is not None:
+                enhanced.clear()
+            self._pending_chat = {"text": text}
+            edit.clear()
+            self.start_generation()
+        except RuntimeError:
+            logger.debug("채팅 전송 실패", exc_info=True)
+
     def eventFilter(self, obj, event):
         # 프로세스 종료 시점(atexit)에는 C++ Qt 객체가 이미 파괴된 뒤
         # 이 필터가 호출될 수 있다 — 무효한 객체는 조용히 통과시킨다.
@@ -598,6 +768,17 @@ class MainController(QObject):
             if obj is getattr(self, "_preview_label", None):
                 if event.type() == QEvent.Type.Resize:
                     resize_preview(obj)
+                return super().eventFilter(obj, event)
+
+            # P2: 채팅 입력창 Enter=전송, Shift+Enter=줄바꿈
+            if obj is getattr(self, "_chat_input", None):
+                if event.type() == QEvent.Type.KeyPress:
+                    key = event.key()
+                    if key in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+                        if event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
+                            return False
+                        self._on_chat_enter_pressed()
+                        return True
                 return super().eventFilter(obj, event)
 
             # 마우스가 사이드바에 들어오고 나갈 때 애니메이션을 실행합니다.
@@ -1928,6 +2109,8 @@ class MainController(QObject):
 
         # 🌟 생성 시작: 다른 모든 입력/선택 위젯 비활성화 (실수 방지)
         self._set_ui_enabled(False)
+        # P2: 채팅 전송 버튼을 정지 버튼으로 전환
+        self._set_send_button_state(True)
 
         # 🚀 단 1번만 백그라운드 스레드를 가동합니다.
         self._gen_pool.submit(self.worker.run)
@@ -1965,6 +2148,9 @@ class MainController(QObject):
             self._ui_enabled_widgets = []
             # 빈도가 높은 위젯은 한 번만 찾아서 저장해 둔다.
             targets = [
+                # --- P2 채팅 입력 행 (생성 중 잠금, sendBtn은 정지용으로 제외) ---
+                "chatInputEdit",
+                "newChatBtn",
                 # --- 프롬프트 ---
                 "positivePromptEdit",
                 "negativePromptEdit",
@@ -2054,6 +2240,8 @@ class MainController(QObject):
         )
         # 🌟 생성 완료: 다른 모든 입력/선택 위젯 다시 활성화
         self._set_ui_enabled(True)
+        # P2: 채팅 전송 버튼을 전송 상태로 복원
+        self._set_send_button_state(False)
 
         if success:
             self.append_log("이미지 생성이 완료되었습니다.")
@@ -2139,6 +2327,26 @@ class MainController(QObject):
                 self.add_to_history(path, snapshot)
             except Exception as e:
                 logger.warning("히스토리 추가 실패: %s", e, exc_info=True)
+        # P2: 채팅 전송 대기 건이 있으면 AI 응답 + 이미지 카드 추가
+        pending = getattr(self, "_pending_chat", None)
+        if pending:
+            self._pending_chat = None
+            try:
+                snapshot = self.capture_snapshot()
+                started = getattr(self, "generation_started_at", None)
+                if started is not None:
+                    elapsed = format_elapsed(int(time.monotonic() - started))
+                else:
+                    elapsed = "?초"
+                enhanced = self.find(QPlainTextEdit, "enhancePromptEdit")
+                prompt_text = ""
+                if enhanced is not None:
+                    prompt_text = enhanced.toPlainText().strip()
+                if not prompt_text:
+                    prompt_text = pending.get("text", "")
+                self._append_image_card(path, snapshot, elapsed, prompt_text)
+            except Exception as e:
+                logger.warning("채팅 이미지 카드 추가 실패: %s", e, exc_info=True)
 
     def save_image_as(self):
         if not self.current_image_path:

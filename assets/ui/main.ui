@@ -2595,7 +2595,14 @@
                </size>
               </property>
               <property name="placeholderText">
-               <string>메시지를 입력하세요... (P2에서 전송 연결)</string>
+               <string>메시지를 입력하세요... 예: 이쁘고 귀여운 고양이 3마리 그려줘</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="chatCounterLabel">
+              <property name="text">
+               <string>0 / 5000</string>
               </property>
              </widget>
             </item>
