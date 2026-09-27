@@ -508,13 +508,17 @@ class MainController(QObject):
 
     def _setup_theme_selector(self):
         """상단 헤더의 테마 선택 콤보박스를 초기화하고 연결한다."""
+        from app.gui.theme_manager import VISIBLE_THEMES
         combo = self.find(QComboBox, "themeComboBox")
         if combo is not None:
             combo.blockSignals(True)
             combo.clear()
-            for key, display_name in AVAILABLE_THEMES.items():
+            for key in VISIBLE_THEMES:
+                display_name = AVAILABLE_THEMES.get(key, key)
                 combo.addItem(display_name, key)
             current_theme = load_theme_choice()
+            if current_theme not in VISIBLE_THEMES:
+                current_theme = "fluent_dark"
             idx = combo.findData(current_theme)
             if idx >= 0:
                 combo.setCurrentIndex(idx)
@@ -776,6 +780,9 @@ class MainController(QObject):
         except Exception:
             logger.debug("시작 세션 복원 실패", exc_info=True)
 
+        # P10: 초기 선택 강조 (옵션 페이지 표시 상태)
+        self._update_rail_selection("options")
+
         # P9: 저장된 세션이 없고 채팅이 비었을 때만 환영 메시지
         self._maybe_greet()
 
@@ -800,11 +807,31 @@ class MainController(QObject):
                 return
             if panel.isVisible() and self._panel_page == page:
                 panel.setVisible(False)
+                self._update_rail_selection("")
                 return
             panel.setVisible(True)
             self._show_panel_page(page)
+            self._update_rail_selection(page)
         except RuntimeError:
             logger.debug("레일 페이지 토글 실패", exc_info=True)
+
+    def _update_rail_selection(self, page: str) -> None:
+        """P10: 선택된 레일 버튼 강조 (미선택과 확연히 구분)."""
+        mapping = {"options": "railHomeBtn", "history": "railHistoryBtn"}
+        try:
+            for key, name in mapping.items():
+                button = self.find(QPushButton, name)
+                if button is None:
+                    continue
+                if key == page:
+                    button.setStyleSheet(
+                        "QPushButton { background-color: #0078D4; "
+                        "color: white; border: 2px solid #4AA3F0; "
+                        "border-radius: 8px; }")
+                else:
+                    button.setStyleSheet("")
+        except RuntimeError:
+            logger.debug("레일 선택 강조 실패", exc_info=True)
 
     def _show_panel_page(self, page: str) -> None:
         self._panel_page = page

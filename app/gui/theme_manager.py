@@ -33,6 +33,9 @@ AVAILABLE_THEMES: dict[str, str] = {
     "fluent_light": "☀️  플루언트 라이트",
 }
 
+# P10: 채팅 UI에 노출하는 테마 (합병 안정화 후 재검토). 코드는 유지.
+VISIBLE_THEMES: tuple = ("fluent_dark", "fluent_light")
+
 
 def available_themes() -> dict[str, str]:
     """{테마 키: 표시 이름} 사전 반환"""

@@ -810,3 +810,10 @@ QLabel[status="warning"] {
 QLabel[status="pending"] {
     color: #5c5c5c;
 }
+
+/* P10: chat UI */
+#chatUserBubble { background-color: #0078D4; color: #ffffff; border-radius: 12px; padding: 10px 14px; }
+#chatAiBubble { background-color: #e9e9e9; color: #1a1a1a; border-radius: 12px; padding: 10px 14px; }
+#chatSystemText { color: #5c5c5c; }
+#imageCard { border: 1px solid #b8b8b8; border-radius: 8px; }
+#imageCardMeta { color: #5c5c5c; }
