@@ -602,9 +602,12 @@ class MainController(QObject):
     def _setup_rail_buttons(self) -> None:
         """P1: 좌측 레일 버튼 연결.
 
-        railHomeBtn/railHistoryBtn은 옵션 패널 표시 토글 (P6에서 내용 전환으로 확장).
-        railSettingsBtn/railHelpBtn은 기존 다이얼로그에 연결.
-        newChatBtn은 채팅 비우기 (세션 전환은 P6).
+        P14(기획서 v5.0)에서 역할이 분리되었다:
+        - railOptionsBtn(옵션): 생성 옵션 패널 토글
+        - railHistoryBtn(이력): 대화 이력 페이지
+        - railHomeBtn(홈): 패널 접기 + 채팅 복귀 (선택 강조 없음)
+        - railSettingsBtn/railHelpBtn: 기존 다이얼로그
+        - newChatBtn: 새 대화
         존재하지 않는 위젯은 조용히 건너뛴다.
         """
         panel = self.find(QWidget, "leftScrollArea")
@@ -616,7 +619,8 @@ class MainController(QObject):
             except RuntimeError:
                 logger.debug("옵션 패널 토글 실패", exc_info=True)
 
-        for name in ("railHomeBtn", "railHistoryBtn"):
+        # 홈은 여기서 연결하지 않는다 — P6에서 전용 핸들러로 재연결한다.
+        for name in ("railOptionsBtn", "railHistoryBtn"):
             button = self.find(QPushButton, name)
             if button is not None:
                 button.clicked.connect(toggle_panel)
@@ -722,15 +726,24 @@ class MainController(QObject):
             self._history_page = None
             self._history_list = None
 
-        # railHome/railHistory → 페이지 전환으로 재연결 (P1 토글 대체)
+        # P14: railOptions(옵션)/railHistory(이력) → 페이지 전환.
+        # railHome(홈) → P1에서 옵션 토글로 연결돼 있었으므로 해제하고
+        # "패널 접기 + 채팅 복귀"로 재연결한다 (기획서 v5.0 목업 1-A).
         try:
             home = self.find(QPushButton, "railHomeBtn")
             if home is not None:
                 try:
                     home.clicked.disconnect()
+                except (RuntimeError, TypeError):
+                    pass  # 아직 연결된 슬롯이 없음 (P14에서 P1 연결을 제거)
+                home.clicked.connect(self._rail_home_clicked)
+            opt = self.find(QPushButton, "railOptionsBtn")
+            if opt is not None:
+                try:
+                    opt.clicked.disconnect()
                 except Exception:
                     pass
-                home.clicked.connect(lambda: self._rail_page_toggle("options"))
+                opt.clicked.connect(lambda: self._rail_page_toggle("options"))
             hist = self.find(QPushButton, "railHistoryBtn")
             if hist is not None:
                 try:
@@ -778,8 +791,8 @@ class MainController(QObject):
         except Exception:
             logger.debug("시작 세션 복원 실패", exc_info=True)
 
-        # P10: 초기 선택 강조 (옵션 페이지 표시 상태)
-        self._update_rail_selection("options")
+        # P14: 첫 실행은 패널이 접혀 있으므로 강조도 없다(기획서 목업 1).
+        self._update_rail_selection("")
 
         # P9: 저장된 세션이 없고 채팅이 비었을 때만 환영 메시지
         self._maybe_greet()
@@ -833,9 +846,28 @@ class MainController(QObject):
         except RuntimeError:
             logger.debug("레일 페이지 토글 실패", exc_info=True)
 
+    def _rail_home_clicked(self) -> None:
+        """P14(기획서 v5.0 목업 1-A): 홈 = 패널 접기 + 채팅 화면 복귀.
+
+        홈은 선택 강조를 받지 않는다 — 강조는 "패널이 떠 있다"를 뜻하므로
+        홈을 누르면 강조까지 함께 사라져야 어긋나지 않는다.
+        """
+        try:
+            panel = self.find(QWidget, "leftScrollArea")
+            if panel is not None and panel.isVisible():
+                panel.setVisible(False)
+            self._panel_page = "none"
+            self._update_rail_selection("")
+        except RuntimeError:
+            logger.debug("홈 버튼 처리 실패", exc_info=True)
+
     def _update_rail_selection(self, page: str) -> None:
-        """P10: 선택된 레일 버튼 강조 (미선택과 확연히 구분)."""
-        mapping = {"options": "railHomeBtn", "history": "railHistoryBtn"}
+        """P14: 강조는 railOptionsBtn / railHistoryBtn 에만 붙는다.
+
+        홈·?·설정은 강조 대상이 아니다(기획서 v5.0 설계원칙).
+        page가 "" 이면 강조를 전부 해제한다.
+        """
+        mapping = {"options": "railOptionsBtn", "history": "railHistoryBtn"}
         try:
             for key, name in mapping.items():
                 button = self.find(QPushButton, name)
@@ -1325,7 +1357,8 @@ class MainController(QObject):
             if history_list is not None:
                 history_list.setAccessibleName("대화 이력 목록")
             for name, label in (
-                ("railHomeBtn", "홈 (생성 옵션 패널)"),
+                ("railHomeBtn", "홈 — 메인 채팅 화면으로"),
+                ("railOptionsBtn", "생성 옵션 — 옵션 패널 펼침/접힘"),
                 ("railHistoryBtn", "대화 이력"),
                 ("railHelpBtn", "도움말"),
                 ("railSettingsBtn", "설정"),

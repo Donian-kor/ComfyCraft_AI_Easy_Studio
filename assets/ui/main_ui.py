@@ -85,8 +85,8 @@ class Ui_MainWindow(object):
         self.studioLayout.setContentsMargins(0, 0, 0, 0)
         self.railFrame = QFrame(self.studioContainer)
         self.railFrame.setObjectName(u"railFrame")
-        self.railFrame.setMinimumSize(QSize(70, 0))
-        self.railFrame.setMaximumSize(QSize(70, 16777215))
+        self.railFrame.setMinimumSize(QSize(76, 0))
+        self.railFrame.setMaximumSize(QSize(76, 16777215))
         self.railFrame.setFrameShape(QFrame.Shape.NoFrame)
         self.railLayout = QVBoxLayout(self.railFrame)
         self.railLayout.setSpacing(6)
@@ -99,6 +99,14 @@ class Ui_MainWindow(object):
 
         self.railLayout.addWidget(self.railHomeBtn)
 
+        self.railOptionsBtn = QPushButton(self.railFrame)
+        self.railOptionsBtn.setObjectName(u"railOptionsBtn")
+        self.railOptionsBtn.setMinimumSize(QSize(55, 55))
+        self.railOptionsBtn.setMaximumSize(QSize(55, 55))
+        self.railOptionsBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+
+        self.railLayout.addWidget(self.railOptionsBtn)
+
         self.railHistoryBtn = QPushButton(self.railFrame)
         self.railHistoryBtn.setObjectName(u"railHistoryBtn")
         self.railHistoryBtn.setMinimumSize(QSize(55, 55))
@@ -106,6 +114,10 @@ class Ui_MainWindow(object):
         self.railHistoryBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
         self.railLayout.addWidget(self.railHistoryBtn)
+
+        self.railSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+
+        self.railLayout.addItem(self.railSpacer)
 
         self.railHelpBtn = QPushButton(self.railFrame)
         self.railHelpBtn.setObjectName(u"railHelpBtn")
@@ -122,10 +134,6 @@ class Ui_MainWindow(object):
         self.railSettingsBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
         self.railLayout.addWidget(self.railSettingsBtn)
-
-        self.railSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.railLayout.addItem(self.railSpacer)
 
 
         self.studioLayout.addWidget(self.railFrame)
@@ -1133,11 +1141,21 @@ class Ui_MainWindow(object):
         self.themeComboBox.setToolTip(QCoreApplication.translate("MainWindow", u"UI \ud14c\ub9c8\ub97c \ubcc0\uacbd\ud569\ub2c8\ub2e4.", None))
 #endif // QT_CONFIG(tooltip)
 #if QT_CONFIG(tooltip)
-        self.railHomeBtn.setToolTip(QCoreApplication.translate("MainWindow", u"\ud648 (\uc0dd\uc131 \uc635\uc158 \ud328\ub110)", None))
+        self.railHomeBtn.setToolTip(QCoreApplication.translate("MainWindow", u"\uba54\uc778 \ucc44\ud305 \ud654\uba74\uc73c\ub85c", None))
 #endif // QT_CONFIG(tooltip)
         self.railHomeBtn.setText(QCoreApplication.translate("MainWindow", u"\ud648", None))
+#if QT_CONFIG(accessibility)
+        self.railHomeBtn.setAccessibleName(QCoreApplication.translate("MainWindow", u"\ud648 \u2014 \uba54\uc778 \ucc44\ud305 \ud654\uba74\uc73c\ub85c", None))
+#endif // QT_CONFIG(accessibility)
 #if QT_CONFIG(tooltip)
-        self.railHistoryBtn.setToolTip(QCoreApplication.translate("MainWindow", u"\ub300\ud654 \uc774\ub825 (P6\uc5d0\uc11c \uc81c\uacf5)", None))
+        self.railOptionsBtn.setToolTip(QCoreApplication.translate("MainWindow", u"\uc0dd\uc131 \uc635\uc158 \ud328\ub110", None))
+#endif // QT_CONFIG(tooltip)
+        self.railOptionsBtn.setText(QCoreApplication.translate("MainWindow", u"\uc635\uc158", None))
+#if QT_CONFIG(accessibility)
+        self.railOptionsBtn.setAccessibleName(QCoreApplication.translate("MainWindow", u"\uc0dd\uc131 \uc635\uc158 \u2014 \uc635\uc158 \ud328\ub110 \ud3bc\uce68/\uc811\ud798", None))
+#endif // QT_CONFIG(accessibility)
+#if QT_CONFIG(tooltip)
+        self.railHistoryBtn.setToolTip(QCoreApplication.translate("MainWindow", u"\ub300\ud654 \uc774\ub825", None))
 #endif // QT_CONFIG(tooltip)
         self.railHistoryBtn.setText(QCoreApplication.translate("MainWindow", u"\uc774\ub825", None))
 #if QT_CONFIG(tooltip)

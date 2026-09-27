@@ -57,15 +57,19 @@ class P10ThemeTests(unittest.TestCase):
 
 class P10RailSelectionTests(unittest.TestCase):
     def test_selection_highlight_follows_page(self):
+        """P14: 강조는 railOptionsBtn / railHistoryBtn 에만 붙는다(기획서 v5.0)."""
         controller = _make_controller()
-        home = controller.find(QPushButton, "railHomeBtn")
+        opt = controller.find(QPushButton, "railOptionsBtn")
         hist = controller.find(QPushButton, "railHistoryBtn")
+        home = controller.find(QPushButton, "railHomeBtn")
         controller._rail_page_toggle("history")
         self.assertIn("0078D4", hist.styleSheet())
+        self.assertNotIn("0078D4", opt.styleSheet())
         self.assertNotIn("0078D4", home.styleSheet())
         controller._rail_page_toggle("options")
-        self.assertIn("0078D4", home.styleSheet())
+        self.assertIn("0078D4", opt.styleSheet())
         self.assertNotIn("0078D4", hist.styleSheet())
+        self.assertNotIn("0078D4", home.styleSheet())
 
 
 class P10PerfSmokeTests(unittest.TestCase):

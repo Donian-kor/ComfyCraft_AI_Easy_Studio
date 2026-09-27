@@ -23,6 +23,38 @@ QWidget#centralWidget {
     background-color: #212121;
 }
 
+/* ---------- 사이드바 레일 (P14: 5버튼 홈/옵션/이력/?/설정) ---------- */
+QFrame#railFrame {
+    background-color: #212121;
+    border-right: 1px solid #3a3a3a;
+}
+QPushButton#railHomeBtn,
+QPushButton#railOptionsBtn,
+QPushButton#railHistoryBtn,
+QPushButton#railHelpBtn,
+QPushButton#railSettingsBtn {
+    background-color: #2c2c2c;
+    border: 1px solid #3a3a3a;
+    border-radius: 8px;
+    color: #9a9a9a;
+    font-size: 13px;
+}
+QPushButton#railHomeBtn:hover,
+QPushButton#railOptionsBtn:hover,
+QPushButton#railHistoryBtn:hover,
+QPushButton#railHelpBtn:hover,
+QPushButton#railSettingsBtn:hover {
+    background-color: #333333;
+    color: #e8e8e8;
+}
+QPushButton#railHomeBtn:focus,
+QPushButton#railOptionsBtn:focus,
+QPushButton#railHistoryBtn:focus,
+QPushButton#railHelpBtn:focus,
+QPushButton#railSettingsBtn:focus {
+    border: 2px solid #4AA3F0;
+}
+
 /* ---------- 사이드바 (NavigationView 스타일) ---------- */
 QFrame#sidebar_frame {
     background-color: #181818;
