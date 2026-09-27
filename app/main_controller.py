@@ -2139,12 +2139,13 @@ class MainController(QObject):
         if self.worker:
             self.worker.stop()
             self.append_log("작업을 정리한 뒤 종료합니다...")
-            # Worker 완료 시그널 연결 + 최대 5초 대기 후 강제 종료
+            # Worker 완료 시그널 연결 + 최대 1.5초 대기 후 강제 종료
+            # (stop()이 interrupt/clear_queue를 호출하므로 정상 워커는 1초 내 종료됨)
             self.worker.signals.finished.connect(
                 lambda _: self.close_timer.start(100)
             )
             from PySide6.QtCore import QTimer
-            QTimer.singleShot(5000, lambda: self.close_timer.start(0) if not self.close_timer.isActive() else None)
+            QTimer.singleShot(1500, lambda: self.close_timer.start(0) if not self.close_timer.isActive() else None)
         else:
             self.close_timer.start(100)
 

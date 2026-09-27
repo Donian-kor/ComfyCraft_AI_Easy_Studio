@@ -92,6 +92,10 @@ class GenerationWorker:
         self.stop_requested = True
         try:
             if self.comfy_api:
+                # 중단 요청 후에는 재시도 없이 즉시 빠져나오도록 세션 재시도를 끈다
+                # (서버 다운 시 Retry 백오프 대기로 stop() 이후에도 수 초간 묶이는 것을 방지)
+                for adapter in self.comfy_api.session.adapters.values():
+                    adapter.max_retries.total = 0
                 self.comfy_api.interrupt(timeout=2)
                 self.comfy_api.clear_queue(timeout=2)
         except Exception:
