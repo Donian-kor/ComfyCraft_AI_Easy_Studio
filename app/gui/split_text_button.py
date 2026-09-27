@@ -64,9 +64,12 @@ from app.gui.design_tokens import (
     DISABLED_OPACITY,
     DISABLED_SHADOW_FACTOR,
     DURATION_MEDIUM,
+    FOCUS_BORDER_COLOR,
     FOCUS_BORDER_WIDTH,
     ICON_GAP,
     LIFT_SPLITTEXT,
+    PADDING_H,
+    PADDING_V,
     SHADOW_HOVER,
     SHADOW_REST,
 )
@@ -99,8 +102,8 @@ class SplitTextButton(QPushButton):
         self._font_px = 16  # --font-size: 16px
         self._duration_ms = DURATION_MEDIUM  # --duration: .44s
         self._lift_px = LIFT_SPLITTEXT  # --move-hover: -4px
-        self._h_pad = 24  # padding: 16px 32px  (slightly reduced to fit UI)
-        self._v_pad = 14
+        self._h_pad = PADDING_H   # 16 (token)
+        self._v_pad = PADDING_V   # 8 (token)
         self._letter_delay_ms = 50  # i / 20 * 1000s -> 50ms/letter
         self._icon_gap_px = ICON_GAP  # space between icon and text
 
@@ -472,15 +475,12 @@ class SplitTextButton(QPushButton):
             self._draw_focus_ring(painter, button_rect)
 
     def _draw_focus_ring(self, painter: QPainter, rect: QRectF) -> None:
-        """키보드 포커스 링 (WCAG 2.1 AA — 2px, 배경 대비 3:1 이상)."""
-        bg = self._bg_color
-        luma = 0.299 * bg.redF() + 0.587 * bg.greenF() + 0.114 * bg.blueF()
-        ring = QColor("#101828") if luma > 0.6 else QColor("#ffffff")
+        """키보드 포커스 링 (WCAG 2.1 AA — 2px dashed #EC4899)."""
         painter.save()
         painter.setBrush(Qt.NoBrush)
-        pen = QPen(ring)
-        pen.setWidth(FOCUS_BORDER_WIDTH)
-        pen.setStyle(Qt.DashLine)
+        pen = QPen(QColor(FOCUS_BORDER_COLOR))  # #EC4899 (Accent) — 고정
+        pen.setWidth(FOCUS_BORDER_WIDTH)        # 2
+        pen.setStyle(Qt.PenStyle.DashLine)      # dashed
         painter.setPen(pen)
         painter.drawRoundedRect(
             rect.adjusted(1, 1, -1, -1), self._corner_radius, self._corner_radius

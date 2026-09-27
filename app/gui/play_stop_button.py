@@ -15,9 +15,14 @@ from PySide6.QtWidgets import QPushButton
 from app.gui.design_tokens import (
     CORNER_RADIUS_PLAYSTOP,
     DISABLED_OPACITY,
+    DURATION_FAST,
     DURATION_SLOW,
+    EASE_IN_OUT_CUBIC,
+    EASE_OUT_CUBIC,
+    FOCUS_BORDER_COLOR,
     FOCUS_BORDER_WIDTH,
     LIFT_PLAYSTOP,
+    PADDING_H,
     PLAY_TEXT,
     STOP_TEXT,
 )
@@ -52,13 +57,12 @@ class PlayStopButton(QPushButton):
         self._apply_theme_color()
 
         self._anim = QVariantAnimation(self)
-        self._anim.setDuration(800)
-        self._anim.setEasingCurve(QEasingCurve.Linear)
-        self._anim.valueChanged.connect(self._set_t)
+        self._anim.setDuration(DURATION_SLOW)       # 1000 (token)
+        self._anim.setEasingCurve(EASE_IN_OUT_CUBIC)  # Linear → InOutCubic (token)
 
         self._hover_anim = QVariantAnimation(self)
-        self._hover_anim.setDuration(250)
-        self._hover_anim.setEasingCurve(QEasingCurve.OutCubic)
+        self._hover_anim.setDuration(DURATION_FAST) # 180 (token, was 250)
+        self._hover_anim.setEasingCurve(EASE_OUT_CUBIC)  # OutCubic (token)
         self._hover_anim.valueChanged.connect(self._set_hover)
 
         f = QFont("Segoe UI", 14)
@@ -146,7 +150,7 @@ class PlayStopButton(QPushButton):
             rr.adjust(-i * 0.55, -i * 0.20, i * 0.55, i * 0.20)
             p.setPen(Qt.NoPen)
             p.setBrush(c)
-            p.drawRoundedRect(rr, 22 + i * 0.15, 22 + i * 0.15)
+            p.drawRoundedRect(rr, CORNER_RADIUS_PLAYSTOP + i * 0.15, CORNER_RADIUS_PLAYSTOP + i * 0.15)
 
     def _background(self, p, r):
         play_color = self._play_color  # 파랑 - 이미지 생성 시작
@@ -169,7 +173,7 @@ class PlayStopButton(QPushButton):
 
         p.setPen(Qt.NoPen)
         p.setBrush(base)
-        p.drawRoundedRect(r, 22, 22)
+        p.drawRoundedRect(r, CORNER_RADIUS_PLAYSTOP, CORNER_RADIUS_PLAYSTOP)
 
         fade = 4.0 * t * (1.0 - t)
         if fade > 0.001:
@@ -275,7 +279,7 @@ class PlayStopButton(QPushButton):
         p.setRenderHint(QPainter.TextAntialiasing, True)
         if not self.isEnabled():
             p.setOpacity(DISABLED_OPACITY)
-        pad = 8
+        pad = PADDING_H  # 16 (token, was 8)
         r = QRectF(pad, 5, max(1, self.width() - 2 * pad), self.height() - 10)
         dy = -LIFT_PLAYSTOP * self._hover + LIFT_PLAYSTOP * self._pressed
         r.translate(0, dy)
@@ -287,13 +291,13 @@ class PlayStopButton(QPushButton):
         p.end()
 
     def _draw_focus_ring(self, p, r):
-        """키보드 포커스 링 (WCAG 2.1 AA — 2px)."""
+        """키보드 포커스 링 (WCAG 2.1 AA — 2px dashed accent)."""
         p.save()
         p.setBrush(Qt.NoBrush)
         pen = p.pen()
-        pen.setColor(QColor("#FFFFFF"))
-        pen.setWidth(FOCUS_BORDER_WIDTH)
-        pen.setStyle(Qt.SolidLine)
+        pen.setColor(QColor(FOCUS_BORDER_COLOR))      # #EC4899 (token, was #FFFFFF)
+        pen.setWidth(FOCUS_BORDER_WIDTH)              # 2 (token)
+        pen.setStyle(Qt.PenStyle.DashLine)            # DashedLine (token, was SolidLine)
         p.setPen(pen)
         p.drawRoundedRect(r.adjusted(1, 1, -1, -1), CORNER_RADIUS_PLAYSTOP, CORNER_RADIUS_PLAYSTOP)
         p.restore()

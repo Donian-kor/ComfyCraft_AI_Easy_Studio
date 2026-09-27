@@ -13,6 +13,18 @@ from typing import ClassVar, Dict
 
 from PySide6.QtWidgets import QPushButton, QStyle
 
+from app.gui.design_tokens import (
+    CORNER_RADIUS,
+    DISABLED_OPACITY,
+    DEFAULT_BG,
+    DEFAULT_TEXT,
+    DEFAULT_UNSELECTED_BG,
+    DEFAULT_UNSELECTED_BORDER,
+    DEFAULT_UNSELECTED_TEXT,
+    PADDING_H,
+    PADDING_V,
+)
+
 
 class ZAnimeStyleButton(QPushButton):
     """Z-ANIME 프롬프트 스타일 선택용 버튼.
@@ -86,23 +98,23 @@ class ZAnimeStyleButton(QPushButton):
 
     def _apply_state_colors(self, colors: dict[str, str], selected: bool) -> None:
         if selected:
-            bg = colors.get("selected_bg", "#0078d4")
-            text = colors.get("selected_text", "#ffffff")
-            border = colors.get("selected_border", "#005a9e")
+            bg = colors.get("selected_bg", DEFAULT_BG)
+            text = colors.get("selected_text", DEFAULT_TEXT)
+            border = colors.get("selected_border", DEFAULT_UNSELECTED_BORDER)
         else:
-            bg = colors.get("unselected_bg", "#e2e2e2")
-            text = colors.get("unselected_text", "#1a1a1a")
-            border = colors.get("unselected_border", "#b8b8b8")
+            bg = colors.get("unselected_bg", DEFAULT_UNSELECTED_BG)
+            text = colors.get("unselected_text", DEFAULT_UNSELECTED_TEXT)
+            border = colors.get("unselected_border", DEFAULT_UNSELECTED_BORDER)
         base = _build_stylesheet({
             "bg": bg,
             "text": text,
             "border": border,
-            "selected_bg": colors.get("selected_bg", "#0078d4"),
-            "selected_text": colors.get("selected_text", "#ffffff"),
-            "selected_border": colors.get("selected_border", "#005a9e"),
-            "unselected_bg": colors.get("unselected_bg", "#e2e2e2"),
-            "unselected_text": colors.get("unselected_text", "#1a1a1a"),
-            "unselected_border": colors.get("unselected_border", "#b8b8b8"),
+            "selected_bg": colors.get("selected_bg", DEFAULT_BG),
+            "selected_text": colors.get("selected_text", DEFAULT_TEXT),
+            "selected_border": colors.get("selected_border", DEFAULT_UNSELECTED_BORDER),
+            "unselected_bg": colors.get("unselected_bg", DEFAULT_UNSELECTED_BG),
+            "unselected_text": colors.get("unselected_text", DEFAULT_UNSELECTED_TEXT),
+            "unselected_border": colors.get("unselected_border", DEFAULT_UNSELECTED_BORDER),
         }, selected=selected)
         try:
             self.setStyleSheet(base)
@@ -114,23 +126,24 @@ class ZAnimeStyleButton(QPushButton):
 def _build_stylesheet(colors: dict[str, str], selected: bool = False) -> str:
     """색상 사전으로 Z-ANIME 스타일 버튼의 스타일시트를 만든다."""
     if selected:
-        bg = colors.get("selected_bg", "#0078d4")
-        text = colors.get("selected_text", "#ffffff")
-        border = colors.get("selected_border", "#005a9e")
+        bg = colors.get("selected_bg", DEFAULT_BG)
+        text = colors.get("selected_text", DEFAULT_TEXT)
+        border = colors.get("selected_border", DEFAULT_UNSELECTED_BORDER)
     else:
-        bg = colors.get("unselected_bg", "#e2e2e2")
-        text = colors.get("unselected_text", "#1a1a1a")
-        border = colors.get("unselected_border", "#b8b8b8")
+        bg = colors.get("unselected_bg", DEFAULT_UNSELECTED_BG)
+        text = colors.get("unselected_text", DEFAULT_UNSELECTED_TEXT)
+        border = colors.get("unselected_border", DEFAULT_UNSELECTED_BORDER)
+
+    r = CORNER_RADIUS
+    ph, pv = PADDING_H, PADDING_V
 
     return (
         f"QPushButton {{"
         f" background-color: {bg};"
         f" color: {text};"
         f" border: 1px solid {border};"
-        f" border-radius: 6px;"
-        f" padding: 4px 10px;"
-        f" font-weight: 600;"
-        f" font-size: 13px;"
+        f" border-radius: {r}px;"
+        f" padding: {pv}px {ph}px; font-weight: 600; font-size: 13px;"
         f"}}"
         f"QPushButton:hover {{"
         f" background-color: {border};"
