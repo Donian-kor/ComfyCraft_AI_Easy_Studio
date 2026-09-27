@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Callable, Optional
 
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
     QFrame,
@@ -68,6 +68,16 @@ def describe_model(profile, filename: str, used_shorts=None):
     used_shorts.add(short)
     tooltip = f"{filename} — {feature}" if filename else feature
     return short, feature, tooltip
+
+
+class ClickableLabel(QLabel):
+    """클릭 시 clicked 시그널을 보내는 라벨 (카드 이미지용)."""
+
+    clicked = Signal()
+
+    def mousePressEvent(self, event) -> None:  # noqa: N802
+        self.clicked.emit()
+        super().mousePressEvent(event)
 
 
 class ChatMessage(QFrame):
@@ -134,6 +144,7 @@ class ImageCard(QFrame):
         on_copy_prompt: Optional[Callable[[], None]] = None,
         on_copy_image: Optional[Callable[[], None]] = None,
         on_reuse: Optional[Callable[[], None]] = None,
+        on_open: Optional[Callable[[], None]] = None,
         parent=None,
     ):
         super().__init__(parent)
@@ -143,8 +154,11 @@ class ImageCard(QFrame):
         layout = QVBoxLayout(self)
         layout.setSpacing(8)
 
-        self.image_label = QLabel()
+        self.image_label = ClickableLabel()
         self.image_label.setObjectName("imageCardImage")
+        self.image_label.setCursor(Qt.CursorShape.PointingHandCursor)
+        if on_open is not None:
+            self.image_label.clicked.connect(on_open)
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         pixmap = QPixmap(image_path)
         if pixmap.isNull():

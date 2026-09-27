@@ -125,6 +125,7 @@ from app.sections.prompt import enforce_prompt_character_limit
 from app.logging_config import setup_logging
 from app.gui.dialogs.settings_dialog import show_settings_dialog
 from app.gui.dialogs.help_dialog import show_help_dialog
+from app.gui.image_preview import ImagePreviewModal
 from app.gui.dialogs.facedetailer_guide_dialog import show_facedetailer_guide
 from app.gui.chat_widgets import (
     ChatMessage,
@@ -1001,6 +1002,42 @@ class MainController(QObject):
             logger.debug("최근 메뉴 갱신 실패", exc_info=True)
 
     # -- 수정 요청 ------------------------------------------------------------
+    def _open_preview(self, image_path: str,
+                        return_focus_widget=None) -> None:
+        """P7: 채팅 이미지 목록으로 미리보기 모달 열기."""
+        try:
+            paths = []
+            for record in getattr(self, "_chat_log", []):
+                if not isinstance(record, dict):
+                    continue
+                if record.get("kind") == "image":
+                    candidate = str(record.get("image_path", ""))
+                    if candidate and Path(candidate).exists():
+                        paths.append(candidate)
+            if image_path and Path(image_path).exists() and image_path not in paths:
+                paths.append(image_path)
+            if not paths:
+                return
+            try:
+                index = paths.index(image_path)
+            except ValueError:
+                index = len(paths) - 1
+            modal = ImagePreviewModal(
+                self.window, on_save=self._save_preview_image)
+            modal.open_with(paths, index,
+                            return_focus_widget=return_focus_widget)
+        except RuntimeError:
+            logger.debug("미리보기 열기 실패", exc_info=True)
+
+    def _save_preview_image(self, image_path: str) -> None:
+        """P7: 미리보기에서 보는 이미지 저장."""
+        try:
+            target = save_image_as(self.window, image_path, self.output_dir)
+            if target:
+                self.append_log(f"이미지 저장: {target}")
+        except RuntimeError:
+            logger.debug("미리보기 저장 실패", exc_info=True)
+
     def _on_reuse_request(self, snapshot: dict) -> None:
         """P6: 해당 생성의 프롬프트+옵션 전체 복원 후 입력창 포커스."""
         if self._is_generating():
@@ -1114,6 +1151,13 @@ class MainController(QObject):
                 on_reuse=lambda: self._on_reuse_request(snapshot),
                 parent=self.window,
             )
+            try:
+                card.image_label.clicked.connect(
+                    lambda _c=False, path=record.get("image_path", ""),
+                    focus=card.image_label:
+                    self._open_preview(path, focus))
+            except RuntimeError:
+                pass
             insert_at = layout.count()
             for i in range(layout.count()):
                 widget = layout.itemAt(i).widget()
