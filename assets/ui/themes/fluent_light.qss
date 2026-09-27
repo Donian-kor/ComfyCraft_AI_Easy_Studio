@@ -817,3 +817,9 @@ QLabel[status="pending"] {
 #chatSystemText { color: #5c5c5c; }
 #imageCard { border: 1px solid #b8b8b8; border-radius: 8px; }
 #imageCardMeta { color: #5c5c5c; }
+
+/* layout-match: chat containers + avatar */
+#chatScrollArea, QWidget#chatContentWidget { background-color: #ebebeb; }
+#railFrame { background-color: #e2e2e2; }
+#chatAvatar { background-color: #0078D4; color: #ffffff; border-radius: 16px; font-weight: bold; }
+#imageCard { padding: 12px; }

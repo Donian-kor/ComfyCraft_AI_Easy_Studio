@@ -90,7 +90,14 @@ class ChatMessage(QFrame):
 
         outer = QHBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
-        outer.setSpacing(0)
+        outer.setSpacing(8)
+
+        def make_avatar(text: str) -> QLabel:
+            avatar = QLabel(text)
+            avatar.setObjectName("chatAvatar")
+            avatar.setFixedSize(32, 32)
+            avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            return avatar
 
         self.body = QFrame()
         self.body.setMaximumWidth(600)
@@ -114,6 +121,8 @@ class ChatMessage(QFrame):
             self.bubble.setObjectName("chatUserBubble")
             outer.addStretch(1)
             outer.addWidget(self.body)
+            outer.addWidget(make_avatar("나"),
+                            alignment=Qt.AlignmentFlag.AlignTop)
         elif role == "system":
             self.bubble.setObjectName("chatSystemText")
             self.bubble.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -122,6 +131,8 @@ class ChatMessage(QFrame):
             outer.addStretch(1)
         else:
             self.bubble.setObjectName("chatAiBubble")
+            outer.addWidget(make_avatar("AI"),
+                            alignment=Qt.AlignmentFlag.AlignTop)
             outer.addWidget(self.body)
             outer.addStretch(1)
 

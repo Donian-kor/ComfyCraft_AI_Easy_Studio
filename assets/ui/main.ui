@@ -2497,7 +2497,7 @@
          </widget>
          <property name="maximumSize">
           <size>
-           <width>340</width>
+           <width>300</width>
            <height>16777215</height>
           </size>
          </property>
@@ -2532,7 +2532,7 @@
             <widget class="QWidget" name="chatContentWidget">
              <layout class="QVBoxLayout" name="chatLayout">
               <property name="spacing">
-               <number>12</number>
+               <number>16</number>
               </property>
               <item>
                <spacer name="chatSpacer">
@@ -2610,14 +2610,14 @@
              <widget class="QPushButton" name="sendBtn">
               <property name="minimumSize">
                <size>
-                <width>48</width>
-                <height>48</height>
+                <width>40</width>
+                <height>40</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
-                <width>48</width>
-                <height>48</height>
+                <width>40</width>
+                <height>40</height>
                </size>
               </property>
               <property name="cursor">
