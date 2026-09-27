@@ -41,3 +41,5 @@ workflows/app_config.json.bak
 !.github/workflows/
 .github/workflows/*
 !.github/workflows/*.yml
+refactoring_plan_v2.md
+uiux디자인기획.md

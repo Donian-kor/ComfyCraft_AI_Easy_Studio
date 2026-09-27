@@ -3,7 +3,6 @@ from __future__ import annotations
 import random
 
 import logging
-from logging.handlers import RotatingFileHandler
 import sys
 import threading
 import time
@@ -54,13 +53,12 @@ from PySide6.QtWidgets import (
 )
 
 
-ZANIME_STYLE_CHOICES = (
-    ("webtoon", "🇰🇷 웹툰"),
-    ("japanime", "🇯🇵 일본애니"),
-    ("basic", "✨ 기본"),
+from app.constants import (
+    FACEDETAILER_SLIDER_SPECS,
+    PROMPT_MAX_CHARACTERS,
+    ZANIME_STYLE_CHOICES,
+    ZANIME_STYLE_LABELS,
 )
-
-ZANIME_STYLE_LABELS = {value: label for value, label in ZANIME_STYLE_CHOICES}
 
 from assets.icons import (
     icon_rc,  # noqa: F401  (SVG 아이콘 리소스 등록용 - 직접 사용하진 않지만 import 자체가 필요함)
@@ -74,8 +72,6 @@ from app.gui.theme_manager import (
     zanime_style_button_colors,
 )
 from app.gui.ui_loader import load_dialog_ui, load_ui
-
-PROMPT_MAX_CHARACTERS = 5000
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -120,50 +116,12 @@ from app import (
 # 추가 모듈 import
 from app.core.model_status_service import ModelStatusService
 from app.sections.prompt import enforce_prompt_character_limit
+from app.logging_config import setup_logging
 
 UI_FILE = BASE_DIR / "assets" / "ui" / "main.ui"
 
+setup_logging(BASE_DIR)
 logger = logging.getLogger(__name__)
-
-class QPlainTextEditLogger(logging.Handler):
-    def __init__(self, widget):
-        super().__init__()
-        self.widget = widget
-    def emit(self, record):
-        msg = self.format(record)
-        if self.widget is not None:
-            self.widget.appendPlainText(msg)
-
-# 로그 파일 (프로젝트 루트 옆 app.log) — 2MB 초과 시 회전하며 최대 3개 백업 유지
-file_handler = RotatingFileHandler(
-    BASE_DIR / "app.log", maxBytes=2_000_000, backupCount=3, encoding="utf-8"
-)
-file_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
-# root logger에 부착 → app.* 모듈 로거(예: generation.py의 debug)도 파일로 기록됨
-# (main 로거에 붙이면 propagate 경로와 이중 기록이 생기므로 root에만 붙인다)
-root_logger = logging.getLogger()
-root_logger.setLevel(logging.DEBUG)
-root_logger.addHandler(file_handler)
-
-# FaceDetailer 슬라이더 설정 명세: (키, 슬라이더 위젯 이름, 기본값, 배율, 64단위 여부)
-FACEDETAILER_SLIDER_SPECS = [
-    ("facedetailer_denoise", "facedetailerDenoiseSlider", 0.40, 100.0, False),
-    ("facedetailer_steps", "facedetailerStepsSlider", 20, 1.0, False),
-    ("facedetailer_cfg", "facedetailerCfgSlider", 4.0, 10.0, False),
-    ("facedetailer_guide_size", "facedetailerGuideSizeSlider", 256, 1.0, True),
-    ("facedetailer_max_size", "facedetailerMaxSizeSlider", 768, 1.0, True),
-    ("facedetailer_feather", "facedetailerFeatherSlider", 5, 1.0, False),
-    ("facedetailer_bbox_threshold", "facedetailerBboxThresholdSlider", 0.50, 100.0, False),
-    ("facedetailer_bbox_dilation", "facedetailerBboxDilationSlider", 10, 1.0, False),
-    ("facedetailer_bbox_crop_factor", "facedetailerBboxCropFactorSlider", 1.50, 100.0, False),
-    ("facedetailer_sam_dilation", "facedetailerSamDilationSlider", 0, 1.0, False),
-    ("facedetailer_sam_threshold", "facedetailerSamThresholdSlider", 0.93, 100.0, False),
-    ("facedetailer_sam_bbox_expansion", "facedetailerSamBboxExpansionSlider", 0, 1.0, False),
-    ("facedetailer_sam_mask_hint_threshold", "facedetailerSamMaskHintThresholdSlider", 0.70, 100.0, False),
-    ("facedetailer_cycle", "facedetailerCycleSlider", 1, 1.0, False),
-    ("facedetailer_drop_size", "facedetailerDropSizeSlider", 10, 1.0, False),
-]
-
 
 class MainController(QObject):
     model_list_ready = Signal(list, list)
