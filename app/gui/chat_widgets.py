@@ -21,6 +21,54 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
+# P4: family/프로필 → 짧은 표시명 + 한 줄 특징 (UI층 딕셔너리, 코어 변경 없음).
+# 표시명은 목록에만 쓰고, 내부 로직은 항상 정확한 파일명을 사용한다.
+PROFILE_SHORT = {
+    "flux_gguf": "FLUX",
+    "zimage_turbo": "ZImage",
+    "zanime_aio": "Z-Anime",
+    "ernie-aio-base": "ERNIE Base",
+    "ernie-aio-turbo": "ERNIE Turbo",
+}
+FAMILY_SHORT = {
+    "flux": "FLUX",
+    "zimage": "ZImage",
+    "zanime": "Z-Anime",
+    "ernie": "ERNIE",
+}
+PROFILE_FEATURE = {
+    "flux_gguf": "사실적·고품질",
+    "zimage_turbo": "빠른 생성",
+    "zanime_aio": "애니·웹툰",
+    "ernie-aio-base": "정밀·네거티브 강함",
+    "ernie-aio-turbo": "초고속·8스텝",
+}
+FAMILY_FEATURE = {
+    "flux": "사실적·고품질",
+    "zimage": "빠른 생성",
+    "zanime": "애니·웹툰",
+    "ernie": "포스터·타이포",
+}
+
+
+def describe_model(profile, filename: str, used_shorts=None):
+    """프로필+파일명 → (짧은 표시명, 특징, 툴팁).
+
+    동 family 파일이 2개 이상이면 파일 stem 일부를 병기하여 구분한다.
+    """
+    from pathlib import Path
+    used_shorts = used_shorts if used_shorts is not None else set()
+    stem = Path(filename).stem if filename else ""
+    name = getattr(profile, "name", "") or ""
+    family = getattr(profile, "family", "") or ""
+    short = PROFILE_SHORT.get(name) or FAMILY_SHORT.get(family) or stem
+    feature = PROFILE_FEATURE.get(name) or FAMILY_FEATURE.get(family) or "범용 체크포인트"
+    if short in used_shorts and stem:
+        short = f"{short} ({stem[:14]})"
+    used_shorts.add(short)
+    tooltip = f"{filename} — {feature}" if filename else feature
+    return short, feature, tooltip
+
 
 class ChatMessage(QFrame):
     """대화 메시지 1개. role에 따라 정렬·색상이 달라진다."""

@@ -122,7 +122,12 @@ from app.logging_config import setup_logging
 from app.gui.dialogs.settings_dialog import show_settings_dialog
 from app.gui.dialogs.help_dialog import show_help_dialog
 from app.gui.dialogs.facedetailer_guide_dialog import show_facedetailer_guide
-from app.gui.chat_widgets import ChatMessage, GenerationStatusBubble, ImageCard
+from app.gui.chat_widgets import (
+    ChatMessage,
+    GenerationStatusBubble,
+    ImageCard,
+    describe_model,
+)
 
 UI_FILE = BASE_DIR / "assets" / "ui" / "main.ui"
 
@@ -308,15 +313,10 @@ class MainController(QObject):
         self.find(QComboBox, "lmModelCombo").currentTextChanged.connect(
             lambda text: self.log_model_selection("LM Studio", text)
         )
-        self.find(QComboBox, "comfyModelCombo").currentTextChanged.connect(
-            lambda text: self.log_model_selection("ComfyUI", text)
-        )
-        self.find(QComboBox, "comfyModelCombo").currentTextChanged.connect(
-            self.apply_model_defaults
-        )
-        self.find(QComboBox, "comfyModelCombo").currentTextChanged.connect(
-            lambda _text="": self.update_zanime_style_visibility()
-        )
+        # P4: 표시명 텍스트가 아닌 itemData(정확한 파일명) 기준으로 동작
+        comfy_combo = self.find(QComboBox, "comfyModelCombo")
+        if comfy_combo is not None:
+            comfy_combo.currentIndexChanged.connect(self._on_comfy_model_changed)
         presets = {
             "preset_1024x1024": (1024, 1024),
             "preset_896x1152": (896, 1152),
@@ -371,6 +371,7 @@ class MainController(QObject):
             send_button.clicked.connect(self._on_chat_send_or_stop)
         self._pending_chat = None
         self._status_bubble = None
+        self._pending_zanime_style = False
         self._refresh_send_state()
 
         self.find(QPlainTextEdit, "logTextEdit").setVisible(True)
@@ -763,6 +764,48 @@ class MainController(QObject):
         """하위 호환 별칭 (버튼 클릭과 동일)."""
         self._on_send_btn_clicked()
 
+    def _needs_zanime_style(self) -> bool:
+        """P4: zanime 모델인데 스타일 미선택이면 True."""
+        try:
+            return bool(
+                self.model_registry.is_zanime(self._comfy_model_file())
+                and not self.current_zanime_style()
+            )
+        except Exception:
+            logger.debug("zanime 스타일 필요 여부 판별 실패", exc_info=True)
+            return False
+
+    def _request_zanime_style(self, pending_text: str) -> None:
+        """P4: 스타일 선택 요청 메시지 + 인라인 버튼 3개. 선택 시 자동 생성."""
+        self._pending_chat = {"text": pending_text}
+        self._pending_zanime_style = True
+        try:
+            message = self._append_chat_message(
+                "ai", "Z-Anime 스타일을 골라주세요.")
+            if message is None:
+                return
+            for style_value, style_label in ZANIME_STYLE_CHOICES:
+                button = QPushButton(style_label)
+                button.setObjectName(f"chatZanime_{style_value}_Btn")
+                button.clicked.connect(
+                    lambda _checked=False, value=style_value:
+                    self._on_zanime_style_picked(value))
+                message.add_action(button)
+        except RuntimeError:
+            logger.debug("스타일 선택 요청 실패", exc_info=True)
+
+    def _on_zanime_style_picked(self, style_value: str) -> None:
+        """P4: 인라인 스타일 선택 → 저장 + 대기 메시지 자동 생성."""
+        try:
+            self.select_zanime_style(style_value)
+        except Exception as exc:
+            self.append_log(f"스타일 저장 실패: {exc}")
+            return
+        self._pending_zanime_style = False
+        pending = getattr(self, "_pending_chat", None)
+        if pending and pending.get("text"):
+            self._begin_send(pending["text"], append_user=False)
+
     def _send_chat_text(self) -> None:
         try:
             edit = self.find(QPlainTextEdit, "chatInputEdit")
@@ -771,8 +814,21 @@ class MainController(QObject):
             text = normalize_prompt(edit.toPlainText())
             if not text:
                 return
-            # 사용자 메시지 표시
-            self._append_chat_message("user", text)
+            if self._needs_zanime_style():
+                # 생성하지 않고 스타일 선택 요청 (원문 보관)
+                self._append_chat_message("user", text)
+                edit.clear()
+                self._request_zanime_style(text)
+                return
+            self._begin_send(text, append_user=True)
+        except RuntimeError:
+            logger.debug("채팅 전송 실패", exc_info=True)
+
+    def _begin_send(self, text: str, append_user: bool = True) -> None:
+        """P4: 실제 전송 코어 (일반 전송·스타일 선택 후 자동 생성 공용)."""
+        try:
+            if append_user:
+                self._append_chat_message("user", text)
             # 기존 프롬프트 경로와 동기화 + 오래된 향상문 초기화 (오염 방지)
             positive = self.find(QPlainTextEdit, "positivePromptEdit")
             if positive is not None:
@@ -781,7 +837,9 @@ class MainController(QObject):
             if enhanced is not None:
                 enhanced.clear()
             self._pending_chat = {"text": text}
-            edit.clear()
+            edit = self.find(QPlainTextEdit, "chatInputEdit")
+            if edit is not None:
+                edit.clear()
             self.start_generation()
             # P3: 채팅 경로로 시작됐으면 상태 버블 표시 + 신호 연결
             if self._is_generating():
@@ -1116,9 +1174,7 @@ class MainController(QObject):
     def is_zanime_selected(self) -> bool:
         """현재 선택된 ComfyUI 모델이 zanime 계열인지 판단한다."""
         try:
-            combo = self.find(QComboBox, "comfyModelCombo")
-            model_name = combo.currentText() if combo is not None else ""
-            return self.model_registry.is_zanime(model_name)
+            return self.model_registry.is_zanime(self._comfy_model_file())
         except Exception:
             logger.debug("zanime 선택 판별 실패", exc_info=True)
             return False
@@ -1356,18 +1412,87 @@ class MainController(QObject):
         self.loading_animation.stop()
         self.find(QLabel, "progressStatusLabel").setText("준비 완료")
 
+    def _comfy_model_file(self) -> str:
+        """P4: 피커 표시명과 무관하게 정확한 ComfyUI 모델 파일명을 반환."""
+        try:
+            combo = self.find(QComboBox, "comfyModelCombo")
+            if combo is None:
+                return ""
+            data = combo.currentData()
+            if data:
+                return str(data)
+            return combo.currentText() or ""
+        except RuntimeError:
+            return ""
+
+    def _set_comfy_model_file(self, filename: str) -> bool:
+        """P4: 정확한 파일명으로 피커 선택 (표시명 기준 setCurrentText 대체)."""
+        try:
+            combo = self.find(QComboBox, "comfyModelCombo")
+            if combo is None or not filename:
+                return False
+            index = combo.findData(filename)
+            if index < 0:
+                return False
+            combo.setCurrentIndex(index)
+            return True
+        except RuntimeError:
+            return False
+
+    def _on_comfy_model_changed(self, index: int) -> None:
+        """P4: 모델 변경 → 로그 + 최적값 자동 적용 + 시스템 메시지."""
+        try:
+            combo = self.find(QComboBox, "comfyModelCombo")
+            if combo is None:
+                return
+            exact = str(combo.itemData(index) or combo.currentText() or "")
+            if not exact or exact == "로드된 모델 없음":
+                return
+            self.log_model_selection("ComfyUI", exact)
+            self.apply_model_defaults(exact)
+            self.update_zanime_style_visibility()
+            try:
+                profile = self.model_registry.detect(exact)
+                short, feature, _tooltip = describe_model(profile, exact)
+                self._append_chat_message(
+                    "system",
+                    f"{short} 모델 최적 설정이 적용되었어요 ({feature}).",
+                )
+            except RuntimeError:
+                logger.debug("모델 변경 시스템 메시지 실패", exc_info=True)
+        except RuntimeError:
+            logger.debug("모델 변경 처리 실패", exc_info=True)
+
     def set_models(self, lm_models, comfy_models):
-        for name, values, selected in (
-            ("lmModelCombo", lm_models, self.config.lmstudio.model),
-            ("comfyModelCombo", comfy_models, self.config.comfyui.model),
-        ):
-            combo = self.find(QComboBox, name)
-            combo.blockSignals(True)
-            combo.clear()
-            combo.addItems(values or ["로드된 모델 없음"])
-            if selected in values:
-                combo.setCurrentText(selected)
-            combo.blockSignals(False)
+        lm_combo = self.find(QComboBox, "lmModelCombo")
+        lm_combo.blockSignals(True)
+        lm_combo.clear()
+        lm_combo.addItems(lm_models or ["로드된 모델 없음"])
+        if self.config.lmstudio.model in (lm_models or []):
+            lm_combo.setCurrentText(self.config.lmstudio.model)
+        lm_combo.blockSignals(False)
+        # P4: ComfyUI 콤보는 짧은 표시명 + itemData(정확한 파일명)로 적재
+        comfy_combo = self.find(QComboBox, "comfyModelCombo")
+        comfy_combo.blockSignals(True)
+        comfy_combo.clear()
+        if comfy_models:
+            used_shorts: set = set()
+            for filename in comfy_models:
+                try:
+                    profile = self.model_registry.detect(filename)
+                except Exception:
+                    profile = None
+                short, feature, tooltip = describe_model(
+                    profile, filename, used_shorts)
+                row = comfy_combo.count()
+                comfy_combo.addItem(f"{short} — {feature}", filename)
+                comfy_combo.setItemData(
+                    row, tooltip, Qt.ItemDataRole.ToolTipRole)
+            if self.config.comfyui.model in comfy_models:
+                self._set_comfy_model_file(self.config.comfyui.model)
+        else:
+            comfy_combo.addItem("로드된 모델 없음")
+        comfy_combo.blockSignals(False)
         self.log_model_list("LM Studio", lm_models)
         self.log_model_list("ComfyUI", comfy_models)
         # 모델 목록의 유무로 연결을 판정하지 않음 (refresh_models에서 별도로 처리)
@@ -1656,9 +1781,8 @@ class MainController(QObject):
                 self.config.lmstudio.model
             )
         if self.config.comfyui.model:
-            self.find(QComboBox, "comfyModelCombo").setCurrentText(
-                self.config.comfyui.model
-            )
+            # P4: 표시명이 아닌 itemData(정확한 파일명) 기준으로 복원
+            self._set_comfy_model_file(self.config.comfyui.model)
 
         model_paths = self.config_manager.get_model_base_paths()
         if model_paths:
@@ -1724,9 +1848,7 @@ class MainController(QObject):
 
         # ComfyUI URL 및 모델 업데이트
         # self.config.comfyui.url = self.find(QLineEdit, "comfyUrlEdit").text().strip()  # 삭제됨
-        self.config.comfyui.model = self.find(
-            QComboBox, "comfyModelCombo"
-        ).currentText()
+        self.config.comfyui.model = self._comfy_model_file()
 
         # ComfyUI 모델 경로 업데이트 (그룹A 위젯 삭제 — self.config 직접 사용)
         # model_path = self.find(QLineEdit, "comfyModelPathEdit").text().strip()  # 삭제됨
@@ -1837,7 +1959,9 @@ class MainController(QObject):
     def capture_snapshot(self):
         prompt_text = self._find_or_raise(QPlainTextEdit, "positivePromptEdit").toPlainText()
         negative_text = self._find_or_raise(QPlainTextEdit, "negativePromptEdit").toPlainText()
-        comfy_model_name = self._find_or_raise(QComboBox, "comfyModelCombo").currentText()
+        # P4: 표시명이 아닌 itemData(정확한 파일명) 기준. 빈 값은
+        # GenerationWorker가 "ComfyUI 모델을 선택해주세요."로 처리한다.
+        comfy_model_name = self._comfy_model_file()
         # zanime 모델이면 스타일 선택이 끝난 뒤에만 생성 가능
         if self.is_zanime_selected() and self.current_zanime_style() not in (
             "webtoon",
@@ -1906,7 +2030,7 @@ class MainController(QObject):
             "lm_url": self.config.lmstudio.url or "",
             "lm_model": self.find(QComboBox, "lmModelCombo").currentText(),
             "comfy_url": self.config.comfyui.url or "",
-            "comfy_model": self.find(QComboBox, "comfyModelCombo").currentText(),
+            "comfy_model": self._comfy_model_file(),
             "width": generation_settings.width,
             "height": generation_settings.height,
             "steps": generation_settings.steps,
@@ -1996,7 +2120,8 @@ class MainController(QObject):
         ext_prompts = load_external_prompts()
 
         # ComfyUI 모델 타입에 따라 시스템 프롬프트 자동 선택 (generation.py와 동일 로직)
-        comfy_model_name = self.find(QComboBox, "comfyModelCombo").currentText()
+        # P4: 표시명이 아닌 정확한 파일명 기준
+        comfy_model_name = self._comfy_model_file()
         profile = self.model_registry.detect(comfy_model_name)
         manager = self.workflow_manager
 
@@ -2585,8 +2710,7 @@ class MainController(QObject):
         # 6-1. 부정 프롬프트 패널: 저거넛/리얼비스/Z-ANIME 계열에서만 표시하고 1줄 높이로 고정
         neg_frame = self.find(QFrame, "negativePromptFrame")
         if neg_frame:
-            curr_model = self.find(QComboBox, "comfyModelCombo").currentText() if self.find(QComboBox, "comfyModelCombo") else ""
-            neg_frame.setVisible(self._should_show_negative_prompt(curr_model))
+            neg_frame.setVisible(self._should_show_negative_prompt(self._comfy_model_file()))
         self._apply_negative_prompt_height()
         self._apply_positive_prompt_height()
         self._setup_dynamic_enhance_prompt_height()
@@ -2725,7 +2849,8 @@ class MainController(QObject):
 
         # 3. 모델 및 해상도, 시드, CFG, 스텝 복원
         if "comfy_model" in snap:
-            self.find(QComboBox, "comfyModelCombo").setCurrentText(snap.get("comfy_model"))
+            # P4: 정확한 파일명으로 복원 (표시명 기준 setCurrentText 대체)
+            self._set_comfy_model_file(snap.get("comfy_model"))
         if "width" in snap and "height" in snap:
             self.apply_preset(snap["width"], snap["height"])
         if "steps" in snap:
