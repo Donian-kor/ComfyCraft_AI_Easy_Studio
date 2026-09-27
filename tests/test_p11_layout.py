@@ -85,7 +85,7 @@ class P11StructureTests(unittest.TestCase):
         header = window.findChild(QFrame, "headerFrame")
         self.assertEqual(header.maximumHeight(), 60)
         panel = window.findChild(QWidget, "leftScrollArea")
-        self.assertEqual(panel.maximumWidth(), 290)
+        self.assertEqual(panel.maximumWidth(), 340)
         self.assertFalse(panel.isVisibleTo(window))
         chat_input = window.findChild(QPlainTextEdit, "chatInputEdit")
         self.assertEqual(chat_input.maximumHeight(), 34)
@@ -129,6 +129,20 @@ class P11BehaviorTests(unittest.TestCase):
         for name in ("logClearBtn", "logSaveBtn", "logCopyBtn"):
             with self.subTest(widget=name):
                 self.assertIsNotNone(dlg.findChild(QPushButton, name))
+
+    def test_panel_pages_are_exclusive(self):
+        # P11 수정: ◷ 선택 시 옵션 위젯이 숨고 이력만 보여야 한다
+        controller = _make_controller()
+        controller._rail_page_toggle("history")
+        options_visible = [
+            w.objectName() for w in controller._options_widgets()
+            if w.isVisibleTo(controller.window)]
+        self.assertEqual(options_visible, [])
+        history = controller.find(QWidget, "historyPage")
+        self.assertTrue(history.isVisibleTo(controller.window))
+        controller._rail_page_toggle("options")
+        history = controller.find(QWidget, "historyPage")
+        self.assertFalse(history.isVisibleTo(controller.window))
 
 
 if __name__ == "__main__":

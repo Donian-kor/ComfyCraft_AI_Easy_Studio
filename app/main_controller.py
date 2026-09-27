@@ -786,15 +786,22 @@ class MainController(QObject):
 
     # -- 페이지 전환 ------------------------------------------------------
     def _options_widgets(self):
+        """P11 재빌드 대응: optionsLayout 직속 위젯 전부 (historyPage 제외)."""
         widgets = []
-        for name in ("step1Card", "step2Card", "viewerCard",
-                     "generateButton", "logGroupBox"):
-            try:
-                widget = self.find(QWidget, name)
-            except RuntimeError:
-                widget = None
-            if widget is not None:
+        try:
+            options_layout = self.find(QVBoxLayout, "optionsLayout")
+            if options_layout is None:
+                return widgets
+            for i in range(options_layout.count()):
+                item = options_layout.itemAt(i)
+                widget = item.widget() if item is not None else None
+                if widget is None:
+                    continue
+                if widget.objectName() == "historyPage":
+                    continue
                 widgets.append(widget)
+        except RuntimeError:
+            pass
         return widgets
 
     def _rail_page_toggle(self, page: str) -> None:

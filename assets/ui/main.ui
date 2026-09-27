@@ -1883,7 +1883,7 @@
          </widget>
          <property name="maximumSize">
           <size>
-           <width>290</width>
+           <width>340</width>
            <height>16777215</height>
           </size>
          </property>
