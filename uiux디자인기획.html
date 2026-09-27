@@ -198,7 +198,7 @@
 <div class="win">
 <div class="win-head"><span class="logo">ComfyCraft</span><span class="btn">＋ 새 대화 ▾</span><span class="spacer"></span><span class="badge ok">ComfyUI 연결됨</span><span class="badge ok">LM 연결됨</span><span class="btn">다크 ▾</span></div>
 <div class="win-body">
-<div class="rail"><span class="ric on" title="홈">⌂</span><span class="ric" title="대화 이력">◷</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">⚙</span></div>
+<div class="rail"><span class="ric on" title="홈">홈</span><span class="ric" title="대화 이력">이력</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">설정</span></div>
 <div class="chat">
 <div class="msg user"><div class="who">사용자</div>이쁘고 귀여운 고양이 3마리 그려줘</div>
 <div class="msg ai"><div class="who">AI</div>귀여운 고양이 3마리를 그렸어요. (FLUX 모델 최적 설정 자동 적용)<br>다른 느낌으로 바꾸고 싶으면 말만 하세요. 세부 조정은 생성 옵션에서 직접 할 수 있어요.</div>
@@ -253,7 +253,7 @@
 <div class="win">
 <div class="win-head"><span class="logo">ComfyCraft</span><span class="btn">＋ 새 대화 ▾</span><span class="spacer"></span><span class="badge ok">ComfyUI 연결됨</span><span class="badge ok">LM 연결됨</span><span class="btn">다크 ▾</span></div>
 <div class="win-body">
-<div class="rail"><span class="ric on" title="홈">⌂</span><span class="ric" title="대화 이력">◷</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">⚙</span></div>
+<div class="rail"><span class="ric on" title="홈">홈</span><span class="ric" title="대화 이력">이력</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">설정</span></div>
 <div class="chat">
 <div class="msg ai"><div class="who">AI</div>안녕하세요! 어떤 이미지를 만들어드릴까요?<br>예: "이쁘고 귀여운 고양이 3마리 그려줘"</div>
 <div class="msg sys">── 새 대화가 시작되었습니다 ──</div>
@@ -266,7 +266,7 @@
 <p><strong>사이드바 버튼 4개 설명</strong> (<code>main.ui</code> 개편 시 신규 추가. 구 백업의 ComfyUI/LM 버튼은 폐기 — 연결·모델 설정이 입력 영역 피커와 설정 다이얼로그에 있어 중복이므로 두지 않는다. 신규 레일 버튼은 기존 이름과 충돌하지 않고, <code>_upgrade_buttons</code>의 SplitTextButton 자동 교체("Button" 포함명 대상)를 피하기 위해 <code>railHomeBtn</code>·<code>railHistoryBtn</code>·<code>railHelpBtn</code>·<code>railSettingsBtn</code>으로 명명한다 (일반 QPushButton 유지 → 테마 QSS 포커스 링 적용 가능). 새 대화·전송 버튼도 동일 이유로 <code>newChatBtn</code>·<code>sendBtn</code>으로 명명. 설정/도움말은 기존 <code>_show_settings_dialog</code>·<code>_show_help_dialog</code>에 연결한다. 현행 헤더의 <code>settingsButton</code>·<code>helpButton</code>은 개편 시 제거 — 컨트롤러에 <code>if btn:</code> 가드가 있어 제거해도 크래시 없음):</p>
 <table>
 <tr><th>아이콘</th><th>버튼명</th><th>역할</th></tr>
-<tr><td>⌂</td><td>홈 (<code>homeButton</code>)</td><td>메인 채팅 화면으로 이동. 새 대화 시작·대화 목록 확인의 기준 화면</td></tr>
+<tr><td>홈</td><td>홈 (<code>railHomeBtn</code>)</td><td>생성 옵션 패널 펼침/접힘. 레일 버튼은 기호가 아닌 텍스트 라벨(홈/이력/?/설정) — 폰트 미지원 기호가 안 보이는 문제 회피</td></tr>
 <tr><td>◷</td><td>대화 이력</td><td>좌측 패널을 펼쳐 과거 대화 목록 표시 (HistoryView). 클릭한 대화로 이동, session.json에서 복원</td></tr>
 <tr><td>?</td><td>도움말</td><td>도움말 다이얼로그 열기 (기존 <code>show_help_dialog</code> 재활용). 헤더에는 두지 않고 사이드바로 일원화 (설정과 동일하게 중복 방지)</td></tr>
 <tr><td>⚙</td><td>설정 (<code>settingsButton</code>)</td><td>앱 설정 다이얼로그 열기 (서버 URL, 출력 폴더, 테마, 이미지 모델 수동 프로필 — 기존 <code>show_settings_dialog</code> 재활용). ComfyUI/LM 연결·모델 상세 설정은 모두 여기에 있어 사이드바에 별도 버튼을 두지 않는다</td></tr>
@@ -286,7 +286,7 @@
 <div class="mrow">웹툰 캐릭터…<small>Z-Anime · 지난주 · 이미지 4장</small></div>
 </div>
 <div class="win-body">
-<div class="rail"><span class="ric on" title="홈">⌂</span><span class="ric" title="대화 이력">◷</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">⚙</span></div>
+<div class="rail"><span class="ric on" title="홈">홈</span><span class="ric" title="대화 이력">이력</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">설정</span></div>
 <div class="chat">
 <div class="msg ai"><div class="who">AI</div>안녕하세요! 어떤 이미지를 만들어드릴까요?<br>예: "이쁘고 귀여운 고양이 3마리 그려줘"</div>
 <div class="msg sys">── 새 대화가 시작되었습니다 ──</div>
@@ -301,7 +301,7 @@
 <div class="win">
 <div class="win-head"><span class="logo">ComfyCraft</span><span class="btn">＋ 새 대화 ▾</span><span class="spacer"></span><span class="badge ok">ComfyUI 연결됨</span><span class="badge ok">LM 연결됨</span><span class="btn">다크 ▾</span></div>
 <div class="win-body">
-<div class="rail"><span class="ric on" title="홈">⌂</span><span class="ric" title="대화 이력">◷</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">⚙</span></div>
+<div class="rail"><span class="ric on" title="홈">홈</span><span class="ric" title="대화 이력">이력</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">설정</span></div>
 <div class="chat">
 <div class="msg user"><div class="who">사용자</div>이쁘고 귀여운 고양이 3마리 그려줘</div>
 <div class="msg ai"><div class="who">AI</div>귀여운 고양이 3마리를 그렸어요! (FLUX 모델 최적 설정 자동 적용)
@@ -322,7 +322,7 @@
 <div class="win">
 <div class="win-head"><span class="logo">ComfyCraft</span><span class="btn">＋ 새 대화 ▾</span><span class="spacer"></span><span class="badge ok">ComfyUI 연결됨</span><span class="badge ok">LM 연결됨</span><span class="btn">다크 ▾</span></div>
 <div class="win-body">
-<div class="rail"><span class="ric on" title="홈">⌂</span><span class="ric" title="대화 이력">◷</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">⚙</span></div>
+<div class="rail"><span class="ric on" title="홈">홈</span><span class="ric" title="대화 이력">이력</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">설정</span></div>
 <div class="chat">
 <div class="msg ai generating"><div class="who">AI</div>고양이 이미지를 만들고 있어요...
 <div class="prog"><div></div></div>
@@ -338,7 +338,7 @@
 <div class="win">
 <div class="win-head"><span class="logo">ComfyCraft</span><span class="btn">＋ 새 대화 ▾</span><span class="spacer"></span><span class="badge ok">ComfyUI 연결됨</span><span class="badge ok">LM 연결됨</span><span class="btn">다크 ▾</span></div>
 <div class="win-body">
-<div class="rail"><span class="ric on" title="홈">⌂</span><span class="ric" title="대화 이력">◷</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">⚙</span></div>
+<div class="rail"><span class="ric on" title="홈">홈</span><span class="ric" title="대화 이력">이력</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">설정</span></div>
 <div class="chat">
 <div class="msg sys">── Z-Anime 모델 최적 설정이 적용되었어요 ──</div>
 </div></div>
@@ -361,7 +361,7 @@
 <div class="win">
 <div class="win-head"><span class="logo">ComfyCraft</span><span class="btn">＋ 새 대화 ▾</span><span class="spacer"></span><span class="badge ok">ComfyUI 연결됨</span><span class="badge ok">LM 연결됨</span><span class="btn">다크 ▾</span></div>
 <div class="win-body">
-<div class="rail"><span class="ric on" title="홈">⌂</span><span class="ric" title="대화 이력">◷</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">⚙</span></div>
+<div class="rail"><span class="ric on" title="홈">홈</span><span class="ric" title="대화 이력">이력</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">설정</span></div>
 <div class="opts" style="width:340px">
 <h4>생성 옵션</h4>
 <h4>모델 상세 (읽기 전용)</h4>
@@ -411,7 +411,7 @@
 <div class="win">
 <div class="win-head"><span class="logo">ComfyCraft</span><span class="btn">＋ 새 대화 ▾</span><span class="spacer"></span><span class="badge ok">ComfyUI 연결됨</span><span class="badge ok">LM 연결됨</span><span class="btn">다크 ▾</span></div>
 <div class="win-body">
-<div class="rail"><span class="ric on" title="홈">⌂</span><span class="ric" title="대화 이력">◷</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">⚙</span></div>
+<div class="rail"><span class="ric on" title="홈">홈</span><span class="ric" title="대화 이력">이력</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">설정</span></div>
 <div class="chat">
 <div class="msg ai"><div class="who">AI</div>이미지 생성에 실패했어요. 원인: ComfyUI 서버에 연결할 수 없어요.
 <div class="errbox">
@@ -429,7 +429,7 @@
 <div class="win" style="position:relative">
 <div class="win-head"><span class="logo">ComfyCraft</span><span class="btn">＋ 새 대화 ▾</span><span class="spacer"></span><span class="badge ok">ComfyUI 연결됨</span><span class="badge ok">LM 연결됨</span><span class="btn">다크 ▾</span></div>
 <div class="win-body">
-<div class="rail"><span class="ric" title="홈">⌂</span><span class="ric" title="대화 이력">◷</span><span class="ric" title="도움말">?</span><span class="ric on" title="설정">⚙</span></div>
+<div class="rail"><span class="ric" title="홈">홈</span><span class="ric" title="대화 이력">이력</span><span class="ric" title="도움말">?</span><span class="ric on" title="설정">설정</span></div>
 <div class="chat">
 <div class="msg user"><div class="who">사용자</div>이쁘고 귀여운 고양이 3마리 그려줘</div>
 <div class="msg ai"><div class="who">AI</div>귀여운 고양이 3마리를 그렸어요!</div>
@@ -472,7 +472,7 @@
 <div class="win">
 <div class="win-head"><span class="logo">ComfyCraft</span><span class="btn">＋ 새 대화 ▾</span><span class="spacer"></span><span class="badge ok">ComfyUI 연결됨</span><span class="badge ok">LM 연결됨</span><span class="btn">다크 ▾</span></div>
 <div class="win-body">
-<div class="rail"><span class="ric" title="홈">⌂</span><span class="ric on" title="대화 이력">◷</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">⚙</span></div>
+<div class="rail"><span class="ric" title="홈">홈</span><span class="ric on" title="대화 이력">이력</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">설정</span></div>
 <div class="opts" style="width:340px">
 <h4>대화 이력</h4>
 <div class="optrow"><span class="lbl"></span><span class="pill wide">🔍 세션 검색</span><span class="val"></span></div>
@@ -497,7 +497,7 @@
 <div class="win" style="position:relative">
 <div class="win-head"><span class="logo">ComfyCraft</span><span class="btn">＋ 새 대화 ▾</span><span class="spacer"></span><span class="badge ok">ComfyUI 연결됨</span><span class="badge ok">LM 연결됨</span><span class="btn">다크 ▾</span></div>
 <div class="win-body">
-<div class="rail"><span class="ric" title="홈">⌂</span><span class="ric" title="대화 이력">◷</span><span class="ric" title="도움말">?</span><span class="ric on" title="설정">⚙</span></div>
+<div class="rail"><span class="ric" title="홈">홈</span><span class="ric" title="대화 이력">이력</span><span class="ric" title="도움말">?</span><span class="ric on" title="설정">설정</span></div>
 <div class="chat">
 <div class="msg ai"><div class="who">AI</div>이미지 생성에 실패했어요. 원인: ComfyUI 서버에 연결할 수 없어요.
 <div class="errbox"><div style="display:flex;gap:8px"><span class="btn primary">다시 시도</span><span class="btn">프롬프트 수정</span></div></div>

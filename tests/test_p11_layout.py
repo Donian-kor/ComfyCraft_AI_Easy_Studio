@@ -131,9 +131,12 @@ class P11BehaviorTests(unittest.TestCase):
                 self.assertIsNotNone(dlg.findChild(QPushButton, name))
 
     def test_panel_pages_are_exclusive(self):
-        # P11 수정: ◷ 선택 시 옵션 위젯이 숨고 이력만 보여야 한다
+        # P11 수정: ◷ 선택 시 옵션 위젯(중첩 행 포함)이 숨고 이력만 보여야 한다
         controller = _make_controller()
         controller._rail_page_toggle("history")
+        from PySide6.QtWidgets import QSlider
+        steps = controller.find(QSlider, "stepsSlider")
+        self.assertFalse(steps.isVisibleTo(controller.window))
         options_visible = [
             w.objectName() for w in controller._options_widgets()
             if w.isVisibleTo(controller.window)]
@@ -143,6 +146,28 @@ class P11BehaviorTests(unittest.TestCase):
         controller._rail_page_toggle("options")
         history = controller.find(QWidget, "historyPage")
         self.assertFalse(history.isVisibleTo(controller.window))
+        self.assertTrue(steps.isVisibleTo(controller.window))
+
+    def test_header_badges_left_of_theme(self):
+        # 연결 배지 2개는 테마 드롭다운 바로 좌측에 있어야 한다
+        window = load_ui(UI_FILE)
+        header = window.findChild(QWidget, "headerFrame")
+        order = []
+        layout = header.layout()
+        for i in range(layout.count()):
+            item = layout.itemAt(i)
+            widget = item.widget()
+            if widget is not None:
+                order.append(widget.objectName())
+            else:
+                spacer = item.spacerItem()
+                order.append("spacer" if spacer is not None else "layout")
+        badges_idx = [order.index("comfyStatusBtn"),
+                      order.index("lmStatusBtn")]
+        theme_idx = order.index("themeComboBox")
+        spacer_idx = order.index("spacer")
+        self.assertLess(spacer_idx, min(badges_idx))
+        self.assertEqual(max(badges_idx) + 1, theme_idx)
 
 
 if __name__ == "__main__":

@@ -786,20 +786,33 @@ class MainController(QObject):
 
     # -- 페이지 전환 ------------------------------------------------------
     def _options_widgets(self):
-        """P11 재빌드 대응: optionsLayout 직속 위젯 전부 (historyPage 제외)."""
+        """P11 재빌드 대응: 옵션 컨테이너 하위 전부 (historyPage 계통 제외).
+
+        행들이 중첩 QHBoxLayout 안에 있으므로 직접 자식만 뒤지면
+        행 전체가 남는다 — 하위 findChildren으로 전부 처리한다.
+        """
         widgets = []
+        # 항상 숨김 유지 (히든 홀더)
+        always_hidden = {"historyPage", "enhancePromptEdit", "positivePromptEdit"}
         try:
-            options_layout = self.find(QVBoxLayout, "optionsLayout")
-            if options_layout is None:
+            container = self.find(QWidget, "leftContentWidget")
+            if container is None:
                 return widgets
-            for i in range(options_layout.count()):
-                item = options_layout.itemAt(i)
-                widget = item.widget() if item is not None else None
-                if widget is None:
+            for widget in container.findChildren(QWidget):
+                try:
+                    if widget.objectName() in always_hidden:
+                        continue
+                    node = widget
+                    inside_hidden = False
+                    while node is not None and node is not container:
+                        if node.objectName() in always_hidden:
+                            inside_hidden = True
+                            break
+                        node = node.parentWidget()
+                    if not inside_hidden:
+                        widgets.append(widget)
+                except RuntimeError:
                     continue
-                if widget.objectName() == "historyPage":
-                    continue
-                widgets.append(widget)
         except RuntimeError:
             pass
         return widgets

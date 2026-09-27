@@ -39,18 +39,6 @@
        <enum>QFrame::Shape::NoFrame</enum>
       </property>
       <layout class="QHBoxLayout" name="headerLayout">
-       <property name="leftMargin">
-        <number>12</number>
-       </property>
-       <property name="topMargin">
-        <number>4</number>
-       </property>
-       <property name="rightMargin">
-        <number>12</number>
-       </property>
-       <property name="bottomMargin">
-        <number>4</number>
-       </property>
        <item>
         <widget class="QLabel" name="appTitle">
          <property name="text">
@@ -77,6 +65,31 @@
          </property>
         </widget>
        </item>
+       <property name="leftMargin">
+        <number>12</number>
+       </property>
+       <property name="topMargin">
+        <number>4</number>
+       </property>
+       <property name="rightMargin">
+        <number>12</number>
+       </property>
+       <property name="bottomMargin">
+        <number>4</number>
+       </property>
+       <item>
+        <spacer name="headerSpacer">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
        <item>
         <widget class="QPushButton" name="comfyStatusBtn">
          <property name="cursor">
@@ -102,19 +115,6 @@
           <string>💬 LM Studio ● 확인 중...</string>
          </property>
         </widget>
-       </item>
-       <item>
-        <spacer name="headerSpacer">
-         <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
-         </property>
-        </spacer>
        </item>
        <item>
         <widget class="QComboBox" name="themeComboBox">
@@ -582,6 +582,12 @@
                 <size>
                  <width>120</width>
                  <height>28</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>110</width>
+                 <height>16777215</height>
                 </size>
                </property>
               </widget>
