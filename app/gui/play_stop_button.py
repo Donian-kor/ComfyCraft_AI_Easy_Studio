@@ -64,7 +64,7 @@ class PlayStopButton(QPushButton):
         self._hover_anim.setDuration(DURATION_FAST) # 180 (token, was 250)
         self._hover_anim.setEasingCurve(EASE_OUT_CUBIC)  # OutCubic (token)
         self._hover_anim.valueChanged.connect(self._set_hover)
-
+        self._anim.valueChanged.connect(self._set_t)
         f = QFont("Segoe UI", 14)
         f.setWeight(QFont.Bold)
         self._font = f
