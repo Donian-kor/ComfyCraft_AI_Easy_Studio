@@ -2209,12 +2209,23 @@ class MainController(QObject):
             lm_combo.setCurrentText(self.config.lmstudio.model)
         lm_combo.blockSignals(False)
         # P4: ComfyUI 콤보는 짧은 표시명 + itemData(정확한 파일명)로 적재
+        # 지원 프로필이 있는 모델만 표시한다 (registered/inferred).
+        # 순수 generic 판별(매칭 패턴 없음)은 숨김 — 새 모델은 수동 프로필로 등록.
         comfy_combo = self.find(QComboBox, "comfyModelCombo")
         comfy_combo.blockSignals(True)
         comfy_combo.clear()
-        if comfy_models:
+        supported = []
+        for filename in comfy_models or []:
+            try:
+                profile = self.model_registry.detect(filename)
+            except Exception:
+                profile = None
+            if profile is None or profile.name == "generic":
+                continue
+            supported.append(filename)
+        if supported:
             used_shorts: set = set()
-            for filename in comfy_models:
+            for filename in supported:
                 try:
                     profile = self.model_registry.detect(filename)
                 except Exception:
@@ -2225,13 +2236,17 @@ class MainController(QObject):
                 comfy_combo.addItem(f"{short} — {feature}", filename)
                 comfy_combo.setItemData(
                     row, tooltip, Qt.ItemDataRole.ToolTipRole)
-            if self.config.comfyui.model in comfy_models:
+            if self.config.comfyui.model in supported:
                 self._set_comfy_model_file(self.config.comfyui.model)
         else:
             comfy_combo.addItem("로드된 모델 없음")
         comfy_combo.blockSignals(False)
         self.log_model_list("LM Studio", lm_models)
-        self.log_model_list("ComfyUI", comfy_models)
+        hidden = [f for f in (comfy_models or []) if f not in supported]
+        self.log_model_list("ComfyUI", supported)
+        if hidden:
+            self.append_log(
+                f"지원 프로필 없음으로 숨김: {len(hidden)}개")
         # P11: 옵션 읽기 전용 현재 모델 표시 갱신
         try:
             current_label = self.find(QLabel, "modelCurrentLabel")

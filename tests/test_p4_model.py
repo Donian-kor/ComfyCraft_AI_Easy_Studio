@@ -80,6 +80,19 @@ class P4ComboDataTests(unittest.TestCase):
             # itemData에는 정확한 파일명
             self.assertEqual(str(combo.itemData(i)), filename)
 
+    def test_generic_models_hidden(self):
+        controller = _make_controller()
+        controller.set_models([], FILENAMES + [
+            "random_junk_xyz123.safetensors",
+            "t5xxl_fp16.safetensors",
+        ])
+        combo = controller.find(QComboBox, "comfyModelCombo")
+        shown = [str(combo.itemData(i)) for i in range(combo.count())]
+        self.assertEqual(shown, FILENAMES)
+        # 전부 미지원이면 "로드된 모델 없음"
+        controller.set_models([], ["random_junk_xyz123.safetensors"])
+        self.assertEqual(combo.itemText(0), "로드된 모델 없음")
+
     def test_helper_returns_exact_filename(self):
         controller = _make_controller()
         controller.set_models([], FILENAMES)
