@@ -75,7 +75,8 @@
   .rail .ric{width:38px;height:38px;border-radius:8px;background:var(--panel2);
     border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
     font-size:16px;color:var(--muted)}
-  .rail .ric.on{background:rgba(0,120,212,.25);color:#fff;border-color:var(--brand)}
+  .rail .ric.on{background:var(--brand);color:#fff;border:2px solid #4aa3f0;
+    box-shadow:0 0 8px rgba(0,120,212,.7)}
   .imgcard{margin-top:10px;background:#1e1e1e;border:1px solid var(--border);
     border-radius:var(--radius);overflow:hidden}
   .imgph{height:190px;display:flex;align-items:center;justify-content:center;
@@ -87,25 +88,38 @@
     border-top:1px dashed var(--border);padding-top:8px}
   .detail summary{cursor:default}
 
-  /* 진행 바 */
+  /* 생성 중 카드 테두리 펄스 (4cut 패턴) */
+  .msg.generating{border:2px solid var(--brand);animation:pulse 1.2s ease-in-out infinite}
+  @keyframes pulse{
+    0%,100%{box-shadow:0 0 0 0 rgba(0,120,212,.55)}
+    50%{box-shadow:0 0 12px 3px rgba(0,120,212,.55)}
+  }
   .prog{background:#0f0f0f;border-radius:6px;height:14px;overflow:hidden;margin:8px 0}
   .prog > div{height:100%;width:45%;border-radius:6px;
     background:linear-gradient(90deg,var(--brand),#4aa3f0)}
 
-  /* 모델 드롭다운 */
-  .drop{background:#1e1e1e;border:1px solid var(--border);border-radius:8px;
-    width:300px;overflow:hidden;margin-top:6px}
+  /* 헤더 스플릿 메뉴 (최근 세션 빠른 전환 — 오버레이) */
+  .menu{position:absolute;top:52px;left:150px;background:#1e1e1e;border:1px solid var(--border);
+    border-radius:8px;width:300px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.6);z-index:20}
+  .menu .mrow{padding:9px 12px;font-size:12.5px;border-bottom:1px solid #262626}
+  .menu .mrow small{display:block;color:var(--muted);font-size:11px}
+  .menu .mrow.new{color:#7db9f0;font-weight:600}
+  .win-input{position:relative}
+  .drop{position:absolute;left:14px;bottom:52px;background:#1e1e1e;border:1px solid var(--border);border-radius:8px;
+    width:300px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.6);z-index:10}
   .drop .search{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--muted);font-size:12px}
   .drop .opt{padding:9px 12px;font-size:12.5px;border-bottom:1px solid #262626}
   .drop .opt.cur{background:rgba(0,120,212,.18)}
   .drop .opt small{display:block;color:var(--muted);font-size:11px}
 
-  /* 옵션 패널 (좌측 사이드바) */
+  /* 옵션 패널 (좌측 사이드바) — 라벨 열 정렬 */
   .opts{width:290px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);
     padding:14px;overflow:hidden;font-size:12px}
   .opts h4{margin:12px 0 6px;font-size:12px;color:#fff}
   .opts h4:first-child{margin-top:0}
-  .optrow{display:flex;align-items:center;gap:8px;margin:6px 0;color:var(--muted)}
+  .optrow{display:grid;grid-template-columns:64px 1fr auto;gap:8px;align-items:center;margin:6px 0;color:var(--muted)}
+  .optrow .lbl{color:var(--text);font-size:12px}
+  .optrow .val{text-align:right;font-size:12px;color:var(--text)}
   .slider{flex:1;height:5px;background:#3a3a3a;border-radius:3px;position:relative}
   .slider::after{content:"";position:absolute;left:55%;top:-3px;width:11px;height:11px;
     border-radius:50%;background:var(--brand)}
@@ -113,7 +127,16 @@
     padding:3px 9px;font-size:11px}
   .presets{display:flex;gap:6px;margin-top:6px}
 
-  /* 설정 화면 */
+  /* 설정 다이얼로그 (메인 윈도우 위 모달 오버레이) */
+  .dlg-ov{position:absolute;inset:0;background:rgba(0,0,0,.62);display:flex;
+    align-items:center;justify-content:center;z-index:20;padding:22px}
+  .dlg{background:var(--panel);border:1px solid var(--border);border-radius:12px;
+    width:660px;max-width:94%;display:flex;flex-direction:column;overflow:hidden;
+    box-shadow:0 12px 40px rgba(0,0,0,.7)}
+  .dlg-head{display:flex;align-items:center;gap:10px;padding:10px 14px;
+    background:var(--panel2);border-bottom:1px solid var(--border);font-weight:600}
+  .dlg-body{display:flex;min-height:0}
+  .dlg-body .setbody{overflow-y:auto;max-height:340px}
   .tabs{width:150px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);
     padding:12px 8px;font-size:12px}
   .tabs div{padding:8px 12px;border-radius:6px;color:var(--muted)}
@@ -150,7 +173,7 @@
 <li><a href="#s1">1. 개요 · 핵심 컨셉</a></li>
 <li><a href="#s2">2. 핵심 사용 흐름</a></li>
 <li><a href="#s3">3. 설계 원칙</a></li>
-<li><a href="#s4">4. 화면 목업 8종</a></li>
+<li><a href="#s4">4. 화면 목업 10종</a></li>
 <li><a href="#s5">5. 생성 옵션 섹션 (ComfyUI 설정 보존)</a></li>
 <li><a href="#s6">6. 모델별 최적 기본값</a></li>
 <li><a href="#s7">7. 기존 소스 재활용 계획</a></li>
@@ -164,9 +187,9 @@
 
 <div class="mock"><div class="mock-cap">대화 예시 (실제 개편 UI 기준)</div>
 <div class="win">
-<div class="win-head"><span class="logo">ComfyCraft</span><span class="btn">＋ 새 대화</span><span class="spacer"></span><span class="badge ok">ComfyUI 연결됨</span><span class="btn">다크/라이트</span><span class="btn">?</span></div>
+<div class="win-head"><span class="logo">ComfyCraft</span><span class="btn">＋ 새 대화 ▾</span><span class="spacer"></span><span class="badge ok">ComfyUI 연결됨</span><span class="badge ok">LM 연결됨</span><span class="btn">다크 ▾</span></div>
 <div class="win-body">
-<div class="rail"><span class="ric on" title="홈">⌂</span><span class="ric" title="ComfyUI">◈</span><span class="ric" title="LMStudio">◆</span><span class="ric" title="설정">⚙</span></div>
+<div class="rail"><span class="ric on" title="홈">⌂</span><span class="ric" title="대화 이력">◷</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">⚙</span></div>
 <div class="chat">
 <div class="msg user"><div class="who">사용자</div>이쁘고 귀여운 고양이 3마리 그려줘</div>
 <div class="msg ai"><div class="who">AI</div>귀여운 고양이 3마리를 그렸어요. (FLUX 모델 최적 설정 자동 적용)<br>다른 느낌으로 바꾸고 싶으면 말만 하세요. 세부 조정은 생성 옵션에서 직접 할 수 있어요.</div>
@@ -196,7 +219,7 @@
 <tr><td>3. 후속 수정</td><td>"좀 더 밝게", "배경을 바꿔줘" 등 자연어 수정</td><td>대화 맥락 + 동일 옵션 스냅샷으로 수정 생성</td></tr>
 <tr><td>4. 모델 변경</td><td>입력 영역 모델 피커에서 변경 (오픈코드식)</td><td>해당 모델 최적 기본값 자동 적용 + 시스템 메시지 안내</td></tr>
 <tr><td>5. 옵션 조절 (고급)</td><td>생성 옵션 섹션에서 값 변경</td><td>다음 생성부터 반영. "기본값으로 되돌리기" 제공</td></tr>
-<tr><td>6. 저장/공유</td><td>버튼 클릭 또는 "저장해줘"</td><td>다운로드, 공유 링크, 클립보드 복사</td></tr>
+<tr><td>6. 저장/복사</td><td>버튼 클릭 또는 "저장해줘"</td><td>파일 저장, 클립보드 복사 (공유 링크 기능은 없음 — 범위 밖)</td></tr>
 </table>
 
 <h2 id="s3">3. 설계 원칙</h2>
@@ -211,14 +234,14 @@
 <li><strong>접근성</strong>: 키보드 네비게이션, Qt accessibleName/accessibleDescription, WCAG 2.1 AA.</li>
 </ul>
 
-<h2 id="s4">4. 화면 목업 8종</h2>
+<h2 id="s4">4. 화면 목업 10종</h2>
 
 <h3>목업 1 — 첫 실행 기본 화면 (좌측 사이드바 접힘 상태)</h3>
 <div class="mock"><div class="mock-cap">목업 1 · 첫 실행 (사이드바 기본 접힘 → 55px 레일)</div>
 <div class="win">
-<div class="win-head"><span class="logo">ComfyCraft</span><span class="btn">＋ 새 대화</span><span class="spacer"></span><span class="badge ok">ComfyUI 연결됨</span><span class="btn">다크/라이트</span><span class="btn">?</span></div>
+<div class="win-head"><span class="logo">ComfyCraft</span><span class="btn">＋ 새 대화 ▾</span><span class="spacer"></span><span class="badge ok">ComfyUI 연결됨</span><span class="badge ok">LM 연결됨</span><span class="btn">다크 ▾</span></div>
 <div class="win-body">
-<div class="rail"><span class="ric on" title="홈">⌂</span><span class="ric" title="ComfyUI">◈</span><span class="ric" title="LMStudio">◆</span><span class="ric" title="설정">⚙</span></div>
+<div class="rail"><span class="ric on" title="홈">⌂</span><span class="ric" title="대화 이력">◷</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">⚙</span></div>
 <div class="chat">
 <div class="msg ai"><div class="who">AI</div>안녕하세요! 어떤 이미지를 만들어드릴까요?<br>예: "이쁘고 귀여운 고양이 3마리 그려줘"</div>
 <div class="msg sys">── 새 대화가 시작되었습니다 ──</div>
@@ -226,29 +249,53 @@
 </div>
 <div class="win-input"><span class="picker">FLUX ▾</span><span class="textbox">메시지를 입력하세요...</span><button class="send" disabled>➤</button></div>
 </div></div>
-<div class="note">사이드바는 <strong>왼쪽</strong>에 위치하며, 첫 실행 기본값은 접힘 상태(55px 아이콘 레일)다. 마우스 호버 시 왼쪽에서 오른쪽으로 펼쳐져(최대 300px) 생성 옵션 패널이 된다. 주의: 현행 <code>main.ui</code>에는 <code>sidebar_frame</code>이 없으며 (<code>main.ui.bak</code>에만 존재), 컨트롤러의 <code>setup_sidebar_animation</code>은 위젯 부재로 동작하지 않는 사각 코드다. 따라서 사이드바 위젯은 <code>main.ui</code>를 직접 개편하면서 신규 추가하고 (백업 <code>main.ui.bak</code> 유지), 펼침/접힘 애니메이션 방식(maximumWidth 55→300px)만 기존 코드를 참고하여 구현한다. 목업 5는 펼쳐진 상태.</div>
+<div class="note">사이드바는 <strong>왼쪽</strong>에 위치하며, 첫 실행 기본값은 접힘 상태(55px 아이콘 레일)다. <strong>호버 자동 펼침 없음 — 버튼 클릭 시에만 펼쳐진다.</strong> 주의: 현행 <code>main.ui</code>에는 <code>sidebar_frame</code>이 없으며 (삭제된 <code>main.ui.bak</code>에만 존재했음 — git 이력에서 참조 가능), 컨트롤러의 <code>setup_sidebar_animation</code>은 위젯 부재로 동작하지 않는 사각 코드다. 따라서 사이드바 위젯은 <code>main.ui</code>를 직접 개편하면서 신규 추가하고 (개편 전 git 커밋으로 백업), 펼침/접힘 애니메이션 방식(maximumWidth 55→300px, 클릭 트리거)만 기존 코드를 참고하여 구현한다. 목업 5는 펼쳐진 상태.</div>
 
-<p><strong>사이드바 버튼 4개 설명</strong> (기존 <code>main.ui.bak</code> 정의 기준, <code>main.ui</code> 개편 시 동일 구성으로 신규 추가):</p>
+<p><strong>사이드바 버튼 4개 설명</strong> (<code>main.ui</code> 개편 시 신규 추가. 구 백업의 ComfyUI/LM 버튼은 폐기 — 연결·모델 설정이 입력 영역 피커와 설정 다이얼로그에 있어 중복이므로 두지 않는다. 신규 레일 버튼은 기존 이름과 충돌하지 않게 <code>railHomeButton</code>·<code>railHistoryButton</code>·<code>railHelpButton</code>·<code>railSettingsButton</code>으로 명명하고, 설정/도움말은 기존 <code>_show_settings_dialog</code>·<code>_show_help_dialog</code>에 연결한다. 현행 헤더의 <code>settingsButton</code>·<code>helpButton</code>은 개편 시 제거 — 컨트롤러에 <code>if btn:</code> 가드가 있어 제거해도 크래시 없음):</p>
 <table>
 <tr><th>아이콘</th><th>버튼명</th><th>역할</th></tr>
 <tr><td>⌂</td><td>홈 (<code>homeButton</code>)</td><td>메인 채팅 화면으로 이동. 새 대화 시작·대화 목록 확인의 기준 화면</td></tr>
-<tr><td>◈</td><td>ComfyUI (<code>comfyButton</code>)</td><td>이미지 생성 모델 선택·연결 상태 확인. 개편 후에는 입력 영역 모델 피커와 연동되고, 상세 설정은 생성 옵션 패널에 표시</td></tr>
-<tr><td>◆</td><td>LMStudio (<code>lmstudioButton</code>)</td><td>프롬프트 향상용 언어 모델 선택·연결 상태 확인</td></tr>
-<tr><td>⚙</td><td>설정 (<code>settingsButton</code>)</td><td>앱 설정 다이얼로그 열기 (서버 URL, 출력 폴더, 테마 등) — 기존 <code>show_settings_dialog</code> 재활용. 설정 진입점은 사이드바로 일원화하고 헤더에는 두지 않는다 (중복 방지)</td></tr>
+<tr><td>◷</td><td>대화 이력</td><td>좌측 패널을 펼쳐 과거 대화 목록 표시 (HistoryView). 클릭한 대화로 이동, session.json에서 복원</td></tr>
+<tr><td>?</td><td>도움말</td><td>도움말 다이얼로그 열기 (기존 <code>show_help_dialog</code> 재활용). 헤더에는 두지 않고 사이드바로 일원화 (설정과 동일하게 중복 방지)</td></tr>
+<tr><td>⚙</td><td>설정 (<code>settingsButton</code>)</td><td>앱 설정 다이얼로그 열기 (서버 URL, 출력 폴더, 테마, 이미지 모델 수동 프로필 — 기존 <code>show_settings_dialog</code> 재활용). ComfyUI/LM 연결·모델 상세 설정은 모두 여기에 있어 사이드바에 별도 버튼을 두지 않는다</td></tr>
 </table>
-<p style="font-size:12px;color:var(--muted)">참고: <code>main.ui.bak</code>에는 아이콘 전용 <code>pushButton</code>(연결 상태 표시용)이 하나 더 있으나, 개편안에서는 헤더의 연결 상태 배지로 대체하므로 사이드바에는 포함하지 않는다.</p>
+<p style="font-size:12px;color:var(--muted)">참고: 삭제된 구 백업에는 아이콘 전용 <code>pushButton</code>(연결 상태 표시용)이 하나 더 있었으나, 개편안에서는 헤더의 연결 상태 배지로 대체하므로 사이드바에는 포함하지 않는다.</p>
+
+<h3>목업 1-2 — ＋새 대화 클릭/▾ 메뉴 (세션 분기)</h3>
+<div class="mock"><div class="mock-cap">목업 1-2 · ▾ 클릭 시 최근 세션 5개 오버레이 메뉴 (클릭 시 새 세션+빈 채팅)</div>
+<div class="win" style="position:relative">
+<div class="win-head"><span class="logo">ComfyCraft</span><span class="btn">＋ 새 대화 ▾</span><span class="spacer"></span><span class="badge ok">ComfyUI 연결됨</span><span class="badge ok">LM 연결됨</span><span class="btn">다크 ▾</span></div>
+<div class="menu">
+<div class="mrow new">＋ 새 대화 시작<small>클릭 본체와 동일 — 빈 채팅으로 전환</small></div>
+<div class="mrow">귀여운 고양이 3마리…<small>FLUX · 오늘 14:02 · 이미지 3장</small></div>
+<div class="mrow">우주 배경 고양이…<small>Z-Anime · 어제 · 이미지 1장</small></div>
+<div class="mrow">사실적 강아지…<small>FLUX · 3일 전 · 이미지 5장</small></div>
+<div class="mrow">포스터 시안…<small>ERNIE · 지난주 · 이미지 2장</small></div>
+<div class="mrow">웹툰 캐릭터…<small>Z-Anime · 지난주 · 이미지 4장</small></div>
+</div>
+<div class="win-body">
+<div class="rail"><span class="ric on" title="홈">⌂</span><span class="ric" title="대화 이력">◷</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">⚙</span></div>
+<div class="chat">
+<div class="msg ai"><div class="who">AI</div>안녕하세요! 어떤 이미지를 만들어드릴까요?<br>예: "이쁘고 귀여운 고양이 3마리 그려줘"</div>
+<div class="msg sys">── 새 대화가 시작되었습니다 ──</div>
+</div>
+</div>
+<div class="win-input"><span class="picker">FLUX ▾</span><span class="textbox">메시지를 입력하세요...</span><button class="send" disabled>➤</button></div>
+</div></div>
+<div class="note">버튼 본체 클릭 → 새 세션 즉시 생성 + 빈 채팅 전환 (기존 세션 유지, ◷ 목록 최상단 추가). ▾ 클릭 → 최근 5개 오버레이 메뉴, 행 클릭 시 해당 세션으로 즉시 전환 (◷ 패널 생략). 생성 중인 세션은 메뉴에 자물쇠 표시 + 전환 차단.</div>
 
 <h3>목업 2 — 생성 완료 (이미지 카드)</h3>
 <div class="mock"><div class="mock-cap">목업 2 · 생성 완료</div>
 <div class="win"><div class="win-body">
-<div class="rail"><span class="ric on" title="홈">⌂</span><span class="ric" title="ComfyUI">◈</span><span class="ric" title="LMStudio">◆</span><span class="ric" title="설정">⚙</span></div>
+<div class="rail"><span class="ric on" title="홈">⌂</span><span class="ric" title="대화 이력">◷</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">⚙</span></div>
 <div class="chat">
 <div class="msg user"><div class="who">사용자</div>이쁘고 귀여운 고양이 3마리 그려줘</div>
 <div class="msg ai"><div class="who">AI</div>귀여운 고양이 3마리를 그렸어요! (FLUX 모델 최적 설정 자동 적용)
+<div class="detail" style="margin:10px 0 0;border:1px dashed var(--border);border-radius:6px;padding:8px 10px">▸ 사용된 프롬프트 (향상됨) <span class="btn" style="font-size:11px">복사</span></div>
 <div class="imgcard">
 <div class="imgph"><strong>생성된 이미지</strong><span>1024 × 1024</span></div>
 <div class="imgmeta">FLUX · 12초 소요</div>
-<div class="imgacts"><span class="btn">저장</span><span class="btn">공유</span><span class="btn">수정 요청</span></div>
+<div class="imgacts"><span class="btn">저장</span><span class="btn">복사</span><span class="btn">수정 요청</span></div>
 <div class="detail"><summary>▸ 상세 정보 (해상도·시드·Steps)</summary></div>
 </div>
 다른 느낌으로 바꾸고 싶으면 말만 하세요.</div>
@@ -259,57 +306,60 @@
 <h3>목업 3 — 생성 중 (상태 말풍선)</h3>
 <div class="mock"><div class="mock-cap">목업 3 · 생성 중</div>
 <div class="win"><div class="win-body">
-<div class="rail"><span class="ric on" title="홈">⌂</span><span class="ric" title="ComfyUI">◈</span><span class="ric" title="LMStudio">◆</span><span class="ric" title="설정">⚙</span></div>
+<div class="rail"><span class="ric on" title="홈">⌂</span><span class="ric" title="대화 이력">◷</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">⚙</span></div>
 <div class="chat">
-<div class="msg ai"><div class="who">AI</div>고양이 이미지를 만들고 있어요...
+<div class="msg ai generating"><div class="who">AI</div>고양이 이미지를 만들고 있어요...
 <div class="prog"><div></div></div>
 <div style="font-size:12px;color:var(--muted)">이미지 생성 중... (예상 10초) · <span class="btn" style="font-size:11px">■ 취소</span></div>
 </div>
 </div></div>
 <div class="win-input"><span class="picker">FLUX ▾</span><span class="textbox">메시지를 입력하세요...</span><button class="send">■</button></div>
 </div></div>
-<div class="note">모델 로딩 단계(진행률 정체 구간)는 불확정 인디케이터 + 예상 시간 표시. 단계 전환 시 300ms ease-out. 취소는 기존 <code>GenerationWorker.stop()</code> (interrupt + clear_queue + ws close) 재활용.</div>
+<div class="note">모델 로딩 단계(진행률 정체 구간)는 불확정 인디케이터 + 예상 시간 표시. 단계 전환 시 300ms ease-out. 생성 중 AI 카드 테두리는 1.2초 주기 펄스/글로우 (4cut "생성 카드 테두리 펄스/글로우" 패턴 재활용) — 완료·실패·취소 시 즉시 정지. 모션 감소 설정 시 펄스 없이 정적 테두리만 표시 (접근성). 취소는 기존 <code>GenerationWorker.stop()</code> (interrupt + clear_queue + ws close) 재활용.</div>
 
 <h3>목업 4 — 모델 피커 펼침 (오픈코드식)</h3>
 <div class="mock"><div class="mock-cap">목업 4 · 모델 피커</div>
 <div class="win"><div class="win-body">
-<div class="rail"><span class="ric on" title="홈">⌂</span><span class="ric" title="ComfyUI">◈</span><span class="ric" title="LMStudio">◆</span><span class="ric" title="설정">⚙</span></div>
+<div class="rail"><span class="ric on" title="홈">⌂</span><span class="ric" title="대화 이력">◷</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">⚙</span></div>
 <div class="chat">
 <div class="msg sys">── Z-Anime 모델 최적 설정이 적용되었어요 ──</div>
 </div></div>
-<div class="win-input" style="flex-direction:column;align-items:stretch">
-<div class="drop"><div class="search">모델 검색...</div>
-<div class="opt">FLUX<small>사실적·고품질</small></div>
-<div class="opt">ZImage-Turbo<small>빠른 생성</small></div>
-<div class="opt">Juggernaut XL<small>인물·풍경</small></div>
-<div class="opt cur">● Z-Anime<small>애니·웹툰 (현재)</small></div>
-<div class="opt">ERNIE-AIO<small>포스터·타이포</small></div>
+<div class="win-input"><span class="picker">Z-Anime ▴</span><span class="textbox">메시지를 입력하세요...</span><button class="send">➤</button>
+<div class="drop">
+<div class="opt">FLUX — 사실적·고품질</div>
+<div class="opt">ZImage-Turbo — 빠른 생성</div>
+<div class="opt">Juggernaut XL — 인물·풍경</div>
+<div class="opt">RealVis XL — 사실적 사진풍</div>
+<div class="opt cur">● Z-Anime — 애니·웹툰 (현재)</div>
+<div class="opt">ERNIE-AIO — 포스터·타이포</div>
 </div>
-<div style="display:flex;gap:8px"><span class="picker">Z-Anime ▴</span><span class="textbox">메시지를 입력하세요...</span><button class="send">➤</button></div>
 </div>
 </div></div>
+<div class="note">피커 팝업은 <strong>오버레이</strong>로 피커 위로 뜬다. 채팅·입력 레이아웃을 밀지 않는다. 구현은 기존 <code>comfyModelCombo</code>(QComboBox 기본 팝업이 원래 오버레이) 로직 재활용. <strong>표시명/파일명 분리 (필수)</strong>: 현행 코드는 콤보 텍스트를 파일명으로 직접 쓴다 (<code>capture_snapshot:1616</code>, <code>detect:1707</code>, 복원 <code>setCurrentText:2406</code>). 표시명에 " — 특징"을 붙이면 체크포인트 로더에 잘못된 이름이 들어가므로, 아이템 텍스트 = 짧은 표시명, <code>itemData</code> = 정확한 파일명으로 분리하고 모든 읽기 경로를 <code>currentData()</code>로 전환한다 (P4 작업). 짧은 표시명 규칙: family 표시명 (예: "Z-Anime", "FLUX", "ERNIE Base"). 동 family 파일이 2개 이상이면 파일 stem 일부를 병기하여 구분 ("ERNIE Base (aio-base)"). <strong>모델 설명 3겹 표시</strong> (QComboBox는 2줄 아이템 불가하므로): ① 아이템 텍스트에 한 줄 특징 접미 ("Z-Anime — 애니·웹툰", family→특징 매핑은 UI층 딕셔너리로 관리, 코어 변경 없음). ② 호버 시 툴팁으로 상세 특징 (Qt ToolTipRole 데이터, 예: "Turbo — 8스텝·초고속·네거티브 둔감"). ③ 선택 후 시스템 메시지에 특징 1줄 포함 ("○○ 모델 최적 설정이 적용되었어요 (특징)"). 커스텀 2줄 팝업은 별도 위젯이 필요하므로 채택하지 않는다. <strong>검색창 없음</strong> — QComboBox 기본 팝업에는 검색이 없고, 모델 5개 수준에는 불필요하다. 목업 8의 확장 기준과 동일하게 10개 초과 시 검색 추가를 검토한다. <strong>목록 6종은 예시</strong> — 실제 피커 내용은 ComfyUI 모델 폴더 스캔 결과이므로 사용자 환경마다 다르다. 자동 판별 family는 FLUX·ZImage·ZAnime·ERNIE + generic checkpoint (Juggernaut·RealVis 등은 파일명 규칙으로 판별). 미판별 모델은 generic으로 동작하거나 목업 8의 수동 프로필로 등록한다.</div>
 <div class="note">모델 변경 시 <code>apply_model_defaults</code>가 Steps/CFG/샘플러/스케줄러를 자동 세팅하고 채팅에 시스템 메시지로 안내. 기존 <code>comfyModelCombo</code> + <code>refresh_models</code>/<code>set_models</code> 로직 재활용.</div>
 
 <h3>목업 5 — 생성 옵션 펼침 (고급 사용자용)</h3>
 <div class="mock"><div class="mock-cap">목업 5 · 생성 옵션 (기본 접힘)</div>
 <div class="win">
-<div class="win-head"><span class="logo">ComfyCraft</span><span class="btn">＋ 새 대화</span><span class="spacer"></span><span class="badge ok">ComfyUI 연결됨</span></div>
+<div class="win-head"><span class="logo">ComfyCraft</span><span class="btn">＋ 새 대화 ▾</span><span class="spacer"></span><span class="badge ok">ComfyUI 연결됨</span><span class="badge ok">LM 연결됨</span></div>
 <div class="win-body">
+<div class="rail"><span class="ric on" title="홈">⌂</span><span class="ric" title="대화 이력">◷</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">⚙</span></div>
 <div class="opts">
 <h4>생성 옵션</h4>
-<h4>모델 상세</h4>
-<div class="optrow">ComfyUI <span class="pill">FLUX ▾</span></div>
-<div class="optrow">LM <span class="pill">Qwen ▾</span> <span class="pill">↻</span></div>
+<h4>모델 상세 (읽기 전용)</h4>
+<div class="optrow"><span class="lbl">현재 모델</span><span class="pill">FLUX</span><span class="val"></span></div>
+<div class="optrow"><span class="lbl"></span><span style="font-size:11px">입력창에서 변경</span><span class="val"></span></div>
+<div class="optrow"><span class="lbl">LM 모델</span><span class="pill">Qwen ▾</span><span class="pill">↻</span></div>
 <h4>해상도</h4>
-<div class="optrow"><span class="pill">1024</span> × <span class="pill">1024</span></div>
-<div class="presets"><span class="pill">1:1</span><span class="pill">16:9</span><span class="pill">9:16</span></div>
+<div class="optrow"><span class="lbl">크기</span><span><span class="pill">1024</span> × <span class="pill">1024</span></span><span class="val"></span></div>
+<div class="optrow"><span class="lbl">비율</span><span class="presets" style="margin:0"><span class="pill">1:1</span><span class="pill">16:9</span><span class="pill">9:16</span></span><span class="val"></span></div>
 <h4>샘플링 (고급)</h4>
-<div class="optrow">Steps <div class="slider"></div> 20</div>
-<div class="optrow">CFG <div class="slider"></div> 7.0</div>
-<div class="optrow">시드 <span class="pill">12345</span> <span class="pill">주사위</span></div>
-<div class="optrow">샘플러 <span class="pill">DPM++ 2M ▾</span></div>
+<div class="optrow"><span class="lbl">Steps</span><div class="slider"></div><span class="val">20</span></div>
+<div class="optrow"><span class="lbl">CFG</span><div class="slider"></div><span class="val">7.0</span></div>
+<div class="optrow"><span class="lbl">시드</span><span class="pill">12345</span><span><span class="pill">랜덤</span> <span class="pill">고정</span></span></div>
+<div class="optrow"><span class="lbl">샘플러</span><span class="pill">DPM++ 2M ▾</span><span class="val"></span></div>
 <h4>FaceDetailer [OFF]</h4>
-<div class="optrow"><span class="btn" style="font-size:11px">기본값으로 되돌리기</span></div>
+<div class="optrow"><span class="lbl"></span><span class="btn" style="font-size:11px">기본값으로 되돌리기</span><span class="val"></span></div>
 </div>
 <div class="chat">
 <div class="msg ai"><div class="who">AI</div>귀여운 고양이 3마리를 그렸어요!</div>
@@ -318,6 +368,7 @@
 </div>
 <div class="win-input"><span class="picker">FLUX ▾</span><span class="textbox">메시지를 입력하세요...</span><button class="send">➤</button></div>
 </div></div>
+<div class="note"><strong>레일·패널 규칙 (전 버튼 공통)</strong>: 55px 레일은 항상 표시되고, 패널은 그 우측에 추가로 펼쳐진다 (레일이 패널로 바뀌는 게 아니라 레일+패널 병존). <strong>호버 자동 펼침 없음.</strong> ① ⌂ 클릭 → 생성 옵션 패널 펼침. ② ◷ 클릭 → 대화 이력 패널 펼침. 다른 버튼 클릭 시 내용은 교체되고 패널은 열린 상태 유지. ③ 열린 상태에서 같은 버튼 재클릭 → 접힘. ④ ?/⚙ → 다이얼로그만 열고 패널 상태는 그대로. <strong>선택된 레일 버튼은 브랜드 배경+발광 테두리로 미선택과 확연히 구분</strong>한다 (목업의 파란 강조 상태). 목업 5는 ⌂ 선택, 목업 9는 ◷ 선택 상태.</div>
 
 <h3>목업 6 — 이미지 전체화면 미리보기</h3>
 <div class="mock"><div class="mock-cap">목업 6 · 미리보기 모달</div>
@@ -332,7 +383,7 @@
 <h3>목업 7 — 생성 실패 (대화형 오류)</h3>
 <div class="mock"><div class="mock-cap">목업 7 · 오류 처리</div>
 <div class="win"><div class="win-body">
-<div class="rail"><span class="ric on" title="홈">⌂</span><span class="ric" title="ComfyUI">◈</span><span class="ric" title="LMStudio">◆</span><span class="ric" title="설정">⚙</span></div>
+<div class="rail"><span class="ric on" title="홈">⌂</span><span class="ric" title="대화 이력">◷</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">⚙</span></div>
 <div class="chat">
 <div class="msg ai"><div class="who">AI</div>이미지 생성에 실패했어요. 원인: ComfyUI 서버에 연결할 수 없어요.
 <div class="errbox">
@@ -344,10 +395,20 @@
 </div></div>
 
 <h3>목업 8 — 설정: 이미지 모델 관리 (자동 판별 + 수동 프로필)</h3>
-<div class="mock"><div class="mock-cap">목업 8 · 설정 → 이미지 모델 (기본 자동, 수동은 여기서)</div>
-<div class="win">
-<div class="win-head"><span class="logo">설정</span><span class="spacer"></span><span class="btn">✕ 닫기</span></div>
+<div class="mock"><div class="mock-cap">목업 8 · 설정 다이얼로그 (메인 윈도우 위 모달 — 배경에 레일 보임)</div>
+<div class="win" style="position:relative">
+<div class="win-head"><span class="logo">ComfyCraft</span><span class="btn">＋ 새 대화 ▾</span><span class="spacer"></span><span class="badge ok">ComfyUI 연결됨</span><span class="badge ok">LM 연결됨</span><span class="btn">다크 ▾</span></div>
 <div class="win-body">
+<div class="rail"><span class="ric" title="홈">⌂</span><span class="ric" title="대화 이력">◷</span><span class="ric" title="도움말">?</span><span class="ric on" title="설정">⚙</span></div>
+<div class="chat">
+<div class="msg user"><div class="who">사용자</div>이쁘고 귀여운 고양이 3마리 그려줘</div>
+<div class="msg ai"><div class="who">AI</div>귀여운 고양이 3마리를 그렸어요!</div>
+</div>
+</div>
+<div class="win-input"><span class="picker">FLUX ▾</span><span class="textbox">메시지를 입력하세요...</span><button class="send">➤</button></div>
+<div class="dlg-ov"><div class="dlg">
+<div class="dlg-head"><span>설정</span><span class="spacer"></span><span class="btn">✕ 닫기</span></div>
+<div class="dlg-body">
 <div class="tabs"><div>일반</div><div class="on">이미지 모델</div><div>AI 서버</div><div>출력</div></div>
 <div class="setbody">
 <h4>자동 판별 모델 (기본 — 고르기만 하면 됨)</h4>
@@ -357,26 +418,58 @@
 <div class="warnline">ComfyUI 모델 폴더를 스캔하여 자동 등록됩니다. 별도 설정 불필요.</div>
 <h4>수동 프로필 — 4cut 방식 (고급 · 신규/예외 모델용)</h4>
 <div class="modelrow"><strong>내 커스텀 모델</strong><span class="spacer"></span><span class="btn" style="font-size:11px">＋ 추가</span></div>
-<div class="optrow" style="margin-left:2px">모델 파일 <span class="pill">custom.safetensors ▾</span></div>
-<div class="optrow" style="margin-left:2px">워크플로우 <span class="pill">custom.json</span> <span class="pill">찾아보기</span></div>
+<div class="optrow"><span class="lbl">모델 파일</span><span class="pill">custom.safetensors ▾</span><span class="val"></span></div>
+<div class="optrow"><span class="lbl">워크플로우</span><span class="pill">custom.json</span><span class="pill">찾아보기</span></div>
 <div class="checkline">✓ 필수 노드 존재 ✓ 체크포인트 지정 ✓ 드라이런 통과</div>
-<div class="optrow" style="margin-left:2px"><span class="btn primary" style="font-size:11px">모델 정보 저장</span><span style="font-size:11px;color:var(--muted)">검사 실패 시 저장 차단</span></div>
+<div class="optrow"><span class="lbl"></span><span class="btn primary" style="font-size:11px">모델 정보 저장</span><span style="font-size:11px;color:var(--muted)">검사 실패 시 저장 차단</span></div>
+<h4>모델 폴더</h4>
+<div class="optrow"><span class="lbl">경로</span><span class="pill">C:\ComfyUI\models ▾</span><span class="pill">찾아보기</span></div>
+<div class="warnline">스캔 대상 폴더. 변경 후 새로고침(↻) 시 목록 갱신 (<code>browse_model_folder</code> 재활용).</div>
+<h4>설정 파일</h4>
+<div class="optrow"><span class="lbl"></span><span><span class="btn" style="font-size:11px">불러오기</span> <span class="btn" style="font-size:11px">초기화</span> <span class="btn primary" style="font-size:11px">저장·닫기</span></span><span class="val"></span></div>
+<div class="warnline">기존 <code>load_config</code>·<code>restore_defaults</code>(전체 기본값+FD 초기화 포함)·저장 로직 그대로 (<code>dlgLoadConfigBtn</code>·<code>dlgResetDefaultsBtn</code>·<code>dlgSaveCloseBtn</code> 재활용).</div>
 </div>
 </div>
 </div></div>
-<div class="note">원칙: <strong>기본은 자동 판별</strong> (사용자는 모델만 고름). 4cut식 수동 프로필(workflow JSON 지정 + 검증 게이트)은 설정 섹션에만 둔다. factory 자동 생성·AI 워크플로우 생성 이식은 v2 범위 밖 별도 기능으로 분리.</div>
+</div></div>
+<div class="note">원칙: <strong>기본은 자동 판별</strong> (사용자는 모델만 고름). 목록형으로 표시하는 이유: 자동 판별 모델은 스캔 결과 그대로 보여주는 <strong>확인용</strong>이라 선택 UI가 필요 없고 (선택은 입력 영역 피커에서), 개수 3~6개 수준이라 펼친 목록이 상태를 한눈에 보여준다 — 각 행의 ● 표시로 판별 성공/실패 확인 가능. 드롭박스로 숨기면 "어떤 모델이 인식됐는지" 알 수 없다. <strong>확장 기준</strong>: 모델 10개 초과 시 목록 상단에 검색창 + family별 그룹핑 추가 (선형 리스트 유지). 가상 스크롤은 100개 이상 시에만 검토 — ComfyUI 모델 폴더는 현실적으로 수십 개 수준이라 오버엔지니어링하지 않는다. 4cut식 수동 프로필(workflow JSON 지정 + 검증 게이트)은 설정 섹션에만 둔다. 구현은 기존 설정 다이얼로그(<code>show_settings_dialog</code>)에 "이미지 모델" 탭을 추가하는 형태. factory 자동 생성·AI 워크플로우 생성 이식은 범위 밖 별도 기능으로 분리.</div>
+
+<h3>목업 9 — ◷ 대화 이력 패널 (세션 목록)</h3>
+<div class="mock"><div class="mock-cap">목업 9 · ◷ 클릭 시 좌측 패널에 세션 목록 (4cut 방식)</div>
+<div class="win">
+<div class="win-head"><span class="logo">ComfyCraft</span><span class="btn">＋ 새 대화 ▾</span><span class="spacer"></span><span class="badge ok">ComfyUI 연결됨</span><span class="badge ok">LM 연결됨</span><span class="btn">다크 ▾</span></div>
+<div class="win-body">
+<div class="rail"><span class="ric" title="홈">⌂</span><span class="ric on" title="대화 이력">◷</span><span class="ric" title="도움말">?</span><span class="ric" title="설정">⚙</span></div>
+<div class="opts" style="width:250px">
+<h4>대화 이력</h4>
+<div class="modelrow" style="border-color:var(--brand)"><strong>귀여운 고양이 3마리…</strong><span class="spacer"></span><span class="okdot">●</span></div>
+<div class="warnline" style="margin-left:4px">FLUX · 오늘 14:02 · 이미지 3장 (현재)</div>
+<div class="modelrow"><strong>우주 배경 고양이…</strong></div>
+<div class="warnline" style="margin-left:4px">Z-Anime · 어제 · 이미지 1장</div>
+<div class="modelrow"><strong>사실적 강아지…</strong></div>
+<div class="warnline" style="margin-left:4px">FLUX · 3일 전 · 이미지 5장</div>
+<div class="warnline">우클릭: 이름 변경 · 삭제 · 프롬프트 복사</div>
+</div>
+<div class="chat">
+<div class="msg ai"><div class="who">AI</div>귀여운 고양이 3마리를 그렸어요!</div>
+</div>
+</div>
+<div class="win-input"><span class="picker">FLUX ▾</span><span class="textbox">메시지를 입력하세요...</span><button class="send">➤</button></div>
+</div></div>
+<div class="note"><strong>세션 처리 규칙 (4cut과 동일)</strong>: ① 헤더 ＋새 대화는 <strong>스플릿 버튼</strong>이다. 클릭 → 새 세션 즉시 생성 + 빈 채팅 전환 (기존 세션은 유지). ▾ → 최근 세션 5개 빠른 전환 메뉴 (◷ 패널을 열지 않고 바로 이동). 전체 목록·검색·이름 변경·삭제는 ◷ 패널에서. 제목은 첫 사용자 메시지 앞 20자로 자동 부여, 우클릭→이름 변경. ② 메시지 추가·생성 완료마다 <code>session.json</code> 자동 저장. ③ 생성 중인 세션은 삭제·이름 변경·다른 세션으로 전환 차단 (단일 워커 보호). ④ 세션 삭제 시 이미지 파일은 출력 폴더에 유지, 기록만 삭제. ⑤ 시작 시 마지막 세션 자동 복원. <strong>▾ 메뉴와 ◷ 패널은 중복이 아니다</strong>: ▾는 최근 5개 빠른 전환 전용 (검색·이름 변경·삭제 없음), ◷는 전체 목록·검색·관리 전용. 브라우저의 방문 기록 메뉴 vs 기록 페이지와 같은 분담이다. <strong>단일 원천</strong>: 양쪽 모두 <code>.sessions/sessions.json</code> 인덱스를 구독한다. 삭제·이름 변경·새 세션 발생 시 양쪽 즉시 갱신 — 패널에서 삭제하면 메뉴에서도 사라진다 (역도 동일).</div>
 
 <h2 id="s5">5. 생성 옵션 섹션 (좌측 사이드바 — ComfyUI 설정 보존)</h2>
 <p><strong>일반 사용자에게는 숨김(기본 접힘, 왼쪽에서 펼쳐짐). 고급 사용자가 직접 조절하는 공간. 삭제하지 않고 전부 유지한다.</strong></p>
 <table>
 <tr><th>그룹</th><th>포함 항목 (기존 소스)</th><th>비고</th></tr>
-<tr><td>모델 상세</td><td>입력 영역 피커와 동기화된 상세 콤보, LM 모델 콤보 (<code>lmModelCombo</code>), 새로고침</td><td><code>refresh_models</code>, <code>set_models</code> 재활용</td></tr>
+<tr><td>모델 상세</td><td>현재 모델 표시 (읽기 전용 텍스트 — 변경은 입력 영역 피커에서만, 단일 진실 원천). LM Studio 모델 콤보 (<code>lmModelCombo</code>), 모델 목록 새로고침. ComfyUI 중복 콤보는 두지 않는다 — 2개 위젯 동기화 버그 원천 제거. 서버 URL 입력란은 두지 않는다 (설정 다이얼로그에만 존재 — <code>dlgComfyUrlEdit</code>/<code>dlgLmUrlEdit</code> 재활용, 4cut과 동일)</td><td><code>refresh_models</code>, <code>set_models</code> 재활용. 피커 변경 시 표시 텍스트만 갱신 (단방향)</td></tr>
 <tr><td>해상도</td><td>너비/높이 SpinBox (<code>widthSpinBox</code>, <code>heightSpinBox</code>), 프리셋 버튼</td><td>기존 min/max/default 유지</td></tr>
-<tr><td>샘플링</td><td>Steps, CFG, 시드, 샘플러 (<code>SAMPLER_NAMES</code>), 스케줄러, Denoise</td><td><code>GenerationSettings</code>, <code>build_generation_snapshot</code> 그대로</td></tr>
-<tr><td>프롬프트 고급</td><td>네거티브 (<code>negativePromptEdit</code>), 향상 프롬프트 (<code>enhancePromptEdit</code>), 향상 버튼</td><td>모델별 표시 규칙 유지</td></tr>
+<tr><td>샘플링</td><td>Steps, CFG, 시드 (<code>seedSpinBox</code> + <code>randomSeedButton</code> 랜덤/<code>lockSeedButton</code> 고정), 샘플러 (<code>SAMPLER_NAMES</code>), 스케줄러, Denoise</td><td><code>GenerationSettings</code>, <code>build_generation_snapshot</code> 그대로</td></tr>
+<tr><td>프롬프트 고급</td><td>네거티브 (<code>negativePromptEdit</code>, 옵션에 표시 — 모델별 표시 규칙 유지), 향상 프롬프트 박스 (<code>enhancePromptEdit</code>, 화면에 표시하지 않고 스냅샷 호환용 히든 홀더로 유지 — 표시는 채팅 인라인이 담당), 수동 향상 버튼 (<code>enhancePromptButton</code>, 생성 없이 향상문 미리보기용으로 옵션에 유지)</td><td>모델별 표시 규칙 유지. <code>capture_snapshot</code>이 박스를 직접 읽으므로 삭제하지 않는다</td></tr>
 <tr><td>ZAnime 스타일</td><td>웹툰/일본애니/기본 버튼</td><td>zanime 모델일 때만 표시</td></tr>
-<tr><td>FaceDetailer</td><td>활성화 토글 + 전 슬라이더 (<code>FACEDETAILER_SLIDER_SPECS</code>)</td><td>스냅샷 키 전부 유지</td></tr>
-<tr><td>테마·연결·출력</td><td>다크/라이트 2개 테마 (합병 안정화 후 추가 테마 검토), ComfyUI/LM URL, 출력 폴더</td><td>설정 다이얼로그·<code>config_manager</code> 유지. 기존 9개 테마 중 7개는 비활성화하고 다크+라이트만 노출</td></tr>
+<tr><td>FaceDetailer</td><td>활성화 토글 + 전 슬라이더 (<code>FACEDETAILER_SLIDER_SPECS</code>). 기본 OFF (체크박스 미체크가 기본값) — 켜면 상세 패널 표시, 끄면 숨김. 현행 동작 그대로 (<code>facedetailerPanel.setVisible(isChecked)</code>, 툴팁 "처음에는 꺼 두는 것을 추천")</td><td>스냅샷 키 전부 유지</td></tr>
+<tr><td>테마·연결·출력</td><td>다크/라이트 2개 테마 (합병 안정화 후 추가 테마 검토), ComfyUI/LM URL, 출력 폴더 열기 (<code>openOutputFolderButton</code> → 설정 또는 옵션 하단에 유지)</td><td>설정 다이얼로그·<code>config_manager</code> 유지. 기존 9개 테마 중 7개는 비활성화하고 다크+라이트만 노출</td></tr>
+<tr><td>로그 (디버깅용·기본 숨김)</td><td>로그창 (<code>logTextEdit</code> + <code>toggleLogButton</code> + <code>resetButton</code> 초기화 + <code>errorBannerLabel</code> 클릭→펼치기). 일반 화면에 상시 표시하지 않고 접어둔다. 썸네일 4칸 (<code>thumbBtn_0-3</code>)은 폐기 — 채팅 스크롤백으로 대체되므로 이식하지 않는다</td><td>로그·에러배너 로직 그대로. 에러 발생 시에만 배너 노출 → 클릭 시 로그 펼침</td></tr>
 </table>
 
 <h2 id="s6">6. 모델별 최적 기본값</h2>
@@ -385,36 +478,43 @@
 <li>모델 변경 시 <code>MainController.apply_model_defaults</code> (<code>app/main_controller.py:1264</code>)가 자동 세팅. 채팅 UI에서는 시스템 메시지로 표시.</li>
 <li>"귀여운 고양이 3마리" 같은 요구는 LM Studio 프롬프트 향상(<code>enhance_prompt_sync</code>)이 구체 프롬프트로 변환, 샘플링 설정은 모델 기본값이 담당.</li>
 <li>고급 사용자가 값을 바꾸면 스냅샷에 우선 반영. "기본값으로 되돌리기" = <code>apply_model_defaults(현재 모델)</code> 재호출.</li>
-<li>프롬프트 향상은 대화 전송 시 자동 수행 (LM 연결 시). 향상 결과는 옵션 섹션에서 확인·수정 가능.</li>
+<li>프롬프트 향상은 대화 전송 시 자동 수행 (LM 연결 시). 향상 결과는 채팅 AI 메시지 내 "사용된 프롬프트 ▸" 영역에서 확인·복사 가능.</li>
+<li><strong>전송마다 독립 프롬프트 (중요)</strong>: "고양이 그려줘" 다음에 "슈퍼맨 그려줘"를 보내면 슈퍼맨 프롬프트로 새로 시작한다. 이전 메시지와 합치지 않는다 ("고양이+슈퍼맨" 혼합 방지). "수정"도 새 독립 생성이며, 맥락 유지는 사용자가 주체를 반복 입력하는 방식으로 한다 ("사실적인 고양이로 바꿔줘").</li>
+<li><strong>오래된 향상 텍스트 자동 재사용 금지</strong>: 현행 <code>GenerationWorker</code>는 향상 칸에 텍스트가 있으면 향상을 건너뛰고 그 텍스트를 쓴다. 채팅 구조에서는 직전 생성의 향상문이 남아 다음 메시지를 오염시킨다 ("슈퍼맨" 요청에 고양이 향상문 사용). 따라서 <strong>일반 전송 시 향상 칸을 초기화한 뒤 스냅샷을 수집</strong>한다 (P2 작업에 포함).</li>
+<li><strong>프롬프트 재활용은 명시적 동작으로</strong>: 초기화가 재활용을 막지 않는다. 과거 메시지의 프롬프트를 쓰고 싶으면 두 경로가 있다. ① "사용된 프롬프트 ▸" 영역의 [복사] → 입력창에 붙여넣기 → 전송 (새로 향상됨). ② 이미지 카드의 [수정 요청] → 해당 메시지의 최종 프롬프트(향상문)를 입력창에 자동 로드 + "편집 중" 표시 → 고쳐서 전송 (이 경우 향상 칸으로 직행시켜 재향상 없이 사용 — 현행 스킵 로직이 정당하게 동작하는 케이스). <strong>[수정 요청]은 프롬프트만이 아니라 해당 생성의 전체 옵션 스냅샷(모델·해상도·시드·Steps·CFG·샘플러·스케줄러·ZAnime·FaceDetailer)까지 함께 복원</strong>한다 — 현행 <code>_on_thumbnail_clicked</code> 복원 로직(2398~2429행)을 썸네일 없이 채팅에서 재활용. 현행 메모리 <code>generation_history</code>(최대 4개)는 <code>session.json</code> 메시지로 이관하여 개수 제한 해제. 같은 프롬프트로 다른 느낌을 내려면 시드·모델·Steps를 바꿔 재생성한다.</li>
+<li><strong>ZAnime 채팅 흐름</strong>: 모델 피커에서 zanime 선택 후 전송했는데 스타일 미선택이면 생성하지 않고 AI 메시지로 "Z-Anime 스타일을 골라주세요" + 인라인 버튼 3개 (웹툰/일본애니/기본, 기존 <code>select_zanime_style</code> 저장 로직 재활용)를 표시한다. 버튼 클릭 시 스타일 저장 + <strong>대기 중이던 원래 메시지로 자동 생성 시작</strong> (프롬프트 향상→생성, 재전송 불필요). 이후 메시지는 저장된 스타일로 계속 생성된다. 현행 "스타일 선택 필요" 차단 로직 (<code>start_generation</code>의 ValueError 처리)을 채팅 흐름에 맞게 이식한 것이다.</li>
 </ul>
 
 <h2 id="s7">7. 기존 소스 재활용 계획</h2>
 <table>
-<tr><th>v2 용도</th><th>재활용 소스</th><th>내용</th></tr>
+<tr><th>용도</th><th>재활용 소스</th><th>내용</th></tr>
 <tr><td>생성 실행</td><td><code>app/sections/generation.py</code></td><td><code>GenerationSettings</code>, <code>build_generation_snapshot</code>, <code>GenerationWorker</code> 전체, <code>WorkerSignals</code></td></tr>
-<tr><td>프롬프트 처리</td><td><code>app/sections/prompt.py</code></td><td>정규화, 5000자 제한, <code>SAMPLER_NAMES</code>, <code>enhance_prompt_sync</code>, <code>PromptEnhanceWorker</code></td></tr>
+<tr><td>프롬프트 처리</td><td><code>app/sections/prompt.py</code></td><td>정규화, 5000자 제한, <code>SAMPLER_NAMES</code>, <code>enhance_prompt_sync</code>, <code>PromptEnhanceWorker</code>. 향상 프롬프트는 옵션 섹션이 아니라 <strong>채팅 AI 메시지 내 "사용된 프롬프트 ▸" 접기 영역에 표시 + [복사]</strong> (<code>copyPromptButton</code>→<code>_copy_enhanced_prompt</code> 로직을 인라인 버튼에 재활용)</td></tr>
 <tr><td>진행/시간</td><td><code>app/sections/execution.py</code></td><td><code>ExecutionStatus</code>, <code>LoadingAnimation</code>, <code>ElapsedTimer</code></td></tr>
 <tr><td>연결</td><td><code>app/sections/connection.py</code>, <code>app/core/api_client.py</code></td><td>ComfyUI/LM 클라이언트, 연결 체크·배지</td></tr>
-<tr><td>결과/저장</td><td><code>app/sections/result.py</code></td><td><code>show_image</code>, <code>save_image_as</code>, <code>resize_preview</code></td></tr>
+<tr><td>결과/저장</td><td><code>app/sections/result.py</code></td><td><code>show_image</code>, <code>save_image_as</code>(→이미지 카드 [저장]), <code>resize_preview</code>, <code>_copy_image_to_clipboard</code>(→이미지 카드 [복사], <code>copyImageButton</code> 재활용). 공유 링크 기능은 코드에 없으므로 목업·명세에서 제외</td></tr>
 <tr><td>모델/워크플로우</td><td><code>app/core/model_registry.py</code>, <code>workflow_manager.py</code>, <code>model_profiles/*</code></td><td>API 변경 금지, 그대로 사용</td></tr>
 <tr><td>테마/토큰</td><td><code>app/gui/theme_manager.py</code>, <code>design_tokens.py</code></td><td>다크/라이트 2개 테마만 노출 (기존 9개 중 7개 비활성화, 코드·QSS는 유지하고 합병 안정화 후 재검토), 색상·반경·애니메이션 토큰, 포커스 링</td></tr>
 <tr><td>버튼/다이얼로그</td><td><code>app/gui/*</code>, <code>dialogs/*</code></td><td>ZAnime 버튼, 생성/정지 토글, 설정·도움말 다이얼로그</td></tr>
-<tr><td>컨트롤러</td><td><code>app/main_controller.py</code></td><td>스냅샷 수집, 모델 기본값, 카운터, 프리셋, 에러 배너 (사이드바 애니메이션 코드는 현행 UI에 위젯이 없어 미동작 — 신규 사이드바에 방식만 참고)</td></tr>
-<tr><td>UI 정의</td><td><code>assets/ui/main.ui</code> 등</td><td>objectName 유지, <code>main.ui</code> 직접 개편 (채팅+옵션 레이아웃으로 재배치, <code>main.ui.bak</code> 백업 유지)</td></tr>
+<tr><td>컨트롤러</td><td><code>app/main_controller.py</code></td><td>스냅샷 수집, 모델 기본값, 카운터(채팅 입력창에 글자 수 표시 — 5000자 제한 유지), 프리셋, 에러 배너 (사이드바 애니메이션 코드는 현행 UI에 위젯이 없어 미동작 — 신규 사이드바에 방식만 참고). <strong>모델 콤보 표시명/파일명 분리</strong>: <code>set_models</code>에서 아이템 텍스트=짧은 표시명·<code>itemData</code>=정확한 파일명으로 적재하고, 스냅샷·판별·복원 경로 (<code>capture_snapshot</code>·<code>detect</code>·<code>setCurrentText</code> 복원)를 <code>currentData()</code>/<code>findData</code> 기반으로 전환 (표시명 접미가 파일명을 오염시키면 체크포인트 로더 실패). 제거 대상: <code>tabWidget</code> 탭 전환 구조 전체 (채팅+패널로 대체), 헤더 <code>settingsButton</code>/<code>helpButton</code> 연결, <code>errorBannerLabel</code> 중복 정의 해소 (<code>main.ui:2156,2172</code>에 동일 objectName 2개 — P1에서 1개로 정리, <code>find()</code> 충돌 방지). 수정 대상: 진행/미리보기 위젯(<code>progressStatusLabel</code>·<code>progressBar</code>·<code>previewLabel</code> 등)은 메시지별 인스턴스가 되므로 <code>find()</code> 단일 조회 대신 활성 버블 참조로 전환. zanime 프레임 앵커(<code>modelSelectLayout</code>/<code>step2Layout</code>)는 신규 레이아웃 앵커로 교체. 스플리터 비율 로직(<code>_apply_main_splitter_ratio</code>)은 신규 레이아웃에 맞게 조정 또는 삭제</td></tr>
+<tr><td>UI 정의</td><td><code>assets/ui/main.ui</code> 등</td><td>objectName 유지, <code>main.ui</code> 직접 개편 (채팅+옵션 레이아웃으로 재배치, 개편 전 git 커밋으로 백업)</td></tr>
 </table>
 <p><strong>실질 신규 6종 (껍데기 위주)</strong>: ChatMessage, ImageCard, GenerationOptionsPanel(기존 위젯 컨테이너), GenerationStatusBubble, ImagePreviewModal, ChatHistoryView.</p>
+<p><strong>채팅 컨테이너 결정</strong>: 메인 채팅 영역은 <code>QScrollArea</code> + <code>QVBoxLayout</code> + 커스텀 메시지 위젯 (수백 메시지 수준에서 가상 스크롤 불필요, 기존 패턴 재활용, 구현 단순). <code>QListView</code>+delegate는 ◷ 세션 목록에만 사용 (가상 스크롤+페이지네이션). <code>QMenu</code>+검색 커스텀 팝업(모델 피커 검색 등)은 과잉설계로 채택하지 않는다 — 모델 5개 수준은 <code>QComboBox</code>로 충분.</p>
 
 <h2 id="s8">8. 상태 관리 · 스타일링 · 접근성 · 오류 처리</h2>
 <h3>상태 관리</h3>
 <ul>
-<li>대화 목록 (새 대화/전환/삭제), 현재 대화 메시지, AI 맥락용 최근 N개 메시지.</li>
+<li>대화 목록 (새 대화/전환/삭제), 현재 대화 메시지. 수정 재생성 기준 = 마지막 생성 결과 1건 (프롬프트+스냅샷). LLM 대화 맥락은 사용하지 않는다 (범위 제외).</li>
 <li>생성 상태: <code>WorkerSignals</code> (progress/status/log/image/error/finished/enhanced_prompt) 그대로. 대기 → 생성 중 → 완료/오류/취소.</li>
 <li>옵션 스냅샷을 이미지 카드 상세 영역 + 시스템 메시지에 기록 (재현성).</li>
+<li><strong>1회 생성 = 이미지 1장</strong>: 현행 <code>download_first_image</code>가 첫 번째 결과만 다운로드하므로, 이미지 카드는 1장 기준. 한 세션 안에서는 메시지마다 생성하므로 이미지 여러 장 누적 가능. 1회 요청에 여러 장(배치 생성)은 미지원 — 범위 밖.</li>
 </ul>
 <h3>대화 저장 형식 — session.json 도입 (확정)</h3>
 <p>4cut식 세션 저장을 도입한다. 저장 위치: 출력 디렉토리 하위 <code>.sessions/sessions.json</code> (중앙 인덱스) + 세션별 폴더의 <code>session.json</code>.</p>
 <pre>session.json
 ├─ session_id / title / created_at / updated_at
+├─ type: "single"          ← 합병 후 4cut 만화는 "comic"으로 확장 (하위 호환)
 ├─ model                 ← 당시 선택 모델 (ComfyUI)
 ├─ messages[]            ← 채팅 복원용
 │   ├─ role: user / ai / system
@@ -426,7 +526,23 @@
 <ul>
 <li>앱 재시작 시 마지막 세션 자동 복원. 수정 재생성은 저장된 snapshot을 그대로 재사용한다.</li>
 <li>이미지 파일 자체는 기존 출력 폴더에 유지하고, session.json에는 경로만 기록한다.</li>
+<li><strong>저장 트리거 4종</strong>: ① 전송 시 → 세션 생성/updated_at 갱신 ② <code>finished</code> 시 → 메시지+snapshot+image_path+elapsed 저장 ③ 세션 전환 시 → 현 세션 저장 후 대상 로드 ④ 앱 종료 시 → 마지막 세션 저장.</li>
 </ul>
+<h3>상태 템플릿 목록 (11종 — 구현 시 그대로 사용)</h3>
+<table>
+<tr><th>상태</th><th>템플릿 (빈칸만 채움)</th></tr>
+<tr><td>환영</td><td>안녕하세요! 어떤 이미지를 만들어드릴까요?</td></tr>
+<tr><td>생성 완료</td><td>[모델명]으로 그렸어요. (○초 소요)</td></tr>
+<tr><td>수정 완료</td><td>○○ 스타일로 수정했어요.</td></tr>
+<tr><td>생성 중</td><td>[요청 앞 30자] 이미지를 만들고 있어요...</td></tr>
+<tr><td>모델 변경</td><td>○○ 모델 최적 설정이 적용되었어요.</td></tr>
+<tr><td>옵션 변경</td><td>옵션이 변경되었습니다 (○○).</td></tr>
+<tr><td>생성 실패</td><td>실패했어요. 원인: ○○ + [다시 시도] [프롬프트 수정] [로그 보기]</td></tr>
+<tr><td>LM 미연결</td><td>프롬프트 향상 없이 원문으로 생성했어요.</td></tr>
+<tr><td>금지어</td><td>이 표현은 사용할 수 없어요. (위반 단어 하이라이트)</td></tr>
+<tr><td>생성 중 전송</td><td>생성 중이에요. 기다리거나 취소해주세요.</td></tr>
+<tr><td>스타일 선택 (ZAnime)</td><td>Z-Anime 스타일을 골라주세요. + [웹툰] [일본애니] [기본] (선택 시 대기 메시지로 자동 생성)</td></tr>
+</table>
 <h3>스타일링 (디자인 토큰 연동)</h3>
 <ul>
 <li>배경 #1a1a1a, 사용자 메시지 #0078D4, AI 메시지 #2c2c2c, 강조 #EC4899, 성공 #4ED9A3, 경고 #F0B90B, 오류 #C42B1C.</li>
@@ -437,6 +553,7 @@
 <ul>
 <li>Tab 순서: 입력창 → 전송 → 채팅 메시지 → 옵션 토글 → 헤더. Enter 전송, Shift+Enter 줄바꿈, Esc 모달 닫기.</li>
 <li><code>accessibleName</code>/<code>accessibleDescription</code>, <code>QAccessible.announce()</code> 상태 알림, 대체 텍스트, 대비 4.5:1.</li>
+<li><strong>핵심 매핑</strong>: 전송 버튼 "이미지 생성하기/생성 중지", 모델 피커 "이미지 생성 모델 선택", 입력창 "이미지 설명 입력", 이미지 카드 이미지 "생성된 이미지: [요청 앞 30자]", 저장 "이미지 저장", 복사 "이미지 복사", 수정 요청 "프롬프트 불러와 수정", 미리보기 닫기 "미리보기 닫기", 상태 말풍선은 <code>QAccessible.announce()</code>로 낭독.</li>
 </ul>
 <h3>오류 처리</h3>
 <ul>
@@ -461,25 +578,33 @@
 <h3>범위 제외 (하지 않는 것 — 확정)</h3>
 <ul>
 <li><strong>로컬 LLM 실시간 채팅 연동 없음</strong>: LM Studio는 현행대로 <strong>프롬프트 향상 전용</strong>으로만 사용 (<code>enhance_prompt_sync</code>, 모델별 시스템 지시문). 대화 답변 생성에 LLM을 쓰지 않는다.</li>
-<li><strong>AI 응답 = 상태 템플릿</strong>: "그렸어요/수정했어요/실패했어요" 등은 앱이 조립하는 고정 문장 + 빈칸(모델명, 소요 시간, 오류 원인) 채움. 약 10개로 완결.</li>
+<li><strong>AI 응답 = 상태 템플릿</strong>: "그렸어요/수정했어요/실패했어요" 등은 앱이 조립하는 고정 문장 + 빈칸(모델명, 소요 시간, 오류 원인) 채움. 11종으로 완결 (ZAnime 스타일 선택 포함).</li>
 <li><strong>의도 판단·자연어 명령 파싱 없음</strong>: "Steps 30으로" 같은 문장 해석, "그려줘" 의도 판별, 확인 절차 일체 미구현. 모든 입력은 이미지 프롬프트로 취급.</li>
 <li><strong>전송 규칙 (중복 생성 방지)</strong>: 전송 1회 = 생성 1회. 키워드("그려줘/만들어" 등) 유무와 무관하며, "안녕" 같은 입력도 그대로 프롬프트로 생성한다. 생성 중 잠금 범위: 텍스트 입력창·모델 피커·생성 옵션 패널은 비활성화. 단, <strong>정지 버튼은 절대 잠그지 않는다</strong> — 전송 버튼이 ■ 정지로 전환되어 항상 클릭 가능해야 한다 (현행 <code>_set_ui_enabled</code>도 generateButton만 예외로 활성 유지). 이전 결과 보기·저장도 계속 가능. 이 상태의 전송 시도는 무시하고 "생성 중이에요. 기다리거나 취소해주세요" 안내만 표시한다. 무한 호출·큐 적재는 발생하지 않는다 (<code>start_generation</code>의 worker 존재 가드 + <code>_gen_pool(max_workers=1)</code>).</li>
+<li><strong>채택하지 않은 대안 (재제안 방지용 기록)</strong>: ① 모델 피커 검색 커스텀 팝업 — 모델 5개 수준에 과잉설계이므로 <code>QComboBox</code> 유지. ② 수정 시 프롬프트 병합 ("이전 프롬프트+수정어 연결") — 독립 프롬프트 원칙 및 범위 제외(의도 판별 없음)와 충돌하므로 기각. ③ <code>sidebar_frame</code> 구 백업 참조 — 삭제된 <code>main.ui.bak</code>에만 존재했으므로 git 이력에서 참조. ④ 향상 단계 별도 비동기 워커 분리 — 향상은 생성 워커 스레드 내에서 실행되어 UI 블로킹이 없으므로 현행 유지.</li>
 </ul>
-<h3>일정</h3>
+<h3>페이즈 계획 (전수 조사 후 의존성 순서로 도출 — 총 11개)</h3>
 <table>
-<tr><th>주차</th><th>내용</th></tr>
-<tr><td>1-2주차</td><td>재배치 + 채팅 껍데기 (ChatMessage, ImageCard, 컨트롤러 연결)</td></tr>
-<tr><td>3-4주차</td><td>옵션 패널 이식 + 상태 연동 (스냅샷 요약, 상태 말풍선)</td></tr>
-<tr><td>5-6주차</td><td>미리보기/이력 + 최적화 (포커스 관리, 가상 스크롤+페이지네이션)</td></tr>
-<tr><td>7-8주차</td><td>오류/접근성 + 테스트 (인라인 에러, Qt 접근성, 단위/통합/회귀)</td></tr>
-<tr><td>9주차</td><td>통합·릴리즈 (QA, 문서화)</td></tr>
+<tr><th>페이즈</th><th>구역</th><th>포함 (IN)</th><th>제외 (OUT — 뒤 페이즈 것 손대지 않음)</th><th>완료 기준</th></tr>
+<tr><td>P0 준비</td><td>백업·기준점</td><td>개편 전 git 커밋, 변경 전 정상 동작 확인 (기준선 기록)</td><td>코드 변경 일체 없음</td><td>앱 정상 실행 (변경 전과 동일)</td></tr>
+<tr><td>P1 껍데기</td><td>메인 레이아웃 재배치</td><td>헤더 60px+버튼 제거, 레일 4버튼 배치·연결, 채팅 컨테이너+입력 영역 배치, step1/step2 카드 통째 이동 (위젯 변경 없음), <code>tabWidget</code> 제거, 에러배너 1개 배치, 스플리터 정리</td><td>위젯 단위 변경·옵션 다듬기 (P5), 송수신 연결 (P2), 콤보 Data 분리 (P4)</td><td>빈 채팅 + 기존 방식 생성 동작 (목업 1)</td></tr>
+<tr><td>P2 대화</td><td>채팅 송수신</td><td>ChatMessage (액션 버튼 행 포함), ImageCard (이미지+메타+3버튼+프롬프트 접기+복사), 전송→스냅샷→워커, 향상 칸 초기화, 1회=1생성, 잠금+정지 예외, 입력창 카운터</td><td>상태 버블 (P3), Data 분리 (P4), 세션 저장 (P6). 피커는 파일명 그대로 표시 (P4에서 표시명 분리)</td><td>전송→이미지 카드 (목업 2)</td></tr>
+<tr><td>P3 상태</td><td>생성 중 표시</td><td>GenerationStatusBubble (신호 텍스트 그대로 표시), 테두리 펄스, 취소. P2의 메시지 추가 API만 사용</td><td>템플릿 교체 (P9 — 진행 중 문구는 손대지 않음), 모달 (P7)</td><td>상태 표시+취소 (목업 3)</td></tr>
+<tr><td>P4 모델</td><td>모델 피커 완성</td><td>표시명/itemData 분리+읽기 경로 전환, 3겹 설명, 최적값+시스템 메시지, ZAnime 인라인 스타일 흐름 (P2 액션 행 재사용)</td><td>옵션 다듬기 (P5), 수동 프로필 (P8), 검색 (제외 확정), 테마 필터 (P10)</td><td>모델 전환·zanime 흐름 (목업 4)</td></tr>
+<tr><td>P5 옵션</td><td>생성 옵션 다듬기</td><td>P1 카드 내부 정리만 (그룹핑·정렬, 모델 읽기 전용화, 향상 박스 히든화, 되돌리기 추가, FD OFF 확인). 컨테이너·구조 변경 없음</td><td>구조 변경, Data 작업 (P4 완료済)</td><td>옵션 반영 (목업 5)</td></tr>
+<tr><td>P6 이력</td><td>세션·이력</td><td>session.json+트리거 4종, ◷ 패널+▾ 메뉴+단일 원천 갱신, [수정 요청] 전체 스냅샷 복원 (P5 옵션값에 기록). generation_history 4개 제한 해제·이관</td><td>미리보기 (P7), 만화·라우터 (범위 밖)</td><td>복원·전환·수정 요청 (목업 9·1-2)</td></tr>
+<tr><td>P7 미리보기</td><td>전체화면 모달</td><td>ImagePreviewModal (줌·회전·이전/다음), 포커스 트랩+복원, Esc/단축키. P2 이미지 표시만 사용</td><td>채팅 구조 변경 없음</td><td>모달+포커스 (목업 6)</td></tr>
+<tr><td>P8 설정</td><td>설정 다이얼로그</td><td>"이미지 모델" 탭 신설 (자동 목록+수동 프로필+검증 게이트+모델 폴더), 하단 불러오기·초기화·저장 유지, AI 서버 URL 유지. 모델 목록 원천은 기존 스캔 그대로</td><td>factory/AI 생성 (범위 밖), 채팅·피커 변경 없음</td><td>수동 프로필 검증 차단 (목업 8)</td></tr>
+<tr><td>P9 오류·접근성</td><td>템플릿·접근성</td><td>상태 템플릿 11종 (완료·실패·모델변경·검증 메시지 — 진행 중 버블 문구 제외), 인라인 에러+포커스, accessibleName 9종, 포커스 링, 모션 감소</td><td>버블·모달 구조 변경 없음, QSS 다듬기 (P10)</td><td>실패 시나리오 전수 (목업 7)</td></tr>
+<tr><td>P10 마무리</td><td>테마·QA</td><td>테마 2종 필터 (<code>_setup_theme_selector</code>), QSS 다듬기 (목업 수준), 회귀·성능 테스트, 문서화</td><td>신규 기능 없음</td><td>회귀 0건, 릴리즈</td></tr>
 </table>
+<p style="font-size:12px;color:var(--muted)">원칙: 페이즈는 순서대로 진행하되 각자 끝날 때마다 앱이 동작해야 한다. P2까지 끝나면 최소 채팅 생성기가 되고, 이후는 붙일수록 좋아지는 구조. <strong>순서 역전 금지</strong>: 각 페이즈는 앞선 페이즈의 산출물만 사용하고, 뒤 페이즈는 앞 구조를 뜯어고치지 않고 확장만 한다. 페이즈 수(11개)는 고정이 아니라 전수 조사 결과다 — 작업이 늘면 쪼개고, 줄면 합친다. <strong>뒤에서 앞을 고치는 일이 생기면 페이즈 설계 결함으로 보고 작업을 중단하고 페이즈를 재분할</strong>한다. <code>errorBannerLabel</code> 중복 해소와 헤더 60px 변경은 레이아웃 소유인 P1에 포함 (P0에서 미리 손대지 않는다).</p>
 
 <h2 id="s10">10. 프로젝트 통합 로드맵 (4cut × ComfyCraft)</h2>
 <p><strong>확정 사항</strong></p>
 <ul>
 <li><strong>UI 기준 = ComfyCraft</strong>: <code>main.ui</code> 직접 개편 유지. 4cut의 코드 기반 UI 방식은 이번 개편에 도입하지 않는다.</li>
-<li><strong>헤더 = 60px 유지 (확정)</strong>: 4cut식 헤더 제거는 도입하지 않는다. 헤더 구성 — 로고 | 새 대화 | 연결 배지 | 다크/라이트 토글 | 도움말 (설정 버튼은 사이드바 ⚙로 일원화済).</li>
+<li><strong>헤더 = 60px (확정)</strong>: 현행 <code>headerFrame</code>은 min/max 50px이나, 여유 공간·터치 타깃 확보를 위해 60px로 변경한다. <code>main.ui:26-37</code>의 min/max height 2곳 수정이면 충분하고 컨트롤러는 높이에 의존하지 않으므로 안전하다 (P1 작업에 포함). 4cut식 헤더 제거는 도입하지 않는다. 헤더 구성 — 로고 | 새 대화 | 연결 배지 2종 | 테마 드롭다운 (기존 <code>themeComboBox</code> 유지, 다크/라이트 2개만 노출) (설정·도움말 버튼은 사이드바로 일원화済, 현행 <code>main.ui</code>의 헤더 <code>settingsButton</code>·<code>helpButton</code>은 개편 시 제거).</li>
 <li><strong>테마 = 다크 + 라이트 2개</strong>: 기존 9개 중 7개는 비활성화 (코드·QSS 유지). 추가 테마는 합병 안정화 후 검토.</li>
 </ul>
 <p><strong>워크플로우 방식 — 확정: 하이브리드</strong></p>
@@ -488,9 +613,9 @@
 <tr><td>ComfyCraft (자동 판별 렌더)</td><td>모델만 고르면 끝. 설정 행위 없음</td><td>워크플로우 직접 커스텀 불가</td><td>새 계열 지원 시 코드 수정 필요</td></tr>
 <tr><td>4cut (프로필 + JSON + 검증 게이트)</td><td>모델 추가 시 단계 존재 (추가→선택→검사→저장)</td><td>ComfyUI 내보내기 워크플로우 그대로 사용 가능</td><td>JSON 추가로 코드 수정 없이 대응 가능</td></tr>
 </table>
-<p>확정: <strong>기본은 ComfyCraft 자동 판별</strong> (사용자는 모델만 고름). 4cut식 수동 프로필(workflow JSON 지정 + 검증 게이트)은 설정 섹션에만 둔다 (목업 8). factory 자동 생성·AI 워크플로우 생성 이식은 v2 범위 밖 별도 기능으로 분리한다.</p>
-<p><strong>통합 순서</strong>: ① ComfyCraft 채팅 개편 완수 → ② 공통 코어 분리 (클라이언트·향상·채팅 위젯) → ③ 단일 프로그램 통합 (단일 이미지 / 4컷 만화 모드 전환).</p>
-</table>
+<p>확정: <strong>기본은 ComfyCraft 자동 판별</strong> (사용자는 모델만 고름). 4cut식 수동 프로필(workflow JSON 지정 + 검증 게이트)은 설정 섹션에만 둔다 (목업 8). factory 자동 생성·AI 워크플로우 생성 이식은 범위 밖 별도 기능으로 분리한다.</p>
+<p><strong>통합 순서</strong>: ① ComfyCraft 채팅 개편 완수 (단일 이미지, v3.0 범위) → ② 공통 단일 생성 엔진 분리 (스냅샷 입력 → 이미지 출력 1회. ComfyCraft 1회 생성 = 4cut 1컷 생성과 동일 계층이므로, 4cut 패널 루프는 이 엔진을 4회 호출하는 형태로 수렴) → ③ 단일 프로그램 통합 (단일 이미지 모드 / 4컷 만화 모드 전환). 부수 효과: ComfyCraft의 다모델 대응력(FLUX/GGUF/ZImage/ERNIE/ZAnime)이 4cut의 SD1.5 템플릿을 업그레이드한다.</p>
+<p><strong>최종 비전 (③ 이후)</strong>: 모드 구분 없이 채팅 한 줄로 분기 — "그려줘" → 단일 이미지 1장, "만화 만들어줘" → 4컷/8컷/스크롤 웹툰 자동 생성. 단, 컷 수·스토리·대사 판단에는 의도 파악+스토리 기획 LLM이 필요하므로 v3.0 범위 밖이며, 통합 단계에서 라우터(1차: "만화/컷" 키워드 규칙 기반 → 기존 4cut 파이프라인 호출, 2차: LLM 기반)를 별도 기능으로 설계한다.</p>
 
 <hr style="border-color:var(--border);margin-top:48px">
 <p style="color:var(--muted);font-size:12px">v3.0 확정: ① 단일 원본 HTML (구 MD 삭제) ② 헤더 60px 유지 ③ session.json 대화 저장 도입 ④ UI 기준 ComfyCraft ⑤ 테마 다크/라이트 2개 ⑥ 워크플로우 하이브리드 (기본 자동 판별 + 수동 프로필은 설정 섹션) ⑦ 범위 제외 확정 (LLM 채팅·의도 판별·명령 파싱 없음) ⑧ 전송 1회=생성 1회, 정지 버튼 항상 활성</p>
