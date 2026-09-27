@@ -409,7 +409,7 @@
 <div class="dlg-ov"><div class="dlg">
 <div class="dlg-head"><span>설정</span><span class="spacer"></span><span class="btn">✕ 닫기</span></div>
 <div class="dlg-body">
-<div class="tabs"><div>일반</div><div class="on">이미지 모델</div><div>AI 서버</div><div>출력</div></div>
+<div class="tabs"><div>AI 서버</div><div class="on">이미지 모델</div></div>
 <div class="setbody">
 <h4>자동 판별 모델 (기본 — 고르기만 하면 됨)</h4>
 <div class="modelrow"><strong>FLUX</strong><span class="spacer"></span><span class="okdot">● 자동 판별됨</span></div>
@@ -418,10 +418,13 @@
 <div class="warnline">ComfyUI 모델 폴더를 스캔하여 자동 등록됩니다. 별도 설정 불필요.</div>
 <h4>수동 프로필 — 4cut 방식 (고급 · 신규/예외 모델용)</h4>
 <div class="modelrow"><strong>내 커스텀 모델</strong><span class="spacer"></span><span class="btn" style="font-size:11px">＋ 추가</span></div>
-<div class="optrow"><span class="lbl">모델 파일</span><span class="pill">custom.safetensors ▾</span><span class="val"></span></div>
-<div class="optrow"><span class="lbl">워크플로우</span><span class="pill">custom.json</span><span class="pill">찾아보기</span></div>
+<div class="optrow"><span class="lbl">프로필명</span><span class="pill">my-model</span><span class="val"></span></div>
+<div class="optrow"><span class="lbl">매칭 패턴</span><span class="pill">mymodel, my_model</span><span class="val"></span></div>
+<div class="optrow"><span class="lbl">워크플로우</span><span class="pill">checkpoint ▾</span><span class="val"></span></div>
+<div class="optrow"><span class="lbl">Steps/CFG</span><span class="pill">20</span><span class="pill">7.0</span></div>
 <div class="checkline">✓ 필수 노드 존재 ✓ 체크포인트 지정 ✓ 드라이런 통과</div>
 <div class="optrow"><span class="lbl"></span><span class="btn primary" style="font-size:11px">모델 정보 저장</span><span style="font-size:11px;color:var(--muted)">검사 실패 시 저장 차단</span></div>
+<div class="optrow"><span class="lbl">삭제</span><span class="pill">my-model.json ▾</span><span class="btn" style="font-size:11px">프로필 삭제</span></div>
 <h4>모델 폴더</h4>
 <div class="optrow"><span class="lbl">경로</span><span class="pill">C:\ComfyUI\models ▾</span><span class="pill">찾아보기</span></div>
 <div class="warnline">스캔 대상 폴더. 변경 후 새로고침(↻) 시 목록 갱신 (<code>browse_model_folder</code> 재활용).</div>
@@ -432,7 +435,7 @@
 </div>
 </div></div>
 </div></div>
-<div class="note">원칙: <strong>기본은 자동 판별</strong> (사용자는 모델만 고름). 목록형으로 표시하는 이유: 자동 판별 모델은 스캔 결과 그대로 보여주는 <strong>확인용</strong>이라 선택 UI가 필요 없고 (선택은 입력 영역 피커에서), 개수 3~6개 수준이라 펼친 목록이 상태를 한눈에 보여준다 — 각 행의 ● 표시로 판별 성공/실패 확인 가능. 드롭박스로 숨기면 "어떤 모델이 인식됐는지" 알 수 없다. <strong>확장 기준</strong>: 모델 10개 초과 시 목록 상단에 검색창 + family별 그룹핑 추가 (선형 리스트 유지). 가상 스크롤은 100개 이상 시에만 검토 — ComfyUI 모델 폴더는 현실적으로 수십 개 수준이라 오버엔지니어링하지 않는다. 4cut식 수동 프로필(workflow JSON 지정 + 검증 게이트)은 설정 섹션에만 둔다. 구현은 기존 설정 다이얼로그(<code>show_settings_dialog</code>)에 "이미지 모델" 탭을 추가하는 형태. factory 자동 생성·AI 워크플로우 생성 이식은 범위 밖 별도 기능으로 분리.</div>
+<div class="note">원칙: <strong>기본은 자동 판별</strong> (사용자는 모델만 고름). 목록형으로 표시하는 이유: 자동 판별 모델은 스캔 결과 그대로 보여주는 <strong>확인용</strong>이라 선택 UI가 필요 없고 (선택은 입력 영역 피커에서), 개수 3~6개 수준이라 펼친 목록이 상태를 한눈에 보여준다 — 각 행의 ● 표시로 판별 성공/실패 확인 가능. 드롭박스로 숨기면 "어떤 모델이 인식됐는지" 알 수 없다. <strong>확장 기준</strong>: 모델 10개 초과 시 목록 상단에 검색창 + family별 그룹핑 추가 (선형 리스트 유지). 가상 스크롤은 100개 이상 시에만 검토 — ComfyUI 모델 폴더는 현실적으로 수십 개 수준이라 오버엔지니어링하지 않는다. 4cut식 수동 프로필(프로필명+매칭 패턴+워크플로우 종류+샘플링 기본값)은 설정 섹션에만 둔다. <strong>워크플로우 JSON 직접 지정은 없음</strong> — WorkflowManager가 4종 고정 템플릿(checkpoint/gguf/flux_gguf/zimage)을 렌더하므로 종류 선택으로 충분하고, 임의 JSON 주입은 범위 밖이다. 구현은 기존 설정 다이얼로그(<code>show_settings_dialog</code>)에 "이미지 모델" 탭을 추가하는 형태 (AI 서버 탭은 기존 그룹 그대로). factory 자동 생성·AI 워크플로우 생성 이식은 범위 밖 별도 기능으로 분리.</div>
 
 <h3>목업 9 — ◷ 대화 이력 패널 (세션 목록)</h3>
 <div class="mock"><div class="mock-cap">목업 9 · ◷ 클릭 시 좌측 패널에 세션 목록 (4cut 방식)</div>
