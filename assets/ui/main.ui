@@ -194,7 +194,7 @@
              <string>홈 (생성 옵션 패널)</string>
             </property>
             <property name="text">
-             <string>⌂</string>
+             <string>홈</string>
             </property>
            </widget>
           </item>
@@ -219,7 +219,7 @@
              <string>대화 이력 (P6에서 제공)</string>
             </property>
             <property name="text">
-             <string>◷</string>
+             <string>이력</string>
             </property>
            </widget>
           </item>
@@ -269,7 +269,7 @@
              <string>설정</string>
             </property>
             <property name="text">
-             <string>⚙</string>
+             <string>설정</string>
             </property>
            </widget>
           </item>
@@ -2287,8 +2287,8 @@
                 </property>
                 <property name="minimumSize">
                  <size>
-                  <width>380</width>
-                  <height>380</height>
+                  <width>220</width>
+                  <height>220</height>
                  </size>
                 </property>
                 <property name="text">

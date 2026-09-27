@@ -939,7 +939,14 @@ class MainController(QObject):
                 "session_id", "")
             for entry in entries[: self._history_shown]:
                 title = entry.get("title", "새 대화") or "새 대화"
-                meta = f"{entry.get('model', '')} · {str(entry.get('updated_at', ''))[:16]}"
+                try:
+                    profile = self.model_registry.detect(
+                        entry.get("model", ""))
+                    short, _feature, _tooltip = describe_model(
+                        profile, entry.get("model", ""))
+                except Exception:
+                    short = "모델"
+                meta = f"{short} · {str(entry.get('updated_at', ''))[:16]}"
                 item = QListWidgetItem(f"{title}\n{meta}")
                 item.setData(Qt.ItemDataRole.UserRole, entry.get("id", ""))
                 if entry.get("id", "") == current_id:

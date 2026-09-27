@@ -36,6 +36,10 @@ def _make_controller():
     tmp = tempfile.TemporaryDirectory()
     controller.session_manager = SessionManager(_Path(tmp.name) / ".sessions")
     controller._tmpdir = tmp
+    # 생성 시 실제 디렉토리에서 복원됐을 수 있는 상태를 초기화
+    controller._current_session = None
+    controller._chat_log = []
+    controller._clear_chat_widgets()
     return controller
 
 

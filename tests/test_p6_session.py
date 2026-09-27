@@ -67,6 +67,10 @@ class P6SessionFlowTests(unittest.TestCase):
         controller.session_manager = SessionManager(
             Path(tmp.name) / ".sessions")
         controller._tmpdir = tmp  # 테스트 종료 후 정리 방지용 참조 유지
+        # 생성 시 실제 디렉토리에서 복원됐을 수 있는 상태를 초기화
+        controller._current_session = None
+        controller._chat_log = []
+        controller._clear_chat_widgets()
         return controller
 
     def test_send_creates_session_file(self):
