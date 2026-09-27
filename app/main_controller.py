@@ -122,7 +122,7 @@ from app.logging_config import setup_logging
 from app.gui.dialogs.settings_dialog import show_settings_dialog
 from app.gui.dialogs.help_dialog import show_help_dialog
 from app.gui.dialogs.facedetailer_guide_dialog import show_facedetailer_guide
-from app.gui.chat_widgets import ChatMessage, ImageCard
+from app.gui.chat_widgets import ChatMessage, GenerationStatusBubble, ImageCard
 
 UI_FILE = BASE_DIR / "assets" / "ui" / "main.ui"
 
@@ -370,6 +370,7 @@ class MainController(QObject):
         if send_button is not None:
             send_button.clicked.connect(self._on_chat_send_or_stop)
         self._pending_chat = None
+        self._status_bubble = None
         self._refresh_send_state()
 
         self.find(QPlainTextEdit, "logTextEdit").setVisible(True)
@@ -664,6 +665,46 @@ class MainController(QObject):
             logger.debug("이미지 카드 추가 실패", exc_info=True)
             return None
 
+    def _show_status_bubble(self):
+        """P3: 생성 중 상태 버블을 채팅에 추가하고 반환."""
+        layout = self._chat_layout()
+        if layout is None:
+            return None
+        try:
+            self._hide_status_bubble()
+            bubble = GenerationStatusBubble(
+                on_cancel=self.stop_generation, parent=self.window)
+            insert_at = layout.count()
+            for i in range(layout.count()):
+                widget = layout.itemAt(i).widget()
+                if widget is not None and widget.objectName() == "chatSpacer":
+                    insert_at = i
+                    break
+            layout.insertWidget(insert_at, bubble)
+            bubble.start(time.monotonic())
+            self._status_bubble = bubble
+            self._scroll_chat_to_bottom()
+            return bubble
+        except RuntimeError:
+            logger.debug("상태 버블 표시 실패", exc_info=True)
+            return None
+
+    def _hide_status_bubble(self) -> None:
+        """P3: 상태 버블 제거 (완료·실패·취소 시)."""
+        bubble = getattr(self, "_status_bubble", None)
+        self._status_bubble = None
+        if bubble is None:
+            return
+        try:
+            bubble.stop()
+            layout = self._chat_layout()
+            if layout is not None:
+                layout.removeWidget(bubble)
+            bubble.setParent(None)
+            bubble.deleteLater()
+        except RuntimeError:
+            logger.debug("상태 버블 제거 실패", exc_info=True)
+
     def _on_chat_input_changed(self) -> None:
         """채팅 입력 변경 → 카운터 + 전송 버튼 상태 갱신."""
         try:
@@ -742,6 +783,17 @@ class MainController(QObject):
             self._pending_chat = {"text": text}
             edit.clear()
             self.start_generation()
+            # P3: 채팅 경로로 시작됐으면 상태 버블 표시 + 신호 연결
+            if self._is_generating():
+                bubble = self._show_status_bubble()
+                if bubble is not None and self.worker is not None:
+                    try:
+                        self.worker.signals.progress.connect(bubble.set_progress)
+                        self.worker.signals.status.connect(bubble.set_status)
+                        self.worker.signals.finished.connect(
+                            lambda _ok: self._hide_status_bubble())
+                    except RuntimeError:
+                        logger.debug("상태 버블 신호 연결 실패", exc_info=True)
         except RuntimeError:
             logger.debug("채팅 전송 실패", exc_info=True)
 
@@ -2242,6 +2294,8 @@ class MainController(QObject):
         self._set_ui_enabled(True)
         # P2: 채팅 전송 버튼을 전송 상태로 복원
         self._set_send_button_state(False)
+        # P3: 상태 버블 제거 (finished 신호에서도 제거되므로 중복 안전)
+        self._hide_status_bubble()
 
         if success:
             self.append_log("이미지 생성이 완료되었습니다.")

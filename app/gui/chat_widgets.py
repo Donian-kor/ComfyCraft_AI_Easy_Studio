@@ -9,12 +9,13 @@ from __future__ import annotations
 
 from typing import Callable, Optional
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
+    QProgressBar,
     QPushButton,
     QSizePolicy,
     QVBoxLayout,
@@ -153,3 +154,100 @@ class ImageCard(QFrame):
         actions.addWidget(self.copy_button)
         actions.addStretch(1)
         layout.addLayout(actions)
+
+
+class GenerationStatusBubble(QFrame):
+    """P3: 생성 중 상태 말풍선 (상태 텍스트 + 진행률 + 경과 + 취소).
+
+    테두리 펄스는 QTimer 기반 QSS 전환. pulse_enabled=False면 정적
+    테두리만 표시한다 (P9에서 모션 감소 설정과 연결 예정).
+    """
+
+    PULSE_MS = 600
+    BORDER_A = "#0078D4"
+    BORDER_B = "#4AA3F0"
+
+    def __init__(self, on_cancel: Optional[Callable[[], None]] = None,
+                 parent=None):
+        super().__init__(parent)
+        self.setObjectName("statusBubble")
+        self.pulse_enabled = True
+        self._pulse_phase = False
+        self._started_at: Optional[float] = None
+
+        layout = QVBoxLayout(self)
+        layout.setSpacing(6)
+
+        self.status_label = QLabel("이미지 생성 중...")
+        self.status_label.setObjectName("statusBubbleText")
+        self.status_label.setWordWrap(True)
+        layout.addWidget(self.status_label)
+
+        self.bar = QProgressBar()
+        self.bar.setObjectName("statusBubbleBar")
+        self.bar.setRange(0, 100)
+        self.bar.setValue(0)
+        self.bar.setTextVisible(False)
+        layout.addWidget(self.bar)
+
+        bottom = QHBoxLayout()
+        bottom.setSpacing(8)
+        self.elapsed_label = QLabel("")
+        self.elapsed_label.setObjectName("statusBubbleElapsed")
+        bottom.addWidget(self.elapsed_label)
+        bottom.addStretch(1)
+        self.cancel_button = QPushButton("■ 취소")
+        self.cancel_button.setObjectName("statusBubbleCancel")
+        if on_cancel is not None:
+            self.cancel_button.clicked.connect(on_cancel)
+        bottom.addWidget(self.cancel_button)
+        layout.addLayout(bottom)
+
+        self._pulse_timer = QTimer(self)
+        self._pulse_timer.setInterval(self.PULSE_MS)
+        self._pulse_timer.timeout.connect(self._toggle_pulse)
+        self._clock_timer = QTimer(self)
+        self._clock_timer.setInterval(1000)
+        self._clock_timer.timeout.connect(self._tick_clock)
+
+        self._apply_border(self.BORDER_A)
+
+    def _apply_border(self, color: str) -> None:
+        self.setStyleSheet(
+            f"#statusBubble {{ border: 2px solid {color}; border-radius: 8px; }}")
+
+    def _toggle_pulse(self) -> None:
+        self._pulse_phase = not self._pulse_phase
+        self._apply_border(
+            self.BORDER_B if self._pulse_phase else self.BORDER_A)
+
+    def start(self, started_at_monotonic: Optional[float] = None) -> None:
+        """펄스 + 경과 타이머 시작."""
+        self._started_at = started_at_monotonic
+        if self.pulse_enabled and not self._pulse_timer.isActive():
+            self._pulse_timer.start()
+        if self._started_at is not None and not self._clock_timer.isActive():
+            self._clock_timer.start()
+            self._tick_clock()
+
+    def stop(self) -> None:
+        """타이머 정지 + 테두리 원복."""
+        self._pulse_timer.stop()
+        self._clock_timer.stop()
+        self._apply_border(self.BORDER_A)
+
+    def set_status(self, text: str) -> None:
+        self.status_label.setText(str(text))
+
+    def set_progress(self, value: int) -> None:
+        try:
+            self.bar.setValue(max(0, min(100, int(value))))
+        except (TypeError, ValueError):
+            pass
+
+    def _tick_clock(self) -> None:
+        if self._started_at is None:
+            return
+        import time
+        elapsed = int(time.monotonic() - self._started_at)
+        self.elapsed_label.setText(f"경과 {elapsed}초")
