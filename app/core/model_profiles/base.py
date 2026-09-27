@@ -19,6 +19,8 @@ class ModelProfile:
     sampler_name: str = "euler"
     scheduler: str = "normal"
     priority: int = 100
+    # P13: 자동 생성된 커스텀 워크플로우 파일 경로(비어 있으면 workflow_type 기본 템플릿 사용)
+    workflow_file: str = ""
 
     def matches(self, model_name: str) -> bool:
         if not model_name:

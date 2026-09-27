@@ -18,10 +18,39 @@ from PySide6.QtWidgets import (
 )
 
 from app import show_message_box
+from app.core import workflow_factory
 from app.gui.ui_loader import load_dialog_ui
 from app.paths import SETTINGS_DIALOG_FILE
 
 WORKFLOW_TYPES = ("checkpoint", "gguf", "flux_gguf", "zimage")
+
+
+def apply_profile_status(label, message: str, ok: bool | None = None) -> None:
+    """수동 프로필 검증 라벨에 결과/안내 문구를 표시한다.
+
+    ok=True  → "✓ message" (성공, 초록)
+    ok=False → "✗ message" (실패, 빨강)
+    ok=None  → "message"   (안내, 회색)
+
+    초기 안내 문구는 .ui의 기본 text가 담당하므로 여기서 지정하지 않는다.
+    색상은 QSS의 [state="..."] 동적 프로퍼티 규칙이 담당한다.
+    """
+    if label is None:
+        return
+    if ok is True:
+        text, state = "✓ " + message, "ok"
+    elif ok is False:
+        text, state = "✗ " + message, "error"
+    else:
+        text, state = message, "info"
+    try:
+        label.setText(text)
+        # 동적 프로퍼티를 바꿨으므로 QSS 규칙 재적용을 위해 재폴리시
+        label.setProperty("state", state)
+        label.style().unpolish(label)
+        label.style().polish(label)
+    except RuntimeError:
+        pass
 
 
 def validate_manual_profile(data: dict) -> list:
@@ -73,6 +102,8 @@ def profile_data_to_registry(data: dict) -> dict:
             "sampler_name": str(data.get("sampler", "euler")),
             "scheduler": str(data.get("scheduler", "normal")),
             "priority": 50,
+            # P13: 자동 생성된 커스텀 워크플로우 경로(비어 있으면 기본 템플릿 사용)
+            "workflow_file": str(data.get("workflow_file", "") or ""),
         }
     }
 
@@ -100,8 +131,12 @@ def save_manual_profile(data: dict, folder: Path | str):
 
 
 def model_profiles_json_dir() -> Path:
-    """P8: 수동 프로필 저장 폴더 (레지스트리 자동 로드 경로)."""
-    return Path(__file__).resolve().parent.parent.parent / "model_profiles_json"
+    """P8: 수동 프로필 저장 폴더 (레지스트리 자동 로드 경로).
+
+    주의: settings_dialog.py는 app/gui/dialogs/에 있으므로 프로젝트 루트까지
+    4단계 상위여야 한다(3단계면 app/ 안을 가리켜 저장본을 못 찾는다).
+    """
+    return Path(__file__).resolve().parent.parent.parent.parent / "model_profiles_json"
 
 
 def show_settings_dialog(controller, initial_tab: str | None = None):
@@ -280,18 +315,146 @@ def _setup_model_tab(dlg, controller) -> None:
 
     validate_label = _child(QLabel, "profileValidateLabel")
 
-    def show_status(message: str, ok: bool) -> None:
-        if validate_label is None:
+    def show_status(message: str, ok: bool | None = None, *, log: bool = True) -> None:
+        apply_profile_status(validate_label, message, ok)
+        if log:
+            try:
+                controller.append_log(f"수동 프로필: {message}")
+            except Exception:
+                pass
+
+    # 초기 안내 문구는 .ui의 기본 text가 이미 담당한다.
+    # 여기서는 QSS 색상 상태만 'info'로 맞춰 초기 색을 지정한다(문구는 덮어쓰지 않음).
+    apply_profile_status(validate_label, validate_label.text() or "", None)
+
+    # ===== P13: 워크플로우 자동 생성/검사 (4cut 방식) =====
+    def _project_root() -> Path:
+        """프로젝트 루트 (app/gui/dialogs → 3단계 상위)."""
+        return Path(__file__).resolve().parent.parent.parent.parent
+
+    def _workflows_dir() -> Path:
+        return _project_root() / "workflows"
+
+    def _set_workflow_file(value: str) -> None:
+        edit = _child(QLineEdit, "profileWorkflowFileEdit")
+        if edit is None:
             return
         try:
-            prefix = "✓ " if ok else "✗ "
-            validate_label.setText(prefix + message)
+            edit.setText(value)
         except RuntimeError:
             pass
+
+    def _set_model_file(value: str) -> None:
+        edit = _child(QLineEdit, "profileModelFileEdit")
+        if edit is None:
+            return
         try:
-            controller.append_log(f"수동 프로필: {message}")
-        except Exception:
+            edit.setText(value)
+        except RuntimeError:
             pass
+
+    def _current_wf_type() -> str:
+        combo = _child(QComboBox, "profileWorkflowCombo")
+        try:
+            value = combo.currentText().strip() if combo is not None else "checkpoint"
+        except RuntimeError:
+            value = "checkpoint"
+        return value if value in WORKFLOW_TYPES else "checkpoint"
+
+    def _check_workflow(model_file: str) -> list:
+        """지정된(또는 자동 생성된) 워크플로우를 검사한다. 오류 목록 반환."""
+        wf_path = _text("profileWorkflowFileEdit")
+        if not wf_path:
+            return ["워크플로우가 지정되지 않았습니다."]
+        path = Path(wf_path)
+        if not path.is_absolute():
+            path = _workflows_dir() / wf_path
+        return workflow_factory.validate_workflow(path, model_file=model_file)
+
+    def autocreate_workflow(model_file: str) -> None:
+        """모델 파일만 고르면 워크플로우를 자동으로 만들어 준다 (4cut build_from_template)."""
+        if not model_file:
+            _set_workflow_file("")
+            return
+        try:
+            path = workflow_factory.build_from_template(
+                model_file, _text("profileNameEdit") or "custom",
+                _workflows_dir(), _current_wf_type())
+        except (OSError, ValueError) as exc:
+            show_status(f"워크플로우 자동 생성 실패: {exc}", False)
+            return
+        # 설정에는 파일명만 저장한다(프로젝트 기준 상대 경로).
+        rel = path.name
+        _set_workflow_file(rel)
+        errors = workflow_factory.validate_workflow(
+            _workflows_dir() / rel, model_file=model_file)
+        if errors:
+            show_status("자동 생성한 워크플로우가 검사를 통과하지 못했습니다 — "
+                        + " / ".join(errors), False)
+        else:
+            show_status(f"워크플로우가 자동으로 만들어졌습니다: {rel}", True)
+
+    # 모델 파일 찾아보기
+    model_browse_btn = _child(QPushButton, "profileModelFileBrowseBtn")
+    if model_browse_btn is not None:
+        def on_model_file_browse():
+            path, _ = QFileDialog.getOpenFileName(
+                dlg, "ComfyUI 이미지 모델 선택", "",
+                "Model (*.safetensors *.gguf *.ckpt *.pt);;All Files (*)")
+            if not path:
+                return
+            model_file = Path(path).name
+            _set_model_file(model_file)
+            # 모델 파일만 고르면 워크플로우를 자동 생성한다.
+            autocreate_workflow(model_file)
+        model_browse_btn.clicked.connect(on_model_file_browse)
+
+    # 모델 파일을 직접 타이핑한 경우에도 자동 생성
+    model_file_edit = _child(QLineEdit, "profileModelFileEdit")
+    if model_file_edit is not None:
+        model_file_edit.editingFinished.connect(
+            lambda: autocreate_workflow(_text("profileModelFileEdit")))
+
+    # 워크플로우 직접 지정
+    wf_browse_btn = _child(QPushButton, "profileWorkflowBrowseBtn")
+    if wf_browse_btn is not None:
+        def on_workflow_browse():
+            path, _ = QFileDialog.getOpenFileName(
+                dlg, "이미지 모델 워크플로우 선택", str(_workflows_dir()),
+                "JSON (*.json);;All Files (*)")
+            if not path:
+                return
+            _set_workflow_file(path)
+            errors = _check_workflow(_text("profileModelFileEdit"))
+            if errors:
+                show_status("선택한 워크플로우를 사용할 수 없습니다 — "
+                            + " / ".join(errors), False)
+            else:
+                show_status("워크플로우를 지정했습니다.", True)
+        wf_browse_btn.clicked.connect(on_workflow_browse)
+
+    # AI로 워크플로우 만들기 (실험적 폴백)
+    ai_wf_btn = _child(QPushButton, "profileAiWorkflowBtn")
+    if ai_wf_btn is not None:
+        def on_ai_workflow():
+            model_file = _text("profileModelFileEdit")
+            if not model_file:
+                show_status("먼저 모델 파일을 지정하세요.", False)
+                return
+            lm_client = getattr(controller, "lm_client", None)
+            if lm_client is None or not hasattr(lm_client, "chat_json"):
+                show_status("LM Studio가 연결되어 있지 않아 AI로 만들 수 없습니다.", False)
+                return
+            try:
+                path = workflow_factory.generate_with_llm(
+                    lm_client, model_file, _workflows_dir(),
+                    _text("profileNameEdit") or "custom", _current_wf_type())
+            except (OSError, ValueError, RuntimeError) as exc:
+                show_status(f"AI 워크플로우 생성 실패: {exc}", False)
+                return
+            _set_workflow_file(path.name)
+            show_status(f"AI가 워크플로우를 만들었습니다: {path.name}", True)
+        ai_wf_btn.clicked.connect(on_ai_workflow)
 
     def collect_data() -> dict:
         def combo_text(name: str, default: str = "") -> str:
@@ -319,6 +482,8 @@ def _setup_model_tab(dlg, controller) -> None:
             "name": _text("profileNameEdit"),
             "patterns": _text("profilePatternsEdit"),
             "workflow_type": combo_text("profileWorkflowCombo", "checkpoint"),
+            "model_file": _text("profileModelFileEdit"),
+            "workflow_file": _text("profileWorkflowFileEdit"),
             "steps": spin_value("profileStepsSpin", 0),
             "cfg": double_value("profileCfgSpin", 0.0),
             "sampler": combo_text("profileSamplerCombo", "euler"),
@@ -349,6 +514,13 @@ def _setup_model_tab(dlg, controller) -> None:
     if save_btn is not None:
         def on_profile_save():
             data = collect_data()
+            # P13: 커스텀 워크플로우를 지정했다면 통과할 때까지 저장을 막는다.
+            if data.get("workflow_file"):
+                errors = _check_workflow(data.get("model_file", ""))
+                if errors:
+                    show_status("모델 정보를 저장할 수 없습니다. 워크플로우 확인이 필요합니다 — "
+                                + " / ".join(errors), False)
+                    return
             ok, message = save_manual_profile(
                 data, model_profiles_json_dir())
             show_status(message, ok)
@@ -372,6 +544,7 @@ def _setup_model_tab(dlg, controller) -> None:
                         sampler_name=profile_data["sampler_name"],
                         scheduler=profile_data["scheduler"],
                         priority=profile_data["priority"],
+                        workflow_file=profile_data.get("workflow_file", ""),
                     ))
                 except Exception:
                     pass

@@ -386,6 +386,19 @@ QLabel#errorBannerLabel {
     font-weight: 600;
 }
 
+/* P12: 수동 프로필 검증 결과 — info(안내) / ok(성공) / error(실패) */
+QLabel#profileValidateLabel {
+    color: #6b6b6b;
+    font-size: 11px;
+    padding: 2px 0;
+}
+QLabel#profileValidateLabel[state="ok"] {
+    color: #1a7f5e;
+}
+QLabel#profileValidateLabel[state="error"] {
+    color: #C42B1C;
+}
+
 QLabel#progressStatusLabel, QLabel#progressPercentLabel, QLabel#elapsedLabel {
     color: #5c5c5c;
     font-size: 12px;

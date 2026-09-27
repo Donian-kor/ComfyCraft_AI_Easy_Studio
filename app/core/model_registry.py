@@ -31,63 +31,81 @@ class ModelRegistry:
                     self.register(profile)
 
     def _register_json_profiles(self) -> None:
+        """프로필 JSON을 읽어 등록한다 (P13: 단일 파일 + 스키마 검증).
+
+        이전에는 json/·workflows/·model_profiles_json/ 폴더의 *.json을 전부 훑었는데,
+        그 결과 설정 파일(app_config.json)의 최상위 키(ui, cache, workflow 등)와
+        배열 인덱스(1, 2, 3 …)가 모델 프로필로 잘못 등록되었다.
+        4cut 방식대로 "프로필 파일"만 읽고, 스키마를 통과한 항목만 받는다.
+        """
         base_dir: Path = Path(__file__).resolve().parent.parent.parent
-        folders: List[Path] = [
-            base_dir / "json",
-            base_dir / "workflows",
-            base_dir / "model_profiles_json",
+        # (폴더, 파일명) 목록 — 워크플로우/설정 JSON은 절대 포함하지 않는다.
+        sources: List[Tuple[Path, str]] = [
+            (base_dir / "workflows", "default_profiles.json"),
+            (base_dir / "json", "default_profiles.json"),
+            (base_dir / "model_profiles_json", "default_profiles.json"),
         ]
+        # 사용자가 설정창에서 직접 저장한 수동 프로필은 전부 등록 대상이다.
+        manual_dir: Path = base_dir / "model_profiles_json"
+        if manual_dir.exists():
+            sources.extend(
+                (manual_dir, path.name)
+                for path in sorted(manual_dir.glob("*.json"))
+                if path.name != "default_profiles.json"
+            )
 
-        for folder in folders:
-            if not folder.exists():
+        for folder, file_name in sources:
+            file_path = folder / file_name
+            if not file_path.is_file():
                 continue
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    payload = json.load(f)
+            except (OSError, ValueError):
+                continue
+            for profile in self._profiles_from_payload(payload):
+                self.register(profile)
 
-            for file_path in sorted(folder.glob("*.json")):
-                try:
-                    with open(file_path, "r", encoding="utf-8") as f:
-                        payload = json.load(f)
-                    if isinstance(payload, dict):
-                        for profile_name, profile_data in payload.items():
-                            if not isinstance(profile_data, dict):
-                                continue
-                            profile = ModelProfile(
-                                name=profile_data.get("name", profile_name),
-                                family=profile_data.get("family", profile_name),
-                                aliases=tuple(profile_data.get("aliases", [])),
-                                patterns=tuple(profile_data.get("patterns", [])),
-                                workflow_type=profile_data.get("workflow_type", "checkpoint"),
-                                default_clip1=profile_data.get("default_clip1", ""),
-                                default_clip2=profile_data.get("default_clip2", ""),
-                                default_vae=profile_data.get("default_vae", ""),
-                                default_steps=int(profile_data.get("default_steps", 29)),
-                                default_cfg=float(profile_data.get("default_cfg", 1.0)),
-                                sampler_name=profile_data.get("sampler_name", "euler"),
-                                scheduler=profile_data.get("scheduler", "normal"),
-                                priority=int(profile_data.get("priority", 100)),
-                            )
-                            self.register(profile)
-                    elif isinstance(payload, list):
-                        for item in payload:
-                            if not isinstance(item, dict):
-                                continue
-                            profile = ModelProfile(
-                                name=item.get("name", "custom"),
-                                family=item.get("family", item.get("name", "custom")),
-                                aliases=tuple(item.get("aliases", [])),
-                                patterns=tuple(item.get("patterns", [])),
-                                workflow_type=item.get("workflow_type", "checkpoint"),
-                                default_clip1=item.get("default_clip1", ""),
-                                default_clip2=item.get("default_clip2", ""),
-                                default_vae=item.get("default_vae", ""),
-                                default_steps=int(item.get("default_steps", 29)),
-                                default_cfg=float(item.get("default_cfg", 1.0)),
-                                sampler_name=item.get("sampler_name", "euler"),
-                                scheduler=item.get("scheduler", "normal"),
-                                priority=int(item.get("priority", 100)),
-                            )
-                            self.register(profile)
-                except Exception:
-                    continue
+    def _profiles_from_payload(self, payload) -> List[ModelProfile]:
+        """JSON 페이로드에서 프로필 스키마를 만족하는 항목만 뽑는다.
+
+        스키마: dict 안에 각 값이 dict이며 "patterns" 또는 "workflow_type"을 갖고,
+        최소 1개 이상의 패턴이 있어야 한다. 설정 파일의 임의 키는 걸러진다.
+        """
+        result: List[ModelProfile] = []
+        if not isinstance(payload, dict):
+            return result
+        for profile_name, profile_data in payload.items():
+            if not isinstance(profile_data, dict):
+                continue
+            if not self._looks_like_profile(profile_data):
+                continue
+            result.append(ModelProfile(
+                name=profile_data.get("name", profile_name),
+                family=profile_data.get("family", profile_name),
+                aliases=tuple(profile_data.get("aliases", [])),
+                patterns=tuple(profile_data.get("patterns", [])),
+                workflow_type=profile_data.get("workflow_type", "checkpoint"),
+                default_clip1=profile_data.get("default_clip1", ""),
+                default_clip2=profile_data.get("default_clip2", ""),
+                default_vae=profile_data.get("default_vae", ""),
+                default_steps=int(profile_data.get("default_steps", 29)),
+                default_cfg=float(profile_data.get("default_cfg", 1.0)),
+                sampler_name=profile_data.get("sampler_name", "euler"),
+                scheduler=profile_data.get("scheduler", "normal"),
+                priority=int(profile_data.get("priority", 100)),
+                workflow_file=str(profile_data.get("workflow_file", "") or ""),
+            ))
+        return result
+
+    @staticmethod
+    def _looks_like_profile(data: dict) -> bool:
+        """프로필 스키마인지 판별한다 (설정/워크플로우 JSON 오인 방지)."""
+        patterns = data.get("patterns")
+        has_patterns = isinstance(patterns, (list, tuple)) and len(patterns) > 0
+        if not has_patterns:
+            return False
+        return "workflow_type" in data or "default_steps" in data
 
     def register(self, profile: ModelProfile) -> None:
         if profile not in self.profiles:

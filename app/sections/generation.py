@@ -480,13 +480,39 @@ class GenerationWorker:
         prefix = self.controller.build_filename_prefix()
         comfy_url = s["comfy_url"]
 
-        # 모델 종류별로 기본 워크플로우만 먼저 만든 뒤,
+        # P13: 프로필에 커스텀 워크플로우가 지정돼 있으면 그 파일을 우선 사용한다.
+        # (설정창 "모델 추가"로 자동 생성한 워크플로우)
+        custom_file = str(getattr(profile, "workflow_file", "") or "").strip()
+        if custom_file:
+            try:
+                base_wf = manager.render_custom_workflow(
+                    workflow_file=custom_file,
+                    model_name=model_name,
+                    positive_prompt=prompt,
+                    negative_prompt=negative,
+                    width=s["width"],
+                    height=s["height"],
+                    seed=seed,
+                    steps=s["steps"],
+                    cfg=s["cfg"],
+                    sampler_name=s["sampler"],
+                    scheduler=s["scheduler"],
+                    denoise=s["denoise"],
+                    filename_prefix=prefix,
+                )
+                self.emit_log(f"커스텀 워크플로우 사용: {custom_file}")
+            except (OSError, ValueError) as exc:
+                # 커스텀 워크플로우가 깨져 있으면 기본 경로로 폴백한다(생성 중단 금지).
+                self.emit_log(f"[⚠️] 커스텀 워크플로우를 쓸 수 없어 기본 경로로 대체합니다: {exc}")
+                base_wf = None
+
+        # 모델 종류별로 기본 워크플로우를 만든 뒤,
         # 마지막에 FaceDetailer를 공통으로 1번 주입한다.
         # (Checkpoint뿐 아니라 Flux/GGUF/ZImage에서도 얼굴 보정이 동작하도록)
-        base_wf = None
+        # 커스텀 워크플로우를 이미 썼다면(base_wf != None) 아래 분기는 건너뛴다.
 
         # ZImage/Turbo 모델 처리
-        if self.controller.model_registry.is_zimage(model_name):
+        if base_wf is None and self.controller.model_registry.is_zimage(model_name):
             required_nodes = ["UnetLoaderGGUF", "CLIPLoaderGGUF", "VAELoader", "KSampler", "TextEncodeZImageOmni"]
             missing = [name for name in required_nodes if not self._comfyui_node_exists(name, comfy_url)]
             if missing:

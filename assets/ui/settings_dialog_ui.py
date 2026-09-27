@@ -25,8 +25,8 @@ class Ui_SettingsDialog(object):
     def setupUi(self, SettingsDialog):
         if not SettingsDialog.objectName():
             SettingsDialog.setObjectName(u"SettingsDialog")
-        SettingsDialog.resize(500, 781)
-        SettingsDialog.setMinimumSize(QSize(500, 780))
+        SettingsDialog.resize(500, 822)
+        SettingsDialog.setMinimumSize(QSize(500, 820))
         self.dialogLayout = QVBoxLayout(SettingsDialog)
         self.dialogLayout.setSpacing(10)
         self.dialogLayout.setObjectName(u"dialogLayout")
@@ -179,13 +179,64 @@ class Ui_SettingsDialog(object):
 
         self.tabModelLayout.addWidget(self.profileManualLabel)
 
-        self.p8RowLayout_1 = QHBoxLayout()
-        self.p8RowLayout_1.setSpacing(8)
-        self.p8RowLayout_1.setObjectName(u"p8RowLayout_1")
+        self.p8RowLayout_modelFile = QHBoxLayout()
+        self.p8RowLayout_modelFile.setSpacing(8)
+        self.p8RowLayout_modelFile.setObjectName(u"p8RowLayout_modelFile")
         self.label = QLabel(self.tabModel)
         self.label.setObjectName(u"label")
 
-        self.p8RowLayout_1.addWidget(self.label)
+        self.p8RowLayout_modelFile.addWidget(self.label)
+
+        self.profileModelFileEdit = QLineEdit(self.tabModel)
+        self.profileModelFileEdit.setObjectName(u"profileModelFileEdit")
+
+        self.p8RowLayout_modelFile.addWidget(self.profileModelFileEdit)
+
+        self.profileModelFileBrowseBtn = QPushButton(self.tabModel)
+        self.profileModelFileBrowseBtn.setObjectName(u"profileModelFileBrowseBtn")
+        self.profileModelFileBrowseBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+
+        self.p8RowLayout_modelFile.addWidget(self.profileModelFileBrowseBtn)
+
+
+        self.tabModelLayout.addLayout(self.p8RowLayout_modelFile)
+
+        self.p8RowLayout_workflow = QHBoxLayout()
+        self.p8RowLayout_workflow.setSpacing(8)
+        self.p8RowLayout_workflow.setObjectName(u"p8RowLayout_workflow")
+        self.label1 = QLabel(self.tabModel)
+        self.label1.setObjectName(u"label1")
+
+        self.p8RowLayout_workflow.addWidget(self.label1)
+
+        self.profileWorkflowFileEdit = QLineEdit(self.tabModel)
+        self.profileWorkflowFileEdit.setObjectName(u"profileWorkflowFileEdit")
+        self.profileWorkflowFileEdit.setReadOnly(True)
+
+        self.p8RowLayout_workflow.addWidget(self.profileWorkflowFileEdit)
+
+        self.profileWorkflowBrowseBtn = QPushButton(self.tabModel)
+        self.profileWorkflowBrowseBtn.setObjectName(u"profileWorkflowBrowseBtn")
+        self.profileWorkflowBrowseBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+
+        self.p8RowLayout_workflow.addWidget(self.profileWorkflowBrowseBtn)
+
+        self.profileAiWorkflowBtn = QPushButton(self.tabModel)
+        self.profileAiWorkflowBtn.setObjectName(u"profileAiWorkflowBtn")
+        self.profileAiWorkflowBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+
+        self.p8RowLayout_workflow.addWidget(self.profileAiWorkflowBtn)
+
+
+        self.tabModelLayout.addLayout(self.p8RowLayout_workflow)
+
+        self.p8RowLayout_1 = QHBoxLayout()
+        self.p8RowLayout_1.setSpacing(8)
+        self.p8RowLayout_1.setObjectName(u"p8RowLayout_1")
+        self.label2 = QLabel(self.tabModel)
+        self.label2.setObjectName(u"label2")
+
+        self.p8RowLayout_1.addWidget(self.label2)
 
         self.profileNameEdit = QLineEdit(self.tabModel)
         self.profileNameEdit.setObjectName(u"profileNameEdit")
@@ -198,10 +249,10 @@ class Ui_SettingsDialog(object):
         self.p8RowLayout_2 = QHBoxLayout()
         self.p8RowLayout_2.setSpacing(8)
         self.p8RowLayout_2.setObjectName(u"p8RowLayout_2")
-        self.label1 = QLabel(self.tabModel)
-        self.label1.setObjectName(u"label1")
+        self.label3 = QLabel(self.tabModel)
+        self.label3.setObjectName(u"label3")
 
-        self.p8RowLayout_2.addWidget(self.label1)
+        self.p8RowLayout_2.addWidget(self.label3)
 
         self.profilePatternsEdit = QLineEdit(self.tabModel)
         self.profilePatternsEdit.setObjectName(u"profilePatternsEdit")
@@ -214,10 +265,10 @@ class Ui_SettingsDialog(object):
         self.p8RowLayout_3 = QHBoxLayout()
         self.p8RowLayout_3.setSpacing(8)
         self.p8RowLayout_3.setObjectName(u"p8RowLayout_3")
-        self.label2 = QLabel(self.tabModel)
-        self.label2.setObjectName(u"label2")
+        self.label4 = QLabel(self.tabModel)
+        self.label4.setObjectName(u"label4")
 
-        self.p8RowLayout_3.addWidget(self.label2)
+        self.p8RowLayout_3.addWidget(self.label4)
 
         self.profileWorkflowCombo = QComboBox(self.tabModel)
         self.profileWorkflowCombo.addItem("")
@@ -234,10 +285,10 @@ class Ui_SettingsDialog(object):
         self.p8RowLayout_4 = QHBoxLayout()
         self.p8RowLayout_4.setSpacing(8)
         self.p8RowLayout_4.setObjectName(u"p8RowLayout_4")
-        self.label3 = QLabel(self.tabModel)
-        self.label3.setObjectName(u"label3")
+        self.label5 = QLabel(self.tabModel)
+        self.label5.setObjectName(u"label5")
 
-        self.p8RowLayout_4.addWidget(self.label3)
+        self.p8RowLayout_4.addWidget(self.label5)
 
         self.profileStepsSpin = QSpinBox(self.tabModel)
         self.profileStepsSpin.setObjectName(u"profileStepsSpin")
@@ -254,10 +305,10 @@ class Ui_SettingsDialog(object):
         self.p8RowLayout_5 = QHBoxLayout()
         self.p8RowLayout_5.setSpacing(8)
         self.p8RowLayout_5.setObjectName(u"p8RowLayout_5")
-        self.label4 = QLabel(self.tabModel)
-        self.label4.setObjectName(u"label4")
+        self.label6 = QLabel(self.tabModel)
+        self.label6.setObjectName(u"label6")
 
-        self.p8RowLayout_5.addWidget(self.label4)
+        self.p8RowLayout_5.addWidget(self.label6)
 
         self.profileCfgSpin = QDoubleSpinBox(self.tabModel)
         self.profileCfgSpin.setObjectName(u"profileCfgSpin")
@@ -274,10 +325,10 @@ class Ui_SettingsDialog(object):
         self.p8RowLayout_6 = QHBoxLayout()
         self.p8RowLayout_6.setSpacing(8)
         self.p8RowLayout_6.setObjectName(u"p8RowLayout_6")
-        self.label5 = QLabel(self.tabModel)
-        self.label5.setObjectName(u"label5")
+        self.label7 = QLabel(self.tabModel)
+        self.label7.setObjectName(u"label7")
 
-        self.p8RowLayout_6.addWidget(self.label5)
+        self.p8RowLayout_6.addWidget(self.label7)
 
         self.profileSamplerCombo = QComboBox(self.tabModel)
         self.profileSamplerCombo.addItem("")
@@ -296,10 +347,10 @@ class Ui_SettingsDialog(object):
         self.p8RowLayout_7 = QHBoxLayout()
         self.p8RowLayout_7.setSpacing(8)
         self.p8RowLayout_7.setObjectName(u"p8RowLayout_7")
-        self.label6 = QLabel(self.tabModel)
-        self.label6.setObjectName(u"label6")
+        self.label8 = QLabel(self.tabModel)
+        self.label8.setObjectName(u"label8")
 
-        self.p8RowLayout_7.addWidget(self.label6)
+        self.p8RowLayout_7.addWidget(self.label8)
 
         self.profileSchedulerCombo = QComboBox(self.tabModel)
         self.profileSchedulerCombo.addItem("")
@@ -316,10 +367,10 @@ class Ui_SettingsDialog(object):
         self.p8RowLayout_8 = QHBoxLayout()
         self.p8RowLayout_8.setSpacing(8)
         self.p8RowLayout_8.setObjectName(u"p8RowLayout_8")
-        self.label7 = QLabel(self.tabModel)
-        self.label7.setObjectName(u"label7")
+        self.label9 = QLabel(self.tabModel)
+        self.label9.setObjectName(u"label9")
 
-        self.p8RowLayout_8.addWidget(self.label7)
+        self.p8RowLayout_8.addWidget(self.label9)
 
         self.profileClip1Edit = QLineEdit(self.tabModel)
         self.profileClip1Edit.setObjectName(u"profileClip1Edit")
@@ -332,10 +383,10 @@ class Ui_SettingsDialog(object):
         self.p8RowLayout_9 = QHBoxLayout()
         self.p8RowLayout_9.setSpacing(8)
         self.p8RowLayout_9.setObjectName(u"p8RowLayout_9")
-        self.label8 = QLabel(self.tabModel)
-        self.label8.setObjectName(u"label8")
+        self.label10 = QLabel(self.tabModel)
+        self.label10.setObjectName(u"label10")
 
-        self.p8RowLayout_9.addWidget(self.label8)
+        self.p8RowLayout_9.addWidget(self.label10)
 
         self.profileClip2Edit = QLineEdit(self.tabModel)
         self.profileClip2Edit.setObjectName(u"profileClip2Edit")
@@ -348,10 +399,10 @@ class Ui_SettingsDialog(object):
         self.p8RowLayout_10 = QHBoxLayout()
         self.p8RowLayout_10.setSpacing(8)
         self.p8RowLayout_10.setObjectName(u"p8RowLayout_10")
-        self.label9 = QLabel(self.tabModel)
-        self.label9.setObjectName(u"label9")
+        self.label11 = QLabel(self.tabModel)
+        self.label11.setObjectName(u"label11")
 
-        self.p8RowLayout_10.addWidget(self.label9)
+        self.p8RowLayout_10.addWidget(self.label11)
 
         self.profileVaeEdit = QLineEdit(self.tabModel)
         self.profileVaeEdit.setObjectName(u"profileVaeEdit")
@@ -487,19 +538,26 @@ class Ui_SettingsDialog(object):
         self.settingsTabWidget.setTabText(self.settingsTabWidget.indexOf(self.tabAiServer), QCoreApplication.translate("SettingsDialog", u"AI \uc11c\ubc84", None))
         self.profileAutoLabel.setText(QCoreApplication.translate("SettingsDialog", u"\uc790\ub3d9 \ud310\ubcc4 \ubaa8\ub378 (\uc77d\uae30 \uc804\uc6a9)", None))
         self.profileManualLabel.setText(QCoreApplication.translate("SettingsDialog", u"\uc218\ub3d9 \ud504\ub85c\ud544 (\uace0\uae09 \u00b7 \uc2e0\uaddc/\uc608\uc678 \ubaa8\ub378\uc6a9)", None))
-        self.label.setText(QCoreApplication.translate("SettingsDialog", u"\ud504\ub85c\ud544\uba85", None))
+        self.label.setText(QCoreApplication.translate("SettingsDialog", u"\ubaa8\ub378 \ud30c\uc77c", None))
+        self.profileModelFileEdit.setPlaceholderText(QCoreApplication.translate("SettingsDialog", u"\uc608: my-model.safetensors", None))
+        self.profileModelFileBrowseBtn.setText(QCoreApplication.translate("SettingsDialog", u"\ucc3e\uc544\ubcf4\uae30", None))
+        self.label1.setText(QCoreApplication.translate("SettingsDialog", u"\uc6cc\ud06c\ud50c\ub85c\uc6b0", None))
+        self.profileWorkflowFileEdit.setPlaceholderText(QCoreApplication.translate("SettingsDialog", u"\ubaa8\ub378 \ud30c\uc77c\uc744 \uace0\ub974\uba74 \uc790\ub3d9\uc73c\ub85c \ub9cc\ub4e4\uc5b4\uc9d1\ub2c8\ub2e4", None))
+        self.profileWorkflowBrowseBtn.setText(QCoreApplication.translate("SettingsDialog", u"\ucc3e\uc544\ubcf4\uae30", None))
+        self.profileAiWorkflowBtn.setText(QCoreApplication.translate("SettingsDialog", u"AI\ub85c \ub9cc\ub4e4\uae30 (\uc2e4\ud5d8\uc801)", None))
+        self.label2.setText(QCoreApplication.translate("SettingsDialog", u"\ud504\ub85c\ud544\uba85", None))
         self.profileNameEdit.setPlaceholderText(QCoreApplication.translate("SettingsDialog", u"\uc608: my-model", None))
-        self.label1.setText(QCoreApplication.translate("SettingsDialog", u"\ub9e4\uce6d \ud328\ud134", None))
+        self.label3.setText(QCoreApplication.translate("SettingsDialog", u"\ub9e4\uce6d \ud328\ud134", None))
         self.profilePatternsEdit.setPlaceholderText(QCoreApplication.translate("SettingsDialog", u"\ud30c\uc77c\uba85 \uc77c\ubd80, \uc27c\ud45c \uad6c\ubd84", None))
-        self.label2.setText(QCoreApplication.translate("SettingsDialog", u"\uc6cc\ud06c\ud50c\ub85c\uc6b0 \uc885\ub958", None))
+        self.label4.setText(QCoreApplication.translate("SettingsDialog", u"\uc6cc\ud06c\ud50c\ub85c\uc6b0 \uc885\ub958", None))
         self.profileWorkflowCombo.setItemText(0, QCoreApplication.translate("SettingsDialog", u"checkpoint", None))
         self.profileWorkflowCombo.setItemText(1, QCoreApplication.translate("SettingsDialog", u"gguf", None))
         self.profileWorkflowCombo.setItemText(2, QCoreApplication.translate("SettingsDialog", u"flux_gguf", None))
         self.profileWorkflowCombo.setItemText(3, QCoreApplication.translate("SettingsDialog", u"zimage", None))
 
-        self.label3.setText(QCoreApplication.translate("SettingsDialog", u"Steps", None))
-        self.label4.setText(QCoreApplication.translate("SettingsDialog", u"CFG", None))
-        self.label5.setText(QCoreApplication.translate("SettingsDialog", u"\uc0d8\ud50c\ub7ec", None))
+        self.label5.setText(QCoreApplication.translate("SettingsDialog", u"Steps", None))
+        self.label6.setText(QCoreApplication.translate("SettingsDialog", u"CFG", None))
+        self.label7.setText(QCoreApplication.translate("SettingsDialog", u"\uc0d8\ud50c\ub7ec", None))
         self.profileSamplerCombo.setItemText(0, QCoreApplication.translate("SettingsDialog", u"euler", None))
         self.profileSamplerCombo.setItemText(1, QCoreApplication.translate("SettingsDialog", u"dpmpp_2m", None))
         self.profileSamplerCombo.setItemText(2, QCoreApplication.translate("SettingsDialog", u"dpmpp_2m_sde", None))
@@ -507,20 +565,23 @@ class Ui_SettingsDialog(object):
         self.profileSamplerCombo.setItemText(4, QCoreApplication.translate("SettingsDialog", u"lcm", None))
         self.profileSamplerCombo.setItemText(5, QCoreApplication.translate("SettingsDialog", u"ddim", None))
 
-        self.label6.setText(QCoreApplication.translate("SettingsDialog", u"\uc2a4\ucf00\uc904\ub7ec", None))
+        self.label8.setText(QCoreApplication.translate("SettingsDialog", u"\uc2a4\ucf00\uc904\ub7ec", None))
         self.profileSchedulerCombo.setItemText(0, QCoreApplication.translate("SettingsDialog", u"normal", None))
         self.profileSchedulerCombo.setItemText(1, QCoreApplication.translate("SettingsDialog", u"karras", None))
         self.profileSchedulerCombo.setItemText(2, QCoreApplication.translate("SettingsDialog", u"exponential", None))
         self.profileSchedulerCombo.setItemText(3, QCoreApplication.translate("SettingsDialog", u"simple", None))
 
-        self.label7.setText(QCoreApplication.translate("SettingsDialog", u"CLIP 1", None))
+        self.label9.setText(QCoreApplication.translate("SettingsDialog", u"CLIP 1", None))
         self.profileClip1Edit.setPlaceholderText(QCoreApplication.translate("SettingsDialog", u"\uc120\ud0dd \uc0ac\ud56d", None))
-        self.label8.setText(QCoreApplication.translate("SettingsDialog", u"CLIP 2", None))
+        self.label10.setText(QCoreApplication.translate("SettingsDialog", u"CLIP 2", None))
         self.profileClip2Edit.setPlaceholderText(QCoreApplication.translate("SettingsDialog", u"\uc120\ud0dd \uc0ac\ud56d", None))
-        self.label9.setText(QCoreApplication.translate("SettingsDialog", u"VAE", None))
+        self.label11.setText(QCoreApplication.translate("SettingsDialog", u"VAE", None))
         self.profileVaeEdit.setPlaceholderText(QCoreApplication.translate("SettingsDialog", u"\uc120\ud0dd \uc0ac\ud56d", None))
         self.profileDeleteBtn.setText(QCoreApplication.translate("SettingsDialog", u"\ud504\ub85c\ud544 \uc0ad\uc81c", None))
-        self.profileValidateLabel.setText("")
+#if QT_CONFIG(accessibility)
+        self.profileValidateLabel.setAccessibleName(QCoreApplication.translate("SettingsDialog", u"\uc218\ub3d9 \ud504\ub85c\ud544 \uac80\uc99d \uacb0\uacfc", None))
+#endif // QT_CONFIG(accessibility)
+        self.profileValidateLabel.setText(QCoreApplication.translate("SettingsDialog", u"\uc2e0\uaddc \ud504\ub85c\ud544 \uc815\ubcf4\ub97c \uc785\ub825\ud558\uace0 [\ubaa8\ub378 \uc815\ubcf4 \uc800\uc7a5]\uc744 \ub204\ub974\uc138\uc694.", None))
         self.profileSaveBtn.setText(QCoreApplication.translate("SettingsDialog", u"\ubaa8\ub378 \uc815\ubcf4 \uc800\uc7a5", None))
         self.settingsTabWidget.setTabText(self.settingsTabWidget.indexOf(self.tabModel), QCoreApplication.translate("SettingsDialog", u"\uc774\ubbf8\uc9c0 \ubaa8\ub378 \ud504\ub85c\ud544", None))
         self.logTabTitle.setText(QCoreApplication.translate("SettingsDialog", u"\uc2e4\ud589 \ub85c\uadf8 (\uc77d\uae30 \uc804\uc6a9, \ucd5c\ub300 5000\uc904)", None))

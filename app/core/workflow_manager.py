@@ -279,6 +279,67 @@ class WorkflowManager:
             return value
         
         return replace_value(template)
+
+    def render_custom_workflow(
+        self,
+        workflow_file: str,
+        model_name: str,
+        positive_prompt: str,
+        negative_prompt: str,
+        width: int,
+        height: int,
+        seed: int,
+        steps: int,
+        cfg: float,
+        sampler_name: Optional[str] = None,
+        scheduler: Optional[str] = None,
+        denoise: Optional[float] = None,
+        filename_prefix: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """P13: 사용자가 만든 커스텀 워크플로우를 렌더링한다.
+
+        설정창에서 "모델 추가"로 자동 생성한 워크플로우 파일(체크포인트명이 이미
+        확정되어 있음)을 읽어, 나머지 값만 치환한다. __PLACEHOLDER____ 규약을 따르므로
+        기존 _render_template()을 그대로 재사용할 수 있다.
+        파일이 없으면 예외를 던져 호출부가 기본 경로로 폴백하도록 한다.
+        """
+        path = self.resolve_workflow_path(workflow_file)
+        if path is None or not path.is_file():
+            raise FileNotFoundError(f"커스텀 워크플로우 파일이 없습니다: {workflow_file}")
+
+        import json as _json
+        with open(path, "r", encoding="utf-8") as f:
+            raw = _json.load(f)
+        if not isinstance(raw, dict):
+            raise ValueError("커스텀 워크플로우 최상위가 객체(노드 사전)가 아닙니다.")
+
+        prefix = filename_prefix or self.config.output.filename_prefix
+        replacements = {
+            "__MODEL_NAME__": model_name,
+            "__CHECKPOINT__": model_name,
+            "__POSITIVE_PROMPT__": positive_prompt,
+            "__NEGATIVE_PROMPT__": negative_prompt,
+            "__WIDTH__": width,
+            "__HEIGHT__": height,
+            "__SEED__": seed,
+            "__STEPS__": steps,
+            "__CFG__": cfg,
+            "__SAMPLER_NAME__": sampler_name or self.config.workflow.sampler_name,
+            "__SCHEDULER__": scheduler or self.config.workflow.scheduler,
+            "__DENOISE__": self.config.workflow.denoise if denoise is None else denoise,
+            "__FILENAME_PREFIX__": prefix,
+        }
+        return self._render_template(raw, replacements)
+
+    def resolve_workflow_path(self, workflow_file: str) -> Optional[Path]:
+        """커스텀 워크플로우 경로를 절대경로로 변환한다 (없으면 None)."""
+        raw = str(workflow_file or "").strip()
+        if not raw:
+            return None
+        path = Path(raw)
+        if not path.is_absolute():
+            path = Path(__file__).resolve().parent.parent.parent / path
+        return path
     
     def is_gguf_model(self, model_name: str) -> bool:
         """모델명이 GGUF/UNET 모델인지 판별"""

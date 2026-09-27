@@ -7,13 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>500</width>
-    <height>781</height>
+    <height>822</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>500</width>
-    <height>780</height>
+    <height>820</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -231,6 +231,81 @@
           <string>수동 프로필 (고급 · 신규/예외 모델용)</string>
          </property>
         </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="p8RowLayout_modelFile">
+         <property name="spacing">
+          <number>8</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>모델 파일</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="profileModelFileEdit">
+           <property name="placeholderText">
+            <string>예: my-model.safetensors</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="profileModelFileBrowseBtn">
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
+           </property>
+           <property name="text">
+            <string>찾아보기</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="p8RowLayout_workflow">
+         <property name="spacing">
+          <number>8</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>워크플로우</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="profileWorkflowFileEdit">
+           <property name="placeholderText">
+            <string>모델 파일을 고르면 자동으로 만들어집니다</string>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="profileWorkflowBrowseBtn">
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
+           </property>
+           <property name="text">
+            <string>찾아보기</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="profileAiWorkflowBtn">
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
+           </property>
+           <property name="text">
+            <string>AI로 만들기 (실험적)</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <layout class="QHBoxLayout" name="p8RowLayout_1">
@@ -543,8 +618,11 @@
        </item>
        <item>
         <widget class="QLabel" name="profileValidateLabel">
+         <property name="accessibleName">
+          <string>수동 프로필 검증 결과</string>
+         </property>
          <property name="text">
-          <string/>
+          <string>신규 프로필 정보를 입력하고 [모델 정보 저장]을 누르세요.</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
