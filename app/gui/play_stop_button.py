@@ -214,11 +214,6 @@ class PlayStopButton(QPushButton):
         p.setBrush(QColor("#FFFFFF"))
         p.drawPath(self._play_path(cx, cy, 0.82, 1.0))
 
-    def _draw_stop(self, p, cx, cy):
-        p.setPen(Qt.NoPen)
-        p.setBrush(QColor("#FFFFFF"))
-        p.drawRoundedRect(QRectF(cx - 4, cy - 11, 8, 22), 1.0, 1.0)
-
     def _draw_content(self, p, r):
         p.setFont(self._font)
         p.setPen(QColor("#FFFFFF"))
