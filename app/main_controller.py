@@ -122,6 +122,12 @@ from app import (
 # 추가 모듈 import
 from app.core.model_status_service import ModelStatusService
 from app.sections.prompt import enforce_prompt_character_limit
+
+# P9: 금지어 최소 목록 (제출 시 검증용). 명백한 성적·폭력·혐오 표현만 포함.
+BLOCKED_WORDS = (
+    "violencia", "porn", "porno", "xxx", "nsfw", "rape", "loli",
+    "야동", "음란", "강간", "살인", "자살방법",
+)
 from app.logging_config import setup_logging
 from app.gui.dialogs.settings_dialog import show_settings_dialog
 from app.gui.dialogs.help_dialog import show_help_dialog
@@ -133,6 +139,23 @@ from app.gui.chat_widgets import (
     ImageCard,
     describe_model,
 )
+
+# P9: 상태 템플릿 11종 (기획서 §8). 고정 문장 + 빈칸 채움.
+# 기존 동작 경로의 인라인 문구는 테스트 호환을 위해 유지하고,
+# 신규 분기(환영·LM 미연결·금지어)는 이 표를 사용한다.
+TEMPLATES = {
+    "welcome": "안녕하세요! 어떤 이미지를 만들어드릴까요?",
+    "done": "{model}으로 그렸어요. ({elapsed} 소요)",
+    "edited": "{style} 스타일로 수정했어요.",
+    "generating": "{summary} 이미지를 만들고 있어요...",
+    "model_changed": "{model} 모델 최적 설정이 적용되었어요 ({feature}).",
+    "options_reset": "생성 옵션을 기본값으로 되돌렸어요.",
+    "failed": "이미지 생성에 실패했어요. 원인: {reason}",
+    "lm_off": "프롬프트 향상 없이 원문으로 생성해요.",
+    "blocked": "이 표현은 사용할 수 없어요.",
+    "busy": "생성 중이에요. 기다리거나 취소해주세요.",
+    "style_pick": "Z-Anime 스타일을 골라주세요.",
+}
 
 UI_FILE = BASE_DIR / "assets" / "ui" / "main.ui"
 
@@ -378,6 +401,9 @@ class MainController(QObject):
         self._status_bubble = None
         self._pending_zanime_style = False
         self._refresh_send_state()
+
+        # P9: 접근성 이름 + 라이브 리전 + 인라인 에러 라벨
+        self._setup_chat_accessibility()
 
         self.find(QPlainTextEdit, "logTextEdit").setVisible(True)
         # QSplitter를 사용하지 않는 레이아웃 구조이므로, 초기 배치는 레이아웃이 자동 처리
@@ -749,6 +775,9 @@ class MainController(QObject):
                     self._switch_session(recent[0].get("id", ""), silent=True)
         except Exception:
             logger.debug("시작 세션 복원 실패", exc_info=True)
+
+        # P9: 저장된 세션이 없고 채팅이 비었을 때만 환영 메시지
+        self._maybe_greet()
 
     # -- 페이지 전환 ------------------------------------------------------
     def _options_widgets(self):
@@ -1158,6 +1187,18 @@ class MainController(QObject):
                     self._open_preview(path, focus))
             except RuntimeError:
                 pass
+            # P9: 카드 접근성 이름
+            try:
+                prompt_preview = str(record.get("prompt", ""))[:100]
+                card.image_label.setAccessibleName("생성된 이미지")
+                card.image_label.setAccessibleDescription(prompt_preview)
+                card.save_button.setAccessibleName("이미지 저장")
+                card.copy_button.setAccessibleName("이미지 복사")
+                card.reuse_button.setAccessibleName("프롬프트 불러와 수정")
+                card.prompt_toggle.setAccessibleName("사용된 프롬프트 보기")
+                card.prompt_copy_button.setAccessibleName("프롬프트 복사")
+            except RuntimeError:
+                pass
             insert_at = layout.count()
             for i in range(layout.count()):
                 widget = layout.itemAt(i).widget()
@@ -1180,6 +1221,7 @@ class MainController(QObject):
             self._hide_status_bubble()
             bubble = GenerationStatusBubble(
                 on_cancel=self.stop_generation, parent=self.window)
+            bubble.pulse_enabled = not self._reduced_motion()
             insert_at = layout.count()
             for i in range(layout.count()):
                 widget = layout.itemAt(i).widget()
@@ -1211,6 +1253,117 @@ class MainController(QObject):
         except RuntimeError:
             logger.debug("상태 버블 제거 실패", exc_info=True)
 
+    def _setup_chat_accessibility(self) -> None:
+        """P9: 접근성 이름, 스크린 리더 알림용 라이브 라벨, 인라인 에러 라벨."""
+        try:
+            send_button = self.find(QPushButton, "sendBtn")
+            if send_button is not None:
+                send_button.setAccessibleName("이미지 생성하기")
+                send_button.setAccessibleDescription(
+                    "채팅 입력 내용을 이미지로 생성합니다.")
+            picker = self.find(QComboBox, "comfyModelCombo")
+            if picker is not None:
+                picker.setAccessibleName("이미지 생성 모델 선택")
+            chat_input = self.find(QPlainTextEdit, "chatInputEdit")
+            if chat_input is not None:
+                chat_input.setAccessibleName("이미지 설명 입력")
+                chat_input.setAccessibleDescription(
+                    "Enter로 전송, Shift+Enter로 줄바꿈합니다.")
+            history_list = self.find(QListWidget, "historyList")
+            if history_list is not None:
+                history_list.setAccessibleName("대화 이력 목록")
+            for name, label in (
+                ("railHomeBtn", "홈 (생성 옵션 패널)"),
+                ("railHistoryBtn", "대화 이력"),
+                ("railHelpBtn", "도움말"),
+                ("railSettingsBtn", "설정"),
+            ):
+                button = self.find(QPushButton, name)
+                if button is not None:
+                    button.setAccessibleName(label)
+            # 스크린 리더 알림용 숨김 라벨
+            container = self.find(QWidget, "chatContentWidget")
+            if container is not None and self.find(
+                    QLabel, "chatLiveLabel") is None:
+                live = QLabel(container)
+                live.setObjectName("chatLiveLabel")
+                live.setVisible(False)
+                live.setAccessibleName("생성 상태 알림")
+            # 인라인 에러 라벨 (입력 행 끝, 기본 숨김)
+            if self.find(QLabel, "chatInputErrorLabel") is None:
+                input_row = self.find(QHBoxLayout, "inputRowLayout")
+                if input_row is not None:
+                    error = QLabel()
+                    error.setObjectName("chatInputErrorLabel")
+                    error.setStyleSheet("color: #C42B1C;")
+                    error.setVisible(False)
+                    input_row.addWidget(error)
+        except RuntimeError:
+            logger.debug("채팅 접근성 설정 실패", exc_info=True)
+
+    def _announce(self, message: str) -> None:
+        """P9: 스크린 리더에 상태 알림 (실패해도 조용히 무시)."""
+        try:
+            live = self.find(QLabel, "chatLiveLabel")
+            if live is None:
+                return
+            live.setText(message)
+            from PySide6.QtGui import QAccessible, QAccessibleAnnouncementEvent
+            QAccessible.updateAccessibility(
+                QAccessibleAnnouncementEvent(live, message))
+        except Exception:
+            logger.debug("스크린 리더 알림 실패", exc_info=True)
+
+    def _show_input_error(self, message: str) -> None:
+        """P9: 입력 행 인라인 에러 + 입력창 포커스."""
+        try:
+            error = self.find(QLabel, "chatInputErrorLabel")
+            if error is not None:
+                error.setText(message)
+                error.setVisible(True)
+            edit = self.find(QPlainTextEdit, "chatInputEdit")
+            if edit is not None:
+                edit.setFocus()
+        except RuntimeError:
+            logger.debug("인라인 에러 표시 실패", exc_info=True)
+
+    def _clear_input_error(self) -> None:
+        try:
+            error = self.find(QLabel, "chatInputErrorLabel")
+            if error is not None:
+                error.clear()
+                error.setVisible(False)
+        except RuntimeError:
+            pass
+
+    def _validate_chat_text(self, text: str):
+        """P9: 금지어 검증. (통과 여부, 위반 단어) 반환."""
+        lowered = (text or "").lower()
+        for word in BLOCKED_WORDS:
+            if word and word.lower() in lowered:
+                return False, word
+        return True, ""
+
+    def _maybe_greet(self) -> None:
+        """P9: 저장된 세션이 하나도 없고 채팅이 비었을 때만 환영 메시지."""
+        try:
+            manager = getattr(self, "session_manager", None)
+            if manager is not None and manager.list_sessions(limit=1):
+                return
+            if getattr(self, "_chat_log", None):
+                return
+            self._append_chat_message("ai", TEMPLATES["welcome"])
+        except Exception:
+            logger.debug("환영 메시지 실패", exc_info=True)
+
+    def _reduced_motion(self) -> bool:
+        """P9: 모션 감소 환경 (환경 변수로/opt-out)."""
+        try:
+            import os
+            return os.environ.get("COMFYCRAFT_REDUCE_MOTION", "") == "1"
+        except Exception:
+            return False
+
     def _on_chat_input_changed(self) -> None:
         """채팅 입력 변경 → 카운터 + 전송 버튼 상태 갱신."""
         try:
@@ -1230,10 +1383,12 @@ class MainController(QObject):
             if generating:
                 button.setText("■")
                 button.setToolTip("생성 중지")
+                button.setAccessibleName("생성 중지")
                 button.setEnabled(True)
             else:
                 button.setText("➤")
                 button.setToolTip("이미지 생성하기")
+                button.setAccessibleName("이미지 생성하기")
                 self._refresh_send_state()
         except RuntimeError:
             logger.debug("전송 버튼 상태 변경 실패", exc_info=True)
@@ -1319,6 +1474,11 @@ class MainController(QObject):
             text = normalize_prompt(edit.toPlainText())
             if not text:
                 return
+            ok, _hit = self._validate_chat_text(text)
+            if not ok:
+                self._show_input_error(TEMPLATES["blocked"])
+                return
+            self._clear_input_error()
             if self._needs_zanime_style():
                 # 생성하지 않고 스타일 선택 요청 (원문 보관)
                 self._ensure_session()
@@ -1356,6 +1516,9 @@ class MainController(QObject):
             edit = self.find(QPlainTextEdit, "chatInputEdit")
             if edit is not None:
                 edit.clear()
+            # P9: LM 미연결이면 향상 생략 안내
+            if not self.is_lm_connected():
+                self._append_chat_message("ai", TEMPLATES["lm_off"])
             self.start_generation()
             # P3: 채팅 경로로 시작됐으면 상태 버블 표시 + 신호 연결
             if self._is_generating():
@@ -2907,6 +3070,7 @@ class MainController(QObject):
         self.append_log(f"생성 오류: {text}")
         self.show_error_banner(f"✖ 생성 오류 — {text}")
         self._reveal_log_on_error()
+        self._announce(TEMPLATES["failed"].format(reason=text))
         show_message_box(
             self.window, QMessageBox.Icon.Critical, "생성 오류", text
         )
@@ -2937,6 +3101,9 @@ class MainController(QObject):
         self._set_send_button_state(False)
         # P3: 상태 버블 제거 (finished 신호에서도 제거되므로 중복 안전)
         self._hide_status_bubble()
+        # P9: 완료 알림
+        self._announce("이미지 생성이 완료되었습니다." if success else
+                       "이미지 생성이 실패 또는 중단되었습니다.")
 
         if success:
             self.append_log("이미지 생성이 완료되었습니다.")

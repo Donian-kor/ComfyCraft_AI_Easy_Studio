@@ -93,6 +93,7 @@ class ImagePreviewModal(QDialog):
         self.save_button.clicked.connect(self._on_save_clicked)
         self.close_button = QPushButton("✕ 닫기")
         self.close_button.setObjectName("previewCloseBtn")
+        self.close_button.setAccessibleName("미리보기 닫기")
         self.close_button.clicked.connect(self.close)
         for button in (self.prev_button, self.next_button,
                        self.zoom_in_button, self.zoom_out_button,
