@@ -74,11 +74,29 @@ class HiddenUiRemovalTests(unittest.TestCase):
         self.assertIsNone(window.findChild(QVBoxLayout, "settingsLayout"))
 
     def test_surviving_widgets_still_present(self) -> None:
-        """정리 과정에서 살아있는 위젯이 실수로 삭제되지 않았는지 확인."""
+        """정리 과정에서 살아있는 위젯이 실수로 삭제되지 않았는지 확인.
+
+        P1: 헤더 helpButton/settingsButton은 사이드바 레일로 이전되어
+        main.ui에서 제거됨. 레일 버튼 + 채팅 껍데기가 대신 존재해야 한다.
+        """
         window = _load_window()
         self.assertIsNotNone(window.findChild(QWidget, "themeComboBox"))
-        self.assertIsNotNone(window.findChild(QPushButton, "helpButton"))
-        self.assertIsNotNone(window.findChild(QPushButton, "settingsButton"))
+        # P1에서 제거된 헤더 버튼 (레일로 이전)
+        self.assertIsNone(window.findChild(QPushButton, "helpButton"))
+        self.assertIsNone(window.findChild(QPushButton, "settingsButton"))
+        # P1 신규: 레일 버튼 4개
+        for name in ("railHomeBtn", "railHistoryBtn",
+                     "railHelpBtn", "railSettingsBtn"):
+            with self.subTest(widget=name):
+                self.assertIsNotNone(window.findChild(QPushButton, name))
+        # P1 신규: 채팅 껍데기 + 입력 행
+        for name in ("chatScrollArea", "chatInputEdit",
+                     "sendBtn", "newChatBtn"):
+            with self.subTest(widget=name):
+                self.assertIsNotNone(
+                    window.findChild(QWidget, name),
+                    f"{name} 이(가) main.ui에 없습니다",
+                )
         self.assertIsNotNone(window.findChild(QLabel, "positivePromptEdit")
                              or window.findChild(QWidget, "positivePromptEdit"))
 

@@ -372,6 +372,9 @@ class MainController(QObject):
         # 사이드바 애니메이션 설정
         self.setup_sidebar_animation()
 
+        # P1: 좌측 레일 버튼 연결 (클릭 토글, 호버 펼침 없음)
+        self._setup_rail_buttons()
+
         # 미리보기 라벨: 창 크기 변경 시 이미지도 함께 확대/축소되도록 필터 설치
         preview_label = self.find(QLabel, "previewLabel")
         if preview_label is not None:
@@ -514,6 +517,63 @@ class MainController(QObject):
         """사이드바 애니메이션 중 최소 너비도 함께 맞춰 레이아웃이 정확한 폭을 유지하게 한다."""
         if getattr(self, "sidebar_frame", None) is not None:
             self.sidebar_frame.setMinimumWidth(int(value))
+
+    def _setup_rail_buttons(self) -> None:
+        """P1: 좌측 레일 버튼 연결.
+
+        railHomeBtn/railHistoryBtn은 옵션 패널 표시 토글 (P6에서 내용 전환으로 확장).
+        railSettingsBtn/railHelpBtn은 기존 다이얼로그에 연결.
+        newChatBtn은 채팅 비우기 (세션 전환은 P6).
+        존재하지 않는 위젯은 조용히 건너뛴다.
+        """
+        panel = self.find(QWidget, "leftScrollArea")
+
+        def toggle_panel() -> None:
+            try:
+                if panel is not None:
+                    panel.setVisible(not panel.isVisible())
+            except RuntimeError:
+                logger.debug("옵션 패널 토글 실패", exc_info=True)
+
+        for name in ("railHomeBtn", "railHistoryBtn"):
+            button = self.find(QPushButton, name)
+            if button is not None:
+                button.clicked.connect(toggle_panel)
+        settings_button = self.find(QPushButton, "railSettingsBtn")
+        if settings_button is not None:
+            settings_button.clicked.connect(self._show_settings_dialog)
+        help_button = self.find(QPushButton, "railHelpBtn")
+        if help_button is not None:
+            help_button.clicked.connect(self._show_help_dialog)
+        new_chat_button = self.find(QPushButton, "newChatBtn")
+        if new_chat_button is not None:
+            new_chat_button.clicked.connect(self._on_new_chat_clicked)
+
+    def _on_new_chat_clicked(self) -> None:
+        """P1: 채팅 영역 비우기 (세션 전환은 P6에서 연결)."""
+        try:
+            container = self.find(QWidget, "chatContentWidget")
+            layout = container.layout() if container is not None else None
+            if layout is None:
+                return
+            spacer = None
+            leftovers = []
+            for i in range(layout.count()):
+                widget = layout.itemAt(i).widget()
+                if widget is None:
+                    continue
+                if widget.objectName() == "chatSpacer":
+                    spacer = widget
+                else:
+                    leftovers.append(widget)
+            for widget in leftovers:
+                layout.removeWidget(widget)
+                widget.setParent(None)
+                widget.deleteLater()
+            if spacer is not None and layout.indexOf(spacer) < 0:
+                layout.addWidget(spacer)
+        except RuntimeError:
+            logger.debug("채팅 비우기 실패", exc_info=True)
 
     def eventFilter(self, obj, event):
         # 프로세스 종료 시점(atexit)에는 C++ Qt 객체가 이미 파괴된 뒤
@@ -807,15 +867,15 @@ class MainController(QObject):
 
         self._zanime_style_frame = frame
 
-        index = -1
-        for i in range(step_layout.count()):
-            if step_layout.itemAt(i).layout() is model_layout:
-                index = i
-                break
-        if index >= 0:
-            step_layout.insertWidget(index + 1, frame)
-        else:
-            model_layout.addWidget(frame)
+        # P1: modelSelectLayout이 입력 행으로 이동했으므로 step2 카드末尾에 배치한다.
+        # (구 레이아웃의 인덱스 탐색은 더 이상 유효하지 않음)
+        try:
+            step_layout.addWidget(frame)
+        except Exception:
+            try:
+                model_layout.addWidget(frame)
+            except Exception:
+                logger.debug("zanime 스타일 프레임 배치 실패", exc_info=True)
 
         self.refresh_zanime_style_buttons()
         self.update_zanime_style_visibility()
