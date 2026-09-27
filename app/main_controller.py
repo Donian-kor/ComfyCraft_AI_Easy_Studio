@@ -391,6 +391,20 @@ class MainController(QObject):
         # P1: 좌측 레일 버튼 연결 (클릭 토글, 호버 펼침 없음)
         self._setup_rail_buttons()
 
+        # P5: 옵션 다듬기 — 향상 박스 숨김(표시는 채팅 인라인이 담당),
+        # 되돌리기 버튼 추가. 구조 변경 없음.
+        enhance_card = self.find(QFrame, "enhancePromptCard")
+        if enhance_card is not None:
+            enhance_card.setVisible(False)
+        step2_layout = self.find(QVBoxLayout, "step2Layout")
+        if step2_layout is not None and self.find(
+                QPushButton, "resetOptionsButton") is None:
+            reset_button = QPushButton("기본값으로 되돌리기")
+            reset_button.setObjectName("resetOptionsButton")
+            reset_button.setCursor(Qt.CursorShape.PointingHandCursor)
+            reset_button.clicked.connect(self._reset_options_to_defaults)
+            step2_layout.addWidget(reset_button)
+
         # 미리보기 라벨: 창 크기 변경 시 이미지도 함께 확대/축소되도록 필터 설치
         preview_label = self.find(QLabel, "previewLabel")
         if preview_label is not None:
@@ -533,6 +547,21 @@ class MainController(QObject):
         """사이드바 애니메이션 중 최소 너비도 함께 맞춰 레이아웃이 정확한 폭을 유지하게 한다."""
         if getattr(self, "sidebar_frame", None) is not None:
             self.sidebar_frame.setMinimumWidth(int(value))
+
+    def _reset_options_to_defaults(self) -> None:
+        """P5: 현재 모델 최적값 + FaceDetailer 기본값으로 되돌리기."""
+        try:
+            exact = self._comfy_model_file()
+            if not exact or exact == "로드된 모델 없음":
+                self.append_log("모델을 먼저 선택해주세요.")
+                return
+            self.apply_model_defaults(exact)
+            self._reset_facedetailer_to_defaults()
+            self.append_log(f"옵션을 기본값으로 되돌렸습니다 ({exact}).")
+            self._append_chat_message(
+                "system", "생성 옵션을 기본값으로 되돌렸어요.")
+        except RuntimeError:
+            logger.debug("옵션 되돌리기 실패", exc_info=True)
 
     def _setup_rail_buttons(self) -> None:
         """P1: 좌측 레일 버튼 연결.
