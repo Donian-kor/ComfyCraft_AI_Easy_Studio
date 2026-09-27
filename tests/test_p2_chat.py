@@ -71,12 +71,16 @@ class P2ChatFlowTests(unittest.TestCase):
         self.assertFalse(button.isEnabled())
 
     def test_counter_updates(self):
+        # P11: 카운터 라벨 삭제됨 — 5000자 강제 + 초과 시 인라인 경고
         controller = _make_controller()
         edit = controller.find(QPlainTextEdit, "chatInputEdit")
         edit.setPlainText("고양이")
         from PySide6.QtWidgets import QLabel
-        label = controller.find(QLabel, "chatCounterLabel")
-        self.assertTrue(label.text().startswith("3 /"))
+        self.assertIsNone(controller.find(QLabel, "chatCounterLabel"))
+        edit.setPlainText("x" * 5001)
+        self.assertEqual(len(edit.toPlainText()), 5000)
+        error = controller.find(QLabel, "chatInputErrorLabel")
+        self.assertTrue(error.isVisibleTo(controller.window))
 
     def test_send_syncs_prompt_and_clears_enhance(self):
         controller = _make_controller()

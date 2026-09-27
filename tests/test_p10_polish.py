@@ -95,12 +95,11 @@ class P10ExecFixTests(unittest.TestCase):
                 self.assertIsNotNone(button)
                 self.assertEqual(button.text(), expected)
 
-    def test_preview_minimum_fits_options_panel(self):
+    def test_preview_removed_card_replaces_it(self):
+        # P11: 미리보기 라벨 삭제됨 — 채팅 카드+모달이 대체
         controller = _make_controller()
         from PySide6.QtWidgets import QLabel
-        preview = controller.find(QLabel, "previewLabel")
-        self.assertLessEqual(preview.minimumWidth(), 240)
-        self.assertLessEqual(preview.minimumHeight(), 240)
+        self.assertIsNone(controller.find(QLabel, "previewLabel"))
 
     def test_history_meta_uses_short_model(self):
         import tempfile

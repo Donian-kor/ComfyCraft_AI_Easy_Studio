@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 
 from PySide6.QtWidgets import (
+    QApplication,
     QComboBox,
     QDoubleSpinBox,
     QFileDialog,
@@ -13,6 +14,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QPushButton,
     QSpinBox,
+    QTextEdit,
 )
 
 from app import show_message_box
@@ -229,6 +231,9 @@ def show_settings_dialog(controller):
     # P8: 이미지 모델 탭 (자동 목록 + 수동 프로필)
     _setup_model_tab(dlg, controller)
 
+    # P11: 로그 탭 (링버퍼 구독)
+    _setup_log_tab(dlg, controller)
+
     dlg.exec()
 
 
@@ -401,3 +406,70 @@ def _setup_model_tab_refresh_only(dlg, controller) -> None:
                 f"{profile.workflow_type}")
     except RuntimeError:
         pass
+
+
+def _setup_log_tab(dlg, controller) -> None:
+    """P11: 로그 탭 — 링버퍼 초기 표시 + 초기화/저장/복사 + 참조 등록."""
+    def _child(widget_type, name):
+        try:
+            return dlg.findChild(widget_type, name)
+        except RuntimeError:
+            return None
+
+    edit = _child(QTextEdit, "logTabEdit")
+    if edit is None:
+        return
+    try:
+        lines = controller.get_log_lines()
+    except Exception:
+        lines = []
+    try:
+        edit.setPlainText("\n".join(lines))
+        bar = edit.verticalScrollBar()
+        bar.setValue(bar.maximum())
+        controller._log_tab_edit = edit
+    except RuntimeError:
+        return
+
+    def _drop_ref(*_args, **_kwargs):
+        try:
+            if getattr(controller, "_log_tab_edit", None) is edit:
+                controller._log_tab_edit = None
+        except Exception:
+            pass
+
+    try:
+        dlg.finished.connect(_drop_ref)
+    except Exception:
+        pass
+
+    clear_btn = _child(QPushButton, "logClearBtn")
+    if clear_btn is not None:
+        clear_btn.clicked.connect(controller.clear_logs)
+
+    save_btn = _child(QPushButton, "logSaveBtn")
+    if save_btn is not None:
+        def on_save():
+            try:
+                target, _ = QFileDialog.getSaveFileName(
+                    dlg, "로그 저장", "comfycraft.log",
+                    "Log Files (*.log *.txt)")
+                if target:
+                    Path(target).write_text(
+                        "\n".join(controller.get_log_lines()),
+                        encoding="utf-8")
+                    controller.append_log(f"로그 저장: {target}")
+            except Exception as exc:
+                controller.append_log(f"로그 저장 실패: {exc}")
+        save_btn.clicked.connect(on_save)
+
+    copy_btn = _child(QPushButton, "logCopyBtn")
+    if copy_btn is not None:
+        def on_copy():
+            try:
+                QApplication.clipboard().setText(
+                    "\n".join(controller.get_log_lines()))
+                controller.append_log("로그를 복사했어요.")
+            except Exception as exc:
+                controller.append_log(f"로그 복사 실패: {exc}")
+        copy_btn.clicked.connect(on_copy)

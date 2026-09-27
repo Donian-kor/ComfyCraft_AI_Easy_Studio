@@ -33,11 +33,9 @@ def _make_controller():
 
 class P5OptionsTests(unittest.TestCase):
     def test_enhance_card_hidden_but_box_kept(self):
+        # P11: 향상 카드 컨테이너 삭제됨 — 박스는 히든 홀더로 유지
         controller = _make_controller()
-        card = controller.find(QFrame, "enhancePromptCard")
-        self.assertIsNotNone(card)
-        self.assertFalse(card.isVisibleTo(controller.window))
-        # 스냅샷 호환용 박스는 유지
+        self.assertIsNone(controller.find(QFrame, "enhancePromptCard"))
         box = controller.find(QPlainTextEdit, "enhancePromptEdit")
         self.assertIsNotNone(box)
 

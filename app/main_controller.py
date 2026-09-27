@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import random
 
+from collections import deque
+
 import logging
 import sys
 import threading
@@ -188,6 +190,9 @@ class MainController(QObject):
         self._gen_pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="GenWorker")
         self.generation_started_at = None
         self.execution_status = create_execution_status()
+        # P11: 로그 링버퍼 (메인 로그창 삭제 → 설정 로그 탭이 구독)
+        self._log_buffer: deque = deque(maxlen=5000)
+        self._log_tab_edit = None
 
         # 진행 상황 애니메이션
         self.loading_animation = LoadingAnimation(
@@ -333,11 +338,15 @@ class MainController(QObject):
             self.enhance_prompt_only
         )
         self._setup_zanime_style_buttons()
-        self.find(QPushButton, "resetButton").clicked.connect(self.clear_logs)
+        reset_button = self.find(QPushButton, "resetButton")
+        if reset_button is not None:
+            reset_button.clicked.connect(self.clear_logs)
         self.find(QPushButton, "openOutputFolderButton").clicked.connect(
             self.open_output_folder
         )
-        self.find(QPushButton, "saveImageButton").clicked.connect(self.save_image_as)
+        save_button = self.find(QPushButton, "saveImageButton")
+        if save_button is not None:
+            save_button.clicked.connect(self.save_image_as)
         self.find(QComboBox, "lmModelCombo").currentTextChanged.connect(
             lambda text: self.log_model_selection("LM Studio", text)
         )
@@ -369,23 +378,17 @@ class MainController(QObject):
                     )
                 )
         self.find(QPlainTextEdit, "positivePromptEdit").textChanged.connect(
-            lambda: self.update_counter(
-                "positivePromptEdit", "positivePromptCounterLabel"
-            )
+            lambda: self._enforce_prompt_limit("positivePromptEdit")
         )
         self.find(QPlainTextEdit, "negativePromptEdit").textChanged.connect(
-            lambda: self.update_counter(
-                "negativePromptEdit", "negativePromptCounterLabel"
-            )
+            lambda: self._enforce_prompt_limit("negativePromptEdit")
         )
         self.find(QPlainTextEdit, "enhancePromptEdit").textChanged.connect(
-            lambda: self.update_counter(
-                "enhancePromptEdit", "enhancePromptCounterLabel"
-            )
+            lambda: self._enforce_prompt_limit("enhancePromptEdit")
         )
-        self.update_counter("positivePromptEdit", "positivePromptCounterLabel")
-        self.update_counter("negativePromptEdit", "negativePromptCounterLabel")
-        self.update_counter("enhancePromptEdit", "enhancePromptCounterLabel")
+        self._enforce_prompt_limit("positivePromptEdit")
+        self._enforce_prompt_limit("negativePromptEdit")
+        self._enforce_prompt_limit("enhancePromptEdit")
 
         # P2: 채팅 입력 행 연결 (카운터 + 전송 버튼 + Enter 전송)
         chat_input = self.find(QPlainTextEdit, "chatInputEdit")
@@ -393,7 +396,6 @@ class MainController(QObject):
         if chat_input is not None:
             chat_input.textChanged.connect(self._on_chat_input_changed)
             chat_input.installEventFilter(self)
-            self.update_counter("chatInputEdit", "chatCounterLabel")
         send_button = self.find(QPushButton, "sendBtn")
         if send_button is not None:
             send_button.clicked.connect(self._on_chat_send_or_stop)
@@ -405,15 +407,15 @@ class MainController(QObject):
         # P9: 접근성 이름 + 라이브 리전 + 인라인 에러 라벨
         self._setup_chat_accessibility()
 
-        self.find(QPlainTextEdit, "logTextEdit").setVisible(True)
-        # QSplitter를 사용하지 않는 레이아웃 구조이므로, 초기 배치는 레이아웃이 자동 처리
-        QTimer.singleShot(0, lambda: self._apply_main_splitter_ratio())
-        # progressPercentLabel을 로딩바 정중앙에 배치하도록 설정
-        self._setup_progress_label_overlay()
-        # elapsedLabel을 우측끝으로 정렬
-        self._setup_elapsed_label_alignment()
+        # P11: 메인 로그창 삭제됨 — 로그는 설정 다이얼로그 로그 탭이 담당.
+        # (구 logTextEdit/toggleLogButton/resetButton 없음)
+        # ===== 에러 배너 클릭 → 설정 다이얼로그 열기 (로그 탭이 유일한 경로) =====
+        banner = self.find(QLabel, "errorBannerLabel")
+        if banner is not None:
+            banner.setCursor(Qt.CursorShape.PointingHandCursor)
+            banner.mousePressEvent = lambda event: self._show_settings_dialog()
+
         self.loading_animation.start("초기화 중...")
-        self.find(QLabel, "progressPercentLabel").setText("0%")
         QTimer.singleShot(150, self.refresh_models)
 
         # 사이드바 애니메이션 설정
@@ -425,19 +427,15 @@ class MainController(QObject):
         # P6: 세션·이력 (session.json + ◷ 패널 + ▾ 메뉴)
         self._setup_sessions()
 
-        # P5: 옵션 다듬기 — 향상 박스 숨김(표시는 채팅 인라인이 담당),
-        # 되돌리기 버튼 추가. 구조 변경 없음.
-        enhance_card = self.find(QFrame, "enhancePromptCard")
-        if enhance_card is not None:
-            enhance_card.setVisible(False)
-        step2_layout = self.find(QVBoxLayout, "step2Layout")
-        if step2_layout is not None and self.find(
+        # P11: 되돌리기 버튼을 옵션 레이아웃 끝에 추가 (step2Layout 삭제됨)
+        options_layout = self.find(QVBoxLayout, "optionsLayout")
+        if options_layout is not None and self.find(
                 QPushButton, "resetOptionsButton") is None:
             reset_button = QPushButton("기본값으로 되돌리기")
             reset_button.setObjectName("resetOptionsButton")
             reset_button.setCursor(Qt.CursorShape.PointingHandCursor)
             reset_button.clicked.connect(self._reset_options_to_defaults)
-            step2_layout.addWidget(reset_button)
+            options_layout.addWidget(reset_button)
 
         # 미리보기 라벨: 창 크기 변경 시 이미지도 함께 확대/축소되도록 필터 설치
         preview_label = self.find(QLabel, "previewLabel")
@@ -695,8 +693,8 @@ class MainController(QObject):
 
         # 이력 페이지 (숨김 상태로 옵션 컨테이너에 추가)
         try:
-            left_layout = self.find(QVBoxLayout, "leftContentLayout")
-            if left_layout is not None and self.find(
+            options_layout = self.find(QVBoxLayout, "optionsLayout")
+            if options_layout is not None and self.find(
                     QWidget, "historyPage") is None:
                 page = QWidget()
                 page.setObjectName("historyPage")
@@ -714,7 +712,7 @@ class MainController(QObject):
                 page_layout.addWidget(history_list)
                 self._history_list = history_list
                 page.setVisible(False)
-                left_layout.addWidget(page)
+                options_layout.addWidget(page)
                 self._history_page = page
             else:
                 self._history_page = self.find(QWidget, "historyPage")
@@ -1399,12 +1397,27 @@ class MainController(QObject):
             return False
 
     def _on_chat_input_changed(self) -> None:
-        """채팅 입력 변경 → 카운터 + 전송 버튼 상태 갱신."""
+        """P11: 채팅 입력 변경 → 5000자 강제 + 초과 시 빨간 테두리·인라인 경고."""
         try:
-            self.update_counter("chatInputEdit", "chatCounterLabel")
+            ok = self._enforce_prompt_limit("chatInputEdit")
+            edit = self.find(QPlainTextEdit, "chatInputEdit")
+            if edit is not None:
+                if ok:
+                    edit.setStyleSheet("")
+                    self._clear_input_error()
+                else:
+                    edit.setStyleSheet("border: 1px solid #C42B1C;")
+                    self._show_input_error("5000자를 초과할 수 없습니다.")
         except RuntimeError:
             logger.debug("채팅 카운터 갱신 실패", exc_info=True)
         self._refresh_send_state()
+
+    def _has_input_error_text(self) -> bool:
+        try:
+            error = self.find(QLabel, "chatInputErrorLabel")
+            return bool(error is not None and error.text())
+        except RuntimeError:
+            return False
 
     def _is_generating(self) -> bool:
         return getattr(self, "worker", None) is not None
@@ -1819,16 +1832,15 @@ class MainController(QObject):
             logger.debug("향상 프롬프트 높이 설정 실패", exc_info=True)
 
     def _setup_zanime_style_buttons(self):
-        """핵심 생성 옵션의 모델 바로 아래에 zanime 스타일 버튼을 만든다."""
+        """P11: 옵션 레이아웃에 zanime 스타일 버튼을 만든다."""
         if getattr(self, "_zanime_style_buttons", None) is None:
             self._zanime_style_buttons = {}
         if getattr(self, "_zanime_style_frame", None) is not None:
             self.update_zanime_style_visibility()
             return
 
-        model_layout = self.window.findChild(QVBoxLayout, "modelSelectLayout")
-        step_layout = self.window.findChild(QVBoxLayout, "step2Layout")
-        if model_layout is None or step_layout is None:
+        options_layout = self.window.findChild(QVBoxLayout, "optionsLayout")
+        if options_layout is None:
             return
 
         frame = QFrame()
@@ -1871,15 +1883,15 @@ class MainController(QObject):
 
         self._zanime_style_frame = frame
 
-        # P1: modelSelectLayout이 입력 행으로 이동했으므로 step2 카드末尾에 배치한다.
-        # (구 레이아웃의 인덱스 탐색은 더 이상 유효하지 않음)
+        # P11: 옵션 레이아웃 끝에 배치 (구 step2Layout/modelSelectLayout 삭제됨)
         try:
-            step_layout.addWidget(frame)
+            options_layout = self.window.findChild(QVBoxLayout, "optionsLayout")
+            if options_layout is not None:
+                options_layout.addWidget(frame)
+            else:
+                logger.debug("zanime 옵션 레이아웃 없음", exc_info=True)
         except Exception:
-            try:
-                model_layout.addWidget(frame)
-            except Exception:
-                logger.debug("zanime 스타일 프레임 배치 실패", exc_info=True)
+            logger.debug("zanime 스타일 프레임 배치 실패", exc_info=True)
 
         self.refresh_zanime_style_buttons()
         self.update_zanime_style_visibility()
@@ -1989,52 +2001,39 @@ class MainController(QObject):
             return
 
     def _setup_progress_label_overlay(self):
-        """progressPercentLabel을 로딩바 정중앙에 overlay로 배치"""
-        label = self.find(QLabel, "progressPercentLabel")
-        label.setStyleSheet("QLabel { background-color: transparent; border: none; }")
-        label.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+        """P11: 진행 위젯 삭제됨 — 상태 버블이 대신 표시하므로 아무 것도 안 함."""
+        return
 
     def _setup_elapsed_label_alignment(self):
-        """elapsedLabel을 우측끝으로 정렬하기 위해 progressInfoLayout에 spacer 추가"""
-        from PySide6.QtWidgets import QBoxLayout
+        """P11: 진행 위젯 삭제됨 — 상태 버블이 대신 표시하므로 아무 것도 안 함."""
+        return
 
-        progress_info_layout = None
-        # progressInfoLayout 찾기 (resultPanel 하위에서)
-        result_panel = self.find(object, "resultPanel")
-        if result_panel:
-            for widget in result_panel.findChildren(object):
-                if (
-                    hasattr(widget, "objectName")
-                    and widget.objectName() == "progressInfoLayout"
-                ):
-                    progress_info_layout = widget
-                    break
+    def _set_progress_status(self, text: str) -> None:
+        """P11: 진행 상태 텍스트 (위젯이 없으면 무시)."""
+        try:
+            label = self.find(QLabel, "progressStatusLabel")
+            if label is not None:
+                label.setText(text)
+        except RuntimeError:
+            pass
 
-        # progressInfoLayout를 직접 찾는 다른 방법 - parent의 layout 확인
-        elapsed_label = self.find(QLabel, "elapsedLabel")
-        if elapsed_label and elapsed_label.parent():
-            parent = elapsed_label.parent()
-            if hasattr(parent, "layout") and callable(parent.layout):
-                progress_info_layout = parent.layout()
-
-        # spacer 추가 (QBoxLayout 이 맞는 경우에만 안전하게 처리)
-        if isinstance(progress_info_layout, QBoxLayout):
-            spacer = QSpacerItem(
-                0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
-            )
-            # elapsedLabel 전에 spacer 삽입 (인덱스를 찾아서)
-            elapsed_index = None
-            for i in range(progress_info_layout.count()):
-                item = progress_info_layout.itemAt(i)
-                if item and hasattr(item, "widget") and item.widget() == elapsed_label:
-                    elapsed_index = i
-                    break
-            if elapsed_index is not None and elapsed_index > 0:
-                progress_info_layout.insertItem(elapsed_index, spacer)
+    def _set_progress_percent(self, text: str) -> None:
+        """P11: 진행률 텍스트 (위젯이 없으면 무시)."""
+        try:
+            label = self.find(QLabel, "progressPercentLabel")
+            if label is not None:
+                label.setText(text)
+            bar = self.find(QProgressBar, "progressBar")
+            if bar is not None:
+                try:
+                    bar.setValue(int(str(text).rstrip("%")))
+                except (ValueError, TypeError):
+                    pass
+        except RuntimeError:
+            pass
 
     def refresh_models(self):
-        self.find(QLabel, "progressStatusLabel").setText("모델 목록 로딩 중...")
-        # 그룹A 위젯(lmUrlEdit/comfyUrlEdit) 삭제 완료 — self.config 직접 사용
+        self._set_progress_status("모델 목록 로딩 중...")        # 그룹A 위젯(lmUrlEdit/comfyUrlEdit) 삭제 완료 — self.config 직접 사용
         lm_url = self.config.lmstudio.url or ""
         comfy_url = self.config.comfyui.url or ""
 
@@ -2123,7 +2122,7 @@ class MainController(QObject):
     def _apply_models_result(self, lm_models, comfy_models):
         self.set_models(lm_models, comfy_models)
         self.loading_animation.stop()
-        self.find(QLabel, "progressStatusLabel").setText("준비 완료")
+        self._set_progress_status("준비 완료")
 
     def _comfy_model_file(self) -> str:
         """P4: 피커 표시명과 무관하게 정확한 ComfyUI 모델 파일명을 반환."""
@@ -2167,6 +2166,12 @@ class MainController(QObject):
             try:
                 profile = self.model_registry.detect(exact)
                 short, feature, _tooltip = describe_model(profile, exact)
+                try:
+                    current_label = self.find(QLabel, "modelCurrentLabel")
+                    if current_label is not None:
+                        current_label.setText(f"현재 모델: {short}")
+                except RuntimeError:
+                    pass
                 self._append_chat_message(
                     "system",
                     f"{short} 모델 최적 설정이 적용되었어요 ({feature}).",
@@ -2208,6 +2213,17 @@ class MainController(QObject):
         comfy_combo.blockSignals(False)
         self.log_model_list("LM Studio", lm_models)
         self.log_model_list("ComfyUI", comfy_models)
+        # P11: 옵션 읽기 전용 현재 모델 표시 갱신
+        try:
+            current_label = self.find(QLabel, "modelCurrentLabel")
+            if current_label is not None:
+                exact = self._comfy_model_file()
+                if exact and exact != "로드된 모델 없음":
+                    profile = self.model_registry.detect(exact)
+                    short, _feature, _tooltip = describe_model(profile, exact)
+                    current_label.setText(f"현재 모델: {short}")
+        except (RuntimeError, AttributeError):
+            pass
         # 모델 목록의 유무로 연결을 판정하지 않음 (refresh_models에서 별도로 처리)
 
     def log_model_list(self, service_name, values):
@@ -2828,7 +2844,7 @@ class MainController(QObject):
             return
 
         self.append_log("프롬프트 향상 중...")
-        self.find(QLabel, "progressStatusLabel").setText("프롬프트 향상 중...")
+        self._set_progress_status("프롬프트 향상 중...")
 
         ext_prompts = load_external_prompts()
 
@@ -2922,7 +2938,7 @@ class MainController(QObject):
         show_message_box(
             self.window, QMessageBox.Icon.Warning, "프롬프트 향상 실패", error_msg
         )
-        self.find(QLabel, "progressStatusLabel").setText("준비 완료")
+        self._set_progress_status("준비 완료")
 
     def _apply_enhanced_prompt(self, enhanced_prompt):
         """향상된 프롬프트를 enhancePromptEdit에 적용"""
@@ -2932,7 +2948,7 @@ class MainController(QObject):
         else:
             self.append_log("[ERROR] enhancePromptEdit을 찾을 수 없음!")
         self.append_log(f"프롬프트 향상 완료: {enhanced_prompt[:100]}...")
-        self.find(QLabel, "progressStatusLabel").setText("준비 완료")
+        self._set_progress_status("준비 완료")
 
     def start_generation(self):
         with self._generation_lock:
@@ -2983,7 +2999,7 @@ class MainController(QObject):
         self.worker.signals.enhanced_prompt.connect(self._apply_enhanced_prompt)
         self.worker.signals.progress.connect(self.set_progress)
         self.worker.signals.status.connect(
-            lambda text: self.find(QLabel, "progressStatusLabel").setText(text)
+            lambda text: self._set_progress_status(text)
         )
         self.worker.signals.log.connect(self.append_log)
         self.worker.signals.image.connect(lambda path: self.show_image(path, add_history=True))
@@ -3010,7 +3026,7 @@ class MainController(QObject):
             if self.worker:
                 self.worker.stop()
                 self.append_log("생성 중지를 요청했습니다.")
-                self.find(QLabel, "progressStatusLabel").setText("중단 중...")
+                self._set_progress_status("중단 중...")
         self.loading_animation.stop()
 
     def _on_gen_stop_state_changed(self, checked):
@@ -3046,7 +3062,6 @@ class MainController(QObject):
                 "negativePromptEdit",
                 "enhancePromptEdit",
                 "enhancePromptButton",
-                "copyPromptButton",
                 # --- 모델 선택 ---
                 "lmModelCombo",
                 "comfyModelCombo",
@@ -3070,12 +3085,7 @@ class MainController(QObject):
                 "preset_832x1216",
                 "preset_1216x832",
                 # --- 기타 기능 버튼 ---
-                "resetButton",
                 "openOutputFolderButton",
-                "saveImageButton",
-                "toggleLogButton",
-                "helpButton",
-                "settingsButton",
                 "facedetailerHelpBtn",
             ]
             for name in targets:
@@ -3117,13 +3127,10 @@ class MainController(QObject):
         btn = self.find(QPushButton, "generateButton")
         if btn is not None:
             btn.setChecked(False)
-        self.find(QLabel, "progressStatusLabel").setText(
-            "생성 완료" if success else "생성 실패 또는 중단"
-        )
-        bar = self.find(QProgressBar, "progressBar")
-        bar.setRange(0, 100)
-        bar.setValue(100 if success else 0)
-        self.find(QLabel, "progressPercentLabel").setText("100%" if success else "0%")
+        # P11: 진행 위젯 삭제됨 — 상태 버블이 대신 표시
+        self._set_progress_status(
+            "생성 완료" if success else "생성 실패 또는 중단")
+        self._set_progress_percent("100%" if success else "0%")
         update_execution_status(
             self.execution_status,
             100 if success else 0,
@@ -3150,26 +3157,68 @@ class MainController(QObject):
             self.loading_animation.stop()
 
         self.loading_animation.set_real_progress(value)
-        self.find(QLabel, "progressPercentLabel").setText(f"{value}%")
+        # P11: 진행 위젯 삭제됨 — 상태 버블이 대신 표시
+        self._set_progress_percent(f"{value}%")
 
-    def update_counter(self, edit_name, label_name):
-        editor = self._find_or_raise(QPlainTextEdit, edit_name)
-        text = editor.toPlainText()
-        limited_text = enforce_prompt_character_limit(
-            text, PROMPT_MAX_CHARACTERS
-        )
-        if limited_text != text:
-            editor.setPlainText(limited_text)
-        self._find_or_raise(QLabel, label_name).setText(
-            f"{len(limited_text)} / {PROMPT_MAX_CHARACTERS}"
-        )
+    def update_counter(self, edit_name, label_name=None):
+        """P11: 카운터 라벨 삭제됨 — 길이 제한 강제만 수행한다."""
+        return self._enforce_prompt_limit(edit_name)
+
+    def _enforce_prompt_limit(self, edit_name: str) -> bool:
+        """입력 길이를 5000자로 강제. 초과분을 잘랐으면 False."""
+        try:
+            editor = self._find_or_raise(QPlainTextEdit, edit_name)
+        except RuntimeError:
+            return True
+        try:
+            text = editor.toPlainText()
+            limited_text = enforce_prompt_character_limit(
+                text, PROMPT_MAX_CHARACTERS
+            )
+            if limited_text != text:
+                editor.setPlainText(limited_text)
+                return False
+            return True
+        except RuntimeError:
+            return True
 
     def append_log(self, message):
         # Qt 로깅 핸들러 위임 (QPlainTextEditLogger + FileHandler)
         logger.info("%s", message)
+        stamped = f"[{datetime.now():%H:%M:%S}] {message}"  # noqa: DTZ005
+        try:
+            self._log_buffer.append(stamped)
+        except AttributeError:
+            from collections import deque
+            self._log_buffer = deque([stamped], maxlen=5000)
         editor = self.find(QPlainTextEdit, "logTextEdit")
         if editor:
-            editor.appendPlainText(f"[{datetime.now():%H:%M:%S}] {message}")  # noqa: DTZ005
+            try:
+                editor.appendPlainText(stamped)
+            except RuntimeError:
+                pass
+        # P11: 로그 탭이 열려 있으면 flush
+        try:
+            tab = getattr(self, "_log_tab_edit", None)
+            if tab is not None and shiboken.isValid(tab):
+                tab.appendPlainText(stamped)
+                bar = tab.verticalScrollBar()
+                bar.setValue(bar.maximum())
+                while tab.document().blockCount() > 5000:
+                    cursor = tab.textCursor()
+                    cursor.movePosition(cursor.MoveMode.Start)
+                    cursor.select(cursor.SelectionType.LineUnderCursor)
+                    cursor.removeSelectedText()
+                    cursor.deleteChar()
+        except (RuntimeError, AttributeError):
+            pass
+
+    def get_log_lines(self) -> list:
+        """P11: 설정 로그 탭 초기 표시용."""
+        try:
+            return list(self._log_buffer)
+        except AttributeError:
+            return []
 
     # ──────────────────────────────────────────────────────────────────────
     # 에러 배너 (UI/UX 4단계: 실패 시 뷰어 헤더에 한 줄 요약을 보여줌)
@@ -3208,14 +3257,26 @@ class MainController(QObject):
         self._reveal_log_on_error()
 
     def clear_logs(self):
-        editor = self.find(QPlainTextEdit, "logTextEdit")
-        if editor:
-            editor.clear()
-            self.append_log("로그를 초기화했습니다.")
+        # P11: 링버퍼 + 열린 로그 탭을 비운다 (메인 로그창 삭제됨)
+        try:
+            self._log_buffer.clear()
+        except AttributeError:
+            from collections import deque
+            self._log_buffer = deque(maxlen=5000)
+        try:
+            tab = getattr(self, "_log_tab_edit", None)
+            if tab is not None and shiboken.isValid(tab):
+                tab.clear()
+        except (RuntimeError, AttributeError):
+            pass
+        self.append_log("로그를 초기화했습니다.")
 
     def show_image(self, path, add_history=False):
         self.current_image_path = path
-        show_image(self.find(QLabel, "previewLabel"), path)
+        # P11: 미리보기 라벨 삭제됨 — 채팅 카드+모달이 대신 표시
+        preview_label = self.find(QLabel, "previewLabel")
+        if preview_label is not None:
+            show_image(preview_label, path)
         # 새로 생성된 이미지일 때만 히스토리(썸네일)에 추가
         if add_history:
             try:

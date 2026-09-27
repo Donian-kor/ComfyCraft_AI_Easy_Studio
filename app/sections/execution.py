@@ -51,18 +51,31 @@ class LoadingAnimation:
         self.is_animating = False
 
     def start(self, status_text: str):
+        # P11: 진행 위젯이 제거된 상태에서도 안전 (표시는 상태 버블이 담당)
         self.is_animating = True
         self.animation_value = 0
         self.animation_direction = 1
-        self.status_label.setText(status_text)
-        self.progress_bar.setRange(0, 100)
-        self.progress_bar.setValue(0)
+        if self.status_label is not None:
+            try:
+                self.status_label.setText(status_text)
+            except RuntimeError:
+                pass
+        if self.progress_bar is not None:
+            try:
+                self.progress_bar.setRange(0, 100)
+                self.progress_bar.setValue(0)
+            except RuntimeError:
+                pass
         self.timer.start(50)
 
     def stop(self):
         self.is_animating = False
         self.timer.stop()
-        self.progress_bar.setValue(100)
+        if self.progress_bar is not None:
+            try:
+                self.progress_bar.setValue(100)
+            except RuntimeError:
+                pass
 
     def _update_animation(self):
         if not self.is_animating:
@@ -77,14 +90,23 @@ class LoadingAnimation:
             self.animation_value = 0
             self.animation_direction = 1
 
-        self.progress_bar.setValue(self.animation_value)
+        if self.progress_bar is not None:
+            try:
+                self.progress_bar.setValue(self.animation_value)
+            except RuntimeError:
+                pass
 
     def set_real_progress(self, value: int):
         """실제 진행률이 들어오면 애니메이션 정지"""
         if value > 0:
             self.stop()
-        self.progress_bar.setRange(0, 100)
-        self.progress_bar.setValue(max(0, min(100, value)))
+        if self.progress_bar is None:
+            return
+        try:
+            self.progress_bar.setRange(0, 100)
+            self.progress_bar.setValue(max(0, min(100, value)))
+        except RuntimeError:
+            pass
 
 
 class ElapsedTimer:
@@ -105,7 +127,10 @@ class ElapsedTimer:
         self.timer.stop()
 
     def _update(self):
-        if self.start_time is not None:
-            import time
-            elapsed = int(time.monotonic() - self.start_time)
-            self.elapsed_label.setText(format_elapsed(elapsed))
+        if self.start_time is not None and self.elapsed_label is not None:
+            try:
+                import time
+                elapsed = int(time.monotonic() - self.start_time)
+                self.elapsed_label.setText(format_elapsed(elapsed))
+            except RuntimeError:
+                pass
