@@ -57,22 +57,15 @@ class P11StructureTests(unittest.TestCase):
         window = load_ui(UI_FILE)
         for name in ("headerFrame", "studioContainer", "chatFrame",
                      "inputFrame", "railFrame", "leftScrollArea",
-                     "errorBannerLabel", "optionsLayout", "inputRowLayout"):
+                     "optionsLayout", "inputRowLayout"):
             with self.subTest(widget=name):
                 found_widget = window.findChild(QWidget, name)
                 from PySide6.QtWidgets import QLayout
                 found_layout = window.findChild(QLayout, name)
                 self.assertTrue(found_widget is not None
                                 or found_layout is not None, name)
-        # 에러 배너는 채팅 프레임 안에 있어야 한다
-        banner = window.findChild(QLabel, "errorBannerLabel")
-        chat_frame = window.findChild(QFrame, "chatFrame")
-        parent = banner.parentWidget()
-        ancestors = set()
-        while parent is not None:
-            ancestors.add(parent)
-            parent = parent.parentWidget()
-        self.assertIn(chat_frame, ancestors)
+        # 에러는 별도 배너 위젯 없이 채팅 메시지로 표시한다
+        self.assertIsNone(window.findChild(QLabel, "errorBannerLabel"))
 
     def test_removed_widgets_absent(self):
         window = load_ui(UI_FILE)

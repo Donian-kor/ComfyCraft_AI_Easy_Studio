@@ -100,18 +100,13 @@ class UiUxStepTests(unittest.TestCase):
         self.assertEqual(dlg.objectName(), "HelpDialog")
 
     def test_step4_error_banner_ui_and_style(self) -> None:
-        """4단계: 에러 배너 위젯 + 9개 테마 스타일이 있어야 한다."""
+        """4단계: 에러는 별도 배너 위젯 없이 채팅 메시지로 표시한다."""
         main_ui = (BASE_DIR / "assets" / "ui" / "main.ui").read_text(encoding="utf-8")
-        self.assertIn('name="errorBannerLabel"', main_ui)
+        self.assertNotIn('name="errorBannerLabel"', main_ui)
         xml.dom.minidom.parse(str(BASE_DIR / "assets" / "ui" / "main.ui"))
-        for path in sorted(THEME_DIR.glob("*.qss")):
-            with self.subTest(theme=path.name):
-                self.assertIn(
-                    "errorBannerLabel", path.read_text(encoding="utf-8")
-                )
 
     def test_step4_error_banner_logic(self) -> None:
-        """4단계: 에러 배너 표시/숨기기/에러핸들러가 MainController에 있어야 한다.
+        """4단계: 채팅 오류 메시지 표시/에러핸들러가 MainController에 있어야 한다.
 
         Phase 2 리팩토링으로 MainController가 app/main_controller.py로 이동했으므로
         검사 대상 소스도 해당 파일을 읽는다.

@@ -237,24 +237,14 @@ def main() -> int:
             else:
                 vis.find("bool").text = "false"
 
-    # ---- 6. 채팅: 에러배너 + 여백 18 ----
+    # ---- 6. 채팅: 여백 18 (에러는 별도 배너 없이 채팅 메시지로 표시) ----
     for layout in root.iter("layout"):
         if layout.get("name") == "chatLayout":
             for tag in ("leftMargin", "topMargin", "rightMargin", "bottomMargin"):
                 if layout.find(f"./property[@name='{tag}']") is None:
                     prop = ET.SubElement(layout, "property", {"name": tag})
                     ET.SubElement(prop, "number").text = "18"
-    for layout in root.iter("layout"):
-        if layout.get("name") == "chatMainLayout":
-            banner = ET.fromstring(
-                '<widget class="QLabel" name="errorBannerLabel">'
-                '<property name="text"><string/></property>'
-                '<property name="wordWrap"><bool>true</bool></property>'
-                '<property name="visible"><bool>false</bool></property>'
-                '<property name="toolTip"><string>오류 안내. 자세한 내용은 설정 &gt; 로그 탭에서 확인하세요.</string></property>'
-                '</widget>')
-            layout.insert(0, wrap(banner))
-            break
+    # (에러 배너 위젯 없음 — 오류는 채팅 AI 메시지로 표시)
 
     # ---- 7. 입력 프레임 (그리드 row2) ----
     input_frame = ET.fromstring(
@@ -301,7 +291,7 @@ def main() -> int:
     layouts_present = {l.get("name") for l in root.iter("layout")}
     for name in ("headerFrame", "railFrame", "leftScrollArea",
                  "leftContentWidget", "chatFrame", "chatScrollArea",
-                 "chatContentWidget", "inputFrame", "errorBannerLabel",
+                 "chatContentWidget", "inputFrame",
                  "modelCurrentLabel", "comfyModelCombo", "chatInputEdit",
                  "sendBtn", "openOutputFolderButton", "enhancePromptButton",
                  "enhancePromptEdit", "positivePromptEdit",
@@ -324,7 +314,7 @@ def main() -> int:
                  "headerDivider", "helpButton", "settingsButton",
                  "positivePromptCounterLabel", "negativePromptCounterLabel",
                  "enhancePromptCounterLabel", "copyPromptButton",
-                 "modelProfileNoticeLabel"):
+                 "modelProfileNoticeLabel", "errorBannerLabel"):
         assert counts.get(gone, 0) == 0, f"still present: {gone}"
     for gone_layout in ("leftContentLayout", "step2Layout",
                         "modelSelectLayout", "aspectRatioLayout",

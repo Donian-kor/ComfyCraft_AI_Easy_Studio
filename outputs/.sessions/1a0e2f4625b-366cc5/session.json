@@ -1,0 +1,26 @@
+{
+  "session_id": "1a0e2f4625b-366cc5",
+  "title": "이쁜 강아지 그려줘",
+  "type": "single",
+  "created_at": "2026-09-27T22:01:01",
+  "updated_at": "2026-09-27T22:02:48",
+  "model": "",
+  "messages": [
+    {
+      "kind": "system",
+      "text": "ERNIE Turbo 모델 최적 설정이 적용되었어요 (초고속·8스텝).",
+      "timestamp": "2026-09-27T22:01:05"
+    },
+    {
+      "kind": "user",
+      "text": "이쁜 강아지 그려줘",
+      "timestamp": "2026-09-27T22:01:10"
+    },
+    {
+      "kind": "user",
+      "text": "고양이 그려줘",
+      "timestamp": "2026-09-27T22:02:48"
+    }
+  ],
+  "last_snapshot": {}
+}

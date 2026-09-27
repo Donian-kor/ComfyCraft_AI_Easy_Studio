@@ -104,7 +104,7 @@ def model_profiles_json_dir() -> Path:
     return Path(__file__).resolve().parent.parent.parent / "model_profiles_json"
 
 
-def show_settings_dialog(controller):
+def show_settings_dialog(controller, initial_tab: str | None = None):
     """설정 다이얼로그(.ui 파일 기반)를 표시한다.
 
     연결 버튼(comfyStatusBtn, lmStatusBtn), 사이드바 설정 버튼(settingsButton)
@@ -233,6 +233,19 @@ def show_settings_dialog(controller):
 
     # P11: 로그 탭 (링버퍼 구독)
     _setup_log_tab(dlg, controller)
+
+    # 초기 탭 지정 (예: 오류 메시지의 "로그 보기")
+    if initial_tab:
+        try:
+            from PySide6.QtWidgets import QTabWidget
+            tabs = dlg.findChild(QTabWidget, "settingsTabWidget")
+            if tabs is not None:
+                for i in range(tabs.count()):
+                    if tabs.tabText(i) == initial_tab:
+                        tabs.setCurrentIndex(i)
+                        break
+        except RuntimeError:
+            pass
 
     dlg.exec()
 

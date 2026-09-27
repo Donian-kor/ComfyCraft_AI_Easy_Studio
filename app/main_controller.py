@@ -2107,12 +2107,11 @@ class MainController(QObject):
             fallback_models = scan_comfyui_model_names(
                 fallback_root, fallback_candidates
             )
+            # 서버 목록(object_info 기준)이 있으면 항상 우선한다.
+            # 폴더 스캔은 서버에 닿지 않을 때의 예비 수단일 뿐,
+            # 서버 목록을 덮어쓰지 않는다 (이상한 파일 노출 방지).
             if not status.comfy_models or status.comfy_models == ["로드된 모델 없음"]:
                 status.comfy_models = fallback_models or status.comfy_models
-            elif not fallback_models:
-                status.comfy_models = status.comfy_models
-            elif status.comfy_models != fallback_models:
-                status.comfy_models = fallback_models[:]
 
             # 실제 연결 상태 확인 (API 호출로 정확하게)
             lm_ok = check_connection_silent("lm", lm_url) if lm_url else False
@@ -3130,14 +3129,10 @@ class MainController(QObject):
 
 
     def _on_generation_error(self, text: str):
-        """이미지 생성 중 오류 발생 시 호출 (에러 배너 + 로그 펼치기 + 팝업)."""
+        """이미지 생성 중 오류 발생 시 호출 (채팅 메시지 + 로그)."""
         self.append_log(f"생성 오류: {text}")
-        self.show_error_banner(f"✖ 생성 오류 — {text}")
-        self._reveal_log_on_error()
+        self.show_error_banner(text)
         self._announce(TEMPLATES["failed"].format(reason=text))
-        show_message_box(
-            self.window, QMessageBox.Icon.Critical, "생성 오류", text
-        )
 
     def generation_finished(self, success):
         self.elapsed_timer.stop()
@@ -3247,20 +3242,75 @@ class MainController(QObject):
     # ──────────────────────────────────────────────────────────────────────
 
     def show_error_banner(self, message: str):
-        """에러 배너에 메시지를 표시한다. 빈 메시지면 숨긴다."""
-        banner = self.find(QLabel, "errorBannerLabel")
-        if banner is None:
-            return
+        """에러를 채팅 AI 메시지로 표시한다 (배너 위젯 없음).
+
+        [다시 시도] [프롬프트 수정] [로그 보기] 버튼 포함.
+        빈 메시지면 아무 것도 안 한다 (메시지는 기록으로 남는다).
+        """
         if not message:
-            banner.clear()
-            banner.setVisible(False)
             return
-        banner.setText(message)
-        banner.setVisible(True)
+        try:
+            chat_message = self._append_chat_message("ai", f"이미지 생성에 실패했어요. 원인: {message}")
+            if chat_message is None:
+                return
+            retry_button = QPushButton("다시 시도")
+            retry_button.setObjectName("chatErrRetryBtn")
+            retry_button.clicked.connect(self._retry_last_request)
+            edit_button = QPushButton("프롬프트 수정")
+            edit_button.setObjectName("chatErrEditBtn")
+            edit_button.clicked.connect(self._reuse_last_snapshot)
+            log_button = QPushButton("로그 보기")
+            log_button.setObjectName("chatErrLogBtn")
+            log_button.clicked.connect(
+                lambda: self._show_settings_dialog(initial_tab="로그"))
+            chat_message.add_action(retry_button)
+            chat_message.add_action(edit_button)
+            chat_message.add_action(log_button)
+            self._scroll_chat_to_bottom()
+        except RuntimeError:
+            logger.debug("채팅 오류 메시지 표시 실패", exc_info=True)
 
     def clear_error_banner(self):
-        """에러 배너를 숨긴다 (새 생성 시작 시 호출)."""
-        self.show_error_banner("")
+        """채팅 방식에서는 지울 배너가 없다 (기록 유지). 호환용 유지."""
+        return
+
+    def _last_user_text(self) -> str:
+        """마지막 사용자 메시지 텍스트 (다시 시도용)."""
+        try:
+            for record in reversed(getattr(self, "_chat_log", [])):
+                if isinstance(record, dict) and record.get("kind") == "user":
+                    return str(record.get("text", ""))
+        except Exception:
+            pass
+        return ""
+
+    def _last_snapshot(self) -> dict:
+        """마지막 생성 스냅샷 (프롬프트 수정용)."""
+        try:
+            for record in reversed(getattr(self, "_chat_log", [])):
+                if (isinstance(record, dict) and record.get("kind") == "image"
+                        and record.get("snapshot")):
+                    return dict(record["snapshot"])
+        except Exception:
+            pass
+        return {}
+
+    def _retry_last_request(self) -> None:
+        """[다시 시도] 마지막 사용자 요청으로 재생성."""
+        if self._is_generating():
+            self.append_log("생성 중이에요. 기다리거나 취소해주세요.")
+            return
+        text = self._last_user_text()
+        if text:
+            self._begin_send(text, append_user=False)
+
+    def _reuse_last_snapshot(self) -> None:
+        """[프롬프트 수정] 마지막 스냅샷으로 수정 요청."""
+        snapshot = self._last_snapshot()
+        if snapshot:
+            self._on_reuse_request(snapshot)
+        else:
+            self.append_log("수정할 이전 생성 결과가 없어요.")
 
     def _reveal_log_on_error(self):
         """에러 발생 시 접혀 있던 로그창을 자동으로 펼쳐준다."""
@@ -3609,14 +3659,14 @@ class MainController(QObject):
         else:
             show_message_box(self.window, QMessageBox.Icon.Information, "알림", "복사할 이미지가 없습니다.")
 
-    def _show_settings_dialog(self):
+    def _show_settings_dialog(self, initial_tab: str | None = None):
         """설정 다이얼로그(.ui 파일 기반)를 표시한다.
 
         연결 버튼(comfyStatusBtn, lmStatusBtn), 사이드바 설정 버튼(settingsButton)
         모두 이 창으로 연결된다.
         실제 구현은 app/gui/dialogs/settings_dialog.py에 있다.
         """
-        show_settings_dialog(self)
+        show_settings_dialog(self, initial_tab=initial_tab)
 
     def _show_help_dialog(self):
         """도움말 다이얼로그(v2: 좌우 분할)를 표시한다. 비모달 방식으로 메인 화면과 병행 사용 가능.

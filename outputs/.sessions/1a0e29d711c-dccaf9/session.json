@@ -1,0 +1,31 @@
+{
+  "session_id": "1a0e29d711c-dccaf9",
+  "title": "고양이 그려줘",
+  "type": "single",
+  "created_at": "2026-09-27T20:26:04",
+  "updated_at": "2026-09-27T22:01:01",
+  "model": "juggernautXL_ragnarok.safetensors",
+  "messages": [
+    {
+      "kind": "user",
+      "text": "고양이 그려줘",
+      "timestamp": "2026-09-27T20:41:21"
+    },
+    {
+      "kind": "user",
+      "text": "고양이 그려줘",
+      "timestamp": "2026-09-27T20:41:48"
+    },
+    {
+      "kind": "user",
+      "text": "고양이 그려줘",
+      "timestamp": "2026-09-27T20:45:53"
+    },
+    {
+      "kind": "user",
+      "text": "고양이 그려줘",
+      "timestamp": "2026-09-27T20:51:02"
+    }
+  ],
+  "last_snapshot": {}
+}

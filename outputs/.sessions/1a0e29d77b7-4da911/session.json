@@ -1,0 +1,96 @@
+{
+  "session_id": "1a0e29d77b7-4da911",
+  "title": "바보그려",
+  "type": "single",
+  "created_at": "2026-09-27T20:26:05",
+  "updated_at": "2026-09-27T22:00:48",
+  "model": "juggernautXL_ragnarok.safetensors",
+  "messages": [
+    {
+      "kind": "user",
+      "text": "바보그려",
+      "timestamp": "2026-09-27T21:10:59"
+    },
+    {
+      "kind": "ai",
+      "text": "프롬프트 향상 없이 원문으로 생성해요.",
+      "timestamp": "2026-09-27T21:10:59"
+    },
+    {
+      "kind": "system",
+      "text": "RealVisXL_V5.0_fp16 모델 최적 설정이 적용되었어요 (범용 체크포인트).",
+      "timestamp": "2026-09-27T21:11:32"
+    },
+    {
+      "kind": "system",
+      "text": "ZImage 모델 최적 설정이 적용되었어요 (빠른 생성).",
+      "timestamp": "2026-09-27T21:11:34"
+    },
+    {
+      "kind": "system",
+      "text": "FLUX 모델 최적 설정이 적용되었어요 (사실적·고품질).",
+      "timestamp": "2026-09-27T21:11:40"
+    },
+    {
+      "kind": "system",
+      "text": "juggernautXL_ragnarok 모델 최적 설정이 적용되었어요 (범용 체크포인트).",
+      "timestamp": "2026-09-27T21:11:44"
+    },
+    {
+      "kind": "system",
+      "text": "Z-Anime 모델 최적 설정이 적용되었어요 (애니·웹툰).",
+      "timestamp": "2026-09-27T21:11:49"
+    },
+    {
+      "kind": "system",
+      "text": "FLUX 모델 최적 설정이 적용되었어요 (사실적·고품질).",
+      "timestamp": "2026-09-27T21:11:53"
+    },
+    {
+      "kind": "system",
+      "text": "ERNIE Base 모델 최적 설정이 적용되었어요 (정밀·네거티브 강함).",
+      "timestamp": "2026-09-27T21:11:54"
+    },
+    {
+      "kind": "user",
+      "text": "고양이 그려줘",
+      "timestamp": "2026-09-27T21:31:05"
+    },
+    {
+      "kind": "user",
+      "text": "고양이 그려줘",
+      "timestamp": "2026-09-27T21:33:16"
+    },
+    {
+      "kind": "user",
+      "text": "고양이 그려줘",
+      "timestamp": "2026-09-27T21:38:04"
+    },
+    {
+      "kind": "user",
+      "text": "고양이 그려줘",
+      "timestamp": "2026-09-27T21:39:06"
+    },
+    {
+      "kind": "user",
+      "text": "고양이 그려줘",
+      "timestamp": "2026-09-27T21:39:46"
+    },
+    {
+      "kind": "user",
+      "text": "고양이 그려줘",
+      "timestamp": "2026-09-27T21:48:46"
+    },
+    {
+      "kind": "user",
+      "text": "강아지와 고양이",
+      "timestamp": "2026-09-27T21:53:58"
+    },
+    {
+      "kind": "user",
+      "text": "고양이 그려줘",
+      "timestamp": "2026-09-27T21:57:47"
+    }
+  ],
+  "last_snapshot": {}
+}

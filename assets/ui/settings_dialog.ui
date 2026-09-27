@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>SettingsDialog</class>
  <widget class="QDialog" name="SettingsDialog">
@@ -6,24 +6,27 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>520</width>
-    <height>389</height>
+    <width>500</width>
+    <height>781</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>480</width>
-    <height>200</height>
+    <width>500</width>
+    <height>780</height>
    </size>
   </property>
   <property name="windowTitle">
    <string>서버 연결 및 모델 폴더 설정</string>
   </property>
-  <layout class="QVBoxLayout" name="dialogLayout">
+  <layout class="QVBoxLayout" name="dialogLayout" stretch="0,0,0">
+   <property name="spacing">
+    <number>10</number>
+   </property>
    <item>
     <widget class="QTabWidget" name="settingsTabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tabAiServer">
       <attribute name="title">
@@ -33,7 +36,7 @@
        <item>
         <widget class="QGroupBox" name="comfyGroupBox">
          <property name="title">
-          <string />
+          <string/>
          </property>
          <layout class="QGridLayout" name="gridLayout">
           <property name="topMargin">
@@ -80,7 +83,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="dlgComfyUrlEdit" />
+             <widget class="QLineEdit" name="dlgComfyUrlEdit"/>
             </item>
             <item>
              <widget class="QPushButton" name="dlgComfyCheckBtn">
@@ -101,7 +104,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="dlgModelPathEdit" />
+             <widget class="QLineEdit" name="dlgModelPathEdit"/>
             </item>
             <item>
              <widget class="QPushButton" name="dlgBrowseBtn">
@@ -131,7 +134,7 @@
        <item>
         <widget class="QGroupBox" name="lmGroupBox">
          <property name="title">
-          <string />
+          <string/>
          </property>
          <layout class="QGridLayout" name="gridLayout_2">
           <property name="topMargin">
@@ -178,7 +181,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="dlgLmUrlEdit" />
+             <widget class="QLineEdit" name="dlgLmUrlEdit"/>
             </item>
             <item>
              <widget class="QPushButton" name="dlgLmCheckBtn">
@@ -196,7 +199,7 @@
      </widget>
      <widget class="QWidget" name="tabModel">
       <attribute name="title">
-       <string>이미지 모델</string>
+       <string>이미지 모델 프로필</string>
       </attribute>
       <layout class="QVBoxLayout" name="tabModelLayout">
        <item>
@@ -235,7 +238,7 @@
           <number>8</number>
          </property>
          <item>
-          <widget class="QLabel">
+          <widget class="QLabel" name="label">
            <property name="text">
             <string>프로필명</string>
            </property>
@@ -256,7 +259,7 @@
           <number>8</number>
          </property>
          <item>
-          <widget class="QLabel">
+          <widget class="QLabel" name="label">
            <property name="text">
             <string>매칭 패턴</string>
            </property>
@@ -277,7 +280,7 @@
           <number>8</number>
          </property>
          <item>
-          <widget class="QLabel">
+          <widget class="QLabel" name="label">
            <property name="text">
             <string>워크플로우 종류</string>
            </property>
@@ -315,7 +318,7 @@
           <number>8</number>
          </property>
          <item>
-          <widget class="QLabel">
+          <widget class="QLabel" name="label">
            <property name="text">
             <string>Steps</string>
            </property>
@@ -329,11 +332,11 @@
            <property name="maximum">
             <number>200</number>
            </property>
-           <property name="value">
-            <number>20</number>
-           </property>
            <property name="singleStep">
             <number>1</number>
+           </property>
+           <property name="value">
+            <number>20</number>
            </property>
           </widget>
          </item>
@@ -345,7 +348,7 @@
           <number>8</number>
          </property>
          <item>
-          <widget class="QLabel">
+          <widget class="QLabel" name="label">
            <property name="text">
             <string>CFG</string>
            </property>
@@ -354,16 +357,16 @@
          <item>
           <widget class="QDoubleSpinBox" name="profileCfgSpin">
            <property name="minimum">
-            <double>0.1</double>
+            <double>0.100000000000000</double>
            </property>
            <property name="maximum">
-            <double>30.0</double>
-           </property>
-           <property name="value">
-            <double>7.0</double>
+            <double>30.000000000000000</double>
            </property>
            <property name="singleStep">
-            <double>0.1</double>
+            <double>0.100000000000000</double>
+           </property>
+           <property name="value">
+            <double>7.000000000000000</double>
            </property>
           </widget>
          </item>
@@ -375,7 +378,7 @@
           <number>8</number>
          </property>
          <item>
-          <widget class="QLabel">
+          <widget class="QLabel" name="label">
            <property name="text">
             <string>샘플러</string>
            </property>
@@ -423,7 +426,7 @@
           <number>8</number>
          </property>
          <item>
-          <widget class="QLabel">
+          <widget class="QLabel" name="label">
            <property name="text">
             <string>스케줄러</string>
            </property>
@@ -461,7 +464,7 @@
           <number>8</number>
          </property>
          <item>
-          <widget class="QLabel">
+          <widget class="QLabel" name="label">
            <property name="text">
             <string>CLIP 1</string>
            </property>
@@ -482,7 +485,7 @@
           <number>8</number>
          </property>
          <item>
-          <widget class="QLabel">
+          <widget class="QLabel" name="label">
            <property name="text">
             <string>CLIP 2</string>
            </property>
@@ -503,7 +506,7 @@
           <number>8</number>
          </property>
          <item>
-          <widget class="QLabel">
+          <widget class="QLabel" name="label">
            <property name="text">
             <string>VAE</string>
            </property>
@@ -534,14 +537,14 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="profileFileCombo" />
+          <widget class="QComboBox" name="profileFileCombo"/>
          </item>
         </layout>
        </item>
        <item>
         <widget class="QLabel" name="profileValidateLabel">
          <property name="text">
-          <string />
+          <string/>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -614,9 +617,6 @@
      </widget>
     </widget>
    </item>
-   <property name="spacing">
-    <number>12</number>
-   </property>
    <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
@@ -679,6 +679,6 @@
    </item>
   </layout>
  </widget>
- <resources />
- <connections />
+ <resources/>
+ <connections/>
 </ui>

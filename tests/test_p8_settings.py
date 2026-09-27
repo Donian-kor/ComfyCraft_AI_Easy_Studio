@@ -119,7 +119,7 @@ class P8DialogStructureTests(unittest.TestCase):
         self.assertIsNotNone(tabs)
         titles = [tabs.tabText(i) for i in range(tabs.count())]
         self.assertIn("AI 서버", titles)
-        self.assertIn("이미지 모델", titles)
+        self.assertTrue(any(t.startswith("이미지 모델") for t in titles))
         for name, widget_type in (
             ("profileAutoList", QListWidget),
             ("profileNameEdit", QLineEdit),

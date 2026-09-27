@@ -163,7 +163,14 @@ def scan_comfyui_model_names(model_root: Optional[str] = None, extra_candidates:
 
     valid_suffixes = {".safetensors", ".ckpt", ".pt", ".bin", ".gguf", ".sft"}
     allowed_subdirs = ("checkpoints", "diffusion_models", "unet")
-    excluded_tokens = ("vae", "clip", "text_encoder", "text_encoders", "tokenizer", "embeddings")
+    excluded_tokens = ("vae", "clip", "text_encoder", "text_encoders",
+                       "tokenizer", "embeddings", "encoder", "t5", "umt5",
+                       "clip-vit", "sigclip", "-vit-",
+                       "llama", "mistral", "gemma",
+                       "upscaler", "controlnet", "control_", "lora")
+    # qwen은 예외: Qwen-Image 같은 이미지 모델과
+    # Qwen-VL/Instruct 같은 언어 모델을 함께 가리키므로 별도 판별한다.
+    qwen_llm_tokens = ("vl", "instruct", "chat", "llm")
     names: list[str] = []
     seen: set[str] = set()
 
@@ -179,6 +186,9 @@ def scan_comfyui_model_names(model_root: Optional[str] = None, extra_candidates:
             name = file_path.name
             lower_name = name.lower()
             if any(token in lower_name for token in excluded_tokens):
+                continue
+            if "qwen" in lower_name and any(
+                    token in lower_name for token in qwen_llm_tokens):
                 continue
             if name and name not in seen:
                 seen.add(name)
