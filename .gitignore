@@ -6,6 +6,7 @@ __pycache__/
 dist/
 build/
 .eggs/
+.pytest_cache/
 
 # 가상환경
 .venv/
@@ -27,6 +28,8 @@ logs/
 app.log.*
 outputs/
 *.png
+scripts/
+tests/
 
 # Qt Designer 생성물(자동 생성 파이썬 UI)은 필요 시 재생성하므로 무시
 novel_studio/ui/forms/*_ui.py
@@ -47,3 +50,6 @@ refactoring_plan_v2.md
 uiux디자인기획.md
 REFACTORING_PLAN.md
 IMG2IMG_PLAN.md
+통합기획서.html
+uiux디자인기획.html
+ui_designer_plan.md

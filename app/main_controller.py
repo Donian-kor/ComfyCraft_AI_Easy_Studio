@@ -599,6 +599,75 @@ class MainController(QObject):
         except RuntimeError:
             logger.debug("옵션 되돌리기 실패", exc_info=True)
 
+    # P15/P17: 옵션 패널 폭. 기획서 원안은 340px 였으나 값 라벨·슬라이더가
+    # 답답하다는 피드백으로 420px 로 확대했다 (왼쪽 rail 76px + 입력줄은 전체너비 유지).
+    PANEL_WIDTH = 420
+    PANEL_CONTENT_WIDTH = PANEL_WIDTH - 24   # 좌우 여백 12px씩
+    PANEL_LABEL_WIDTH = 64                    # optrow 라벨 열
+    PANEL_VALUE_WIDTH = 46                    # optrow 값 열
+
+    def _apply_panel_widths(self) -> None:
+        """옵션 패널 내용이 340px 를 넘지 않도록 폭을 강제한다.
+
+        QLayout 는 maximumWidth 를 엄수하지 않아서 .ui 속성만으로는
+        facedetailerPanel(2열 17행) 이 751px 까지 뻗는다. 직접 지정한다.
+        위젯은 삭제하지 않는다 — 컨트롤러가 findChild 로 참조한다.
+        """
+        try:
+            content = self.find(QWidget, "leftContentWidget")
+            if content is not None:
+                content.setFixedWidth(self.PANEL_WIDTH)
+            for name in ("facedetailerPanel", "negativePromptFrame",
+                         "enhancePromptEdit", "positivePromptEdit",
+                         "modelCurrentLabel"):
+                widget = self.find(QWidget, name)
+                if widget is not None:
+                    widget.setMaximumWidth(self.PANEL_CONTENT_WIDTH)
+            # P17: 슬라이더가 최소 크기(200px)에 멈춰 좁아 보이는 문제 해결.
+            # QSlider 는 Expanding 정책이어야 남는 폭을 따라 커진다.
+            slider_width = (self.PANEL_CONTENT_WIDTH
+                            - self.PANEL_LABEL_WIDTH
+                            - self.PANEL_VALUE_WIDTH - 18)
+            for widget in self.window.findChildren(QSlider):
+                policy = widget.sizePolicy()
+                policy.setHorizontalPolicy(QSizePolicy.Policy.Expanding)
+                widget.setSizePolicy(policy)
+                if widget.objectName().startswith("facedetailer"):
+                    widget.setMaximumWidth(slider_width)
+            for name in ("denoiseSpinBox",):
+                widget = self.find(QWidget, name)
+                if widget is not None:
+                    widget.setMaximumWidth(self.PANEL_CONTENT_WIDTH)
+
+            # P17: 라벨이 이름 크기 그대로 늘어나면 슬라이더가 쫄쫄해진다.
+            # 목업은 라벨 열 64px 고정 → 최대폭을 걸어 컨트롤에 공간을 준다.
+            for widget in self.window.findChildren(QLabel):
+                name = widget.objectName()
+                if not name.startswith("facedetailer"):
+                    continue
+                if name.endswith("ValueLabel"):
+                    widget.setMaximumWidth(self.PANEL_VALUE_WIDTH)
+                else:
+                    widget.setMinimumWidth(self.PANEL_LABEL_WIDTH)
+                    widget.setMaximumWidth(self.PANEL_LABEL_WIDTH)
+
+            # 샘플링/해상도 행 라벨도 같은 규칙(64px 고정) 적용
+            for name in ("stepsLabelTitle", "cfgLabelTitle", "seedTitleLabel",
+                         "samplerLabel", "schedulerLabel", "denoiseLabel",
+                         "widthLabel", "heightLabel"):
+                widget = self.find(QWidget, name)
+                if widget is None:
+                    continue
+                widget.setMinimumWidth(self.PANEL_LABEL_WIDTH)
+                widget.setMaximumWidth(self.PANEL_LABEL_WIDTH)
+            # 값 라벨은 오른쪽 끝에 붙인다
+            for name in ("stepsValueLabel", "cfgValueLabel"):
+                widget = self.find(QWidget, name)
+                if widget is not None:
+                    widget.setMaximumWidth(self.PANEL_VALUE_WIDTH)
+        except RuntimeError:
+            logger.debug("옵션 패널 폭 강제 실패", exc_info=True)
+
     def _setup_rail_buttons(self) -> None:
         """P1: 좌측 레일 버튼 연결.
 
@@ -794,6 +863,9 @@ class MainController(QObject):
         # P14: 첫 실행은 패널이 접혀 있으므로 강조도 없다(기획서 목업 1).
         self._update_rail_selection("")
 
+        # P15: 옵션 패널 폭 강제 (340px 안에 담기)
+        self._apply_panel_widths()
+
         # P9: 저장된 세션이 없고 채팅이 비었을 때만 환영 메시지
         self._maybe_greet()
 
@@ -975,6 +1047,17 @@ class MainController(QObject):
 
     # -- 이력 목록 ----------------------------------------------------------
     def _refresh_history_list(self, reset_paging: bool = True) -> None:
+        """이력 목록 갱신 — 4cut 방식의 증분 갱신.
+
+        예전처럼 clear() 로 통째로 지우면 화면이 그려지는 동안 스크롤바가 0으로
+        초기화되어 "항목을 누를 때마다 목록이 맨 위로 튄다"는 문제가 있었다.
+        4cut(4cut_LocalComic_Studio studio/ui/sidebar.py)처럼
+          ① 스크롤 위치를 저장한다
+          ② takeItem 으로 초과분만 지우고, 있는 항목은 setText 만 갱신한다
+          ③ 현재 세션 위치로 setCurrentRow 한다
+          ④ 스크롤 위치를 복원한다
+        로 처리한다.
+        """
         history_list = getattr(self, "_history_list", None)
         manager = getattr(self, "session_manager", None)
         if history_list is None or manager is None:
@@ -982,11 +1065,17 @@ class MainController(QObject):
         try:
             if reset_paging:
                 self._history_shown = 50
-            history_list.blockSignals(True)
-            history_list.clear()
+
+            # ① 스크롤 위치 저장
+            scroll_bar = history_list.verticalScrollBar()
+            saved_scroll = scroll_bar.value() if scroll_bar else 0
+
             entries = manager.list_sessions()
             current_id = (getattr(self, "_current_session", None) or {}).get(
                 "session_id", "")
+
+            # 목표 항목 텍스트/데이터를 먼저 만든다
+            targets = []
             for entry in entries[: self._history_shown]:
                 title = entry.get("title", "새 대화") or "새 대화"
                 try:
@@ -997,17 +1086,56 @@ class MainController(QObject):
                 except Exception:
                     short = "모델"
                 meta = f"{short} · {str(entry.get('updated_at', ''))[:16]}"
-                item = QListWidgetItem(f"{title}\n{meta}")
-                item.setData(Qt.ItemDataRole.UserRole, entry.get("id", ""))
-                if entry.get("id", "") == current_id:
-                    item.setText(f"● {title}\n{meta}")
-                history_list.addItem(item)
+                text = f"● {title}\n{meta}" \
+                    if entry.get("id", "") == current_id else f"{title}\n{meta}"
+                targets.append((text, entry.get("id", "")))
             if len(entries) > self._history_shown:
-                more = QListWidgetItem(
-                    f"더 보기 ({len(entries) - self._history_shown}개)")
-                more.setData(Qt.ItemDataRole.UserRole, "__more__")
-                history_list.addItem(more)
+                targets.append(
+                    (f"더 보기 ({len(entries) - self._history_shown}개)",
+                     "__more__"))
+
+            history_list.blockSignals(True)
+            # ② 초과분만 제거(증분). takeItem 은 C++ 에 남는 item 을 명시 삭제한다.
+            existing = history_list.count()
+            while history_list.count() > len(targets):
+                item = history_list.takeItem(history_list.count() - 1)
+                del item
+            # 있는 항목은 재사용, 없는 것만 추가
+            for i, (text, sid) in enumerate(targets):
+                if i < existing:
+                    item = history_list.item(i)
+                    if item is None:
+                        continue
+                    if item.text() != text:
+                        item.setText(text)
+                    item.setData(Qt.ItemDataRole.UserRole, sid)
+                else:
+                    item = QListWidgetItem(text)
+                    item.setData(Qt.ItemDataRole.UserRole, sid)
+                    history_list.addItem(item)
             history_list.blockSignals(False)
+
+            # ④ 현재 세션 위치로 선택 복원.
+            #    setCurrentRow 는 Qt 가 선택 항목을 화면에 넣으려고 스크롤을
+            #    움직이는데, 신호를 차단한 상태에서 고르면 그 부작용이 없다.
+            history_list.blockSignals(True)
+            row = -1
+            if current_id:
+                for i in range(history_list.count()):
+                    it = history_list.item(i)
+                    if it is not None and \
+                            it.data(Qt.ItemDataRole.UserRole) == current_id:
+                        row = i
+                        break
+            if row < 0 and history_list.count():
+                row = 0
+            if row >= 0:
+                history_list.setCurrentRow(row)
+            history_list.blockSignals(False)
+
+            # ⑤ 스크롤 위치 최종 복원 (선택까지 모두 끝난 뒤가 가장 확실)
+            if scroll_bar:
+                scroll_bar.setValue(saved_scroll)
         except RuntimeError:
             logger.debug("이력 목록 갱신 실패", exc_info=True)
 
