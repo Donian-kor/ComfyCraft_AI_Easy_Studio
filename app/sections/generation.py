@@ -178,11 +178,18 @@ class GenerationWorker:
         else:
             self.emit_log("LM Studio 미연결로 프롬프트 강화 생략 (원본 사용)")
 
-        # 4️⃣ 🎯 [핵심 수정] ComfyUI로 전송할 최종 텍스트는
-        # 반드시 화면의 'enhancePromptEdit' 창에 입력된 최신 본문을 직접 가져옵니다.
+        # 4️⃣ ComfyUI로 전송할 최종 텍스트는
+        # 화면의 'enhancePromptEdit' 창에 입력된 최신 본문을 직접 가져옵니다.
+        # 주의: MainController 에 .ui 속성은 없고 find() 로 위젯을 찾는다.
+        #       (.ui 로 조회하면 항상 False 라 사용자 편집본이 무시된다)
         final_positive_prompt = prompt
-        if hasattr(self.controller, "ui") and hasattr(self.controller.ui, "enhancePromptEdit"):
-            ui_text = self.controller.ui.enhancePromptEdit.toPlainText().strip()
+        try:
+            from PySide6.QtWidgets import QPlainTextEdit
+            enhance_edit = self.controller.find(QPlainTextEdit, "enhancePromptEdit")
+        except Exception:
+            enhance_edit = None
+        if enhance_edit is not None:
+            ui_text = enhance_edit.toPlainText().strip()
             if ui_text:
                 final_positive_prompt = ui_text
                 self.emit_log("enhancePromptEdit 창의 최종 편집본을 ComfyUI 워크플로우에 적용합니다.")
@@ -482,6 +489,9 @@ class GenerationWorker:
 
         # P13: 프로필에 커스텀 워크플로우가 지정돼 있으면 그 파일을 우선 사용한다.
         # (설정창 "모델 추가"로 자동 생성한 워크플로우)
+        # base_wf 는 아래 모든 분기가 "이미 만들었나?"로 참조하므로
+        # 커스텀 워크플로우가 없을 때도 반드시 None 으로 초기화한다.
+        base_wf = None
         custom_file = str(getattr(profile, "workflow_file", "") or "").strip()
         if custom_file:
             try:

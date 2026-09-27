@@ -139,6 +139,7 @@ from app.gui.chat_widgets import (
     ChatMessage,
     GenerationStatusBubble,
     ImageCard,
+    PromptCard,
     describe_model,
 )
 
@@ -408,6 +409,11 @@ class MainController(QObject):
         self._status_bubble = None
         self._pending_zanime_style = False
         self._enhance_prefilled = False
+        # P20: 프롬프트 카드 / 생성 중 카드 (생성 중 카드가 미리보기로 전환)
+        self._prompt_card = None
+        self._pending_card = None
+        self._pending_card_done = None
+        self._pending_original_prompt = ""
         self._refresh_send_state()
 
         # P9: 접근성 이름 + 라이브 리전 + 인라인 에러 라벨
@@ -1433,13 +1439,18 @@ class MainController(QObject):
             self._chat_log.append(record)
         except AttributeError:
             self._chat_log = [record]
+        # P20: 생성 중 카드가 있으면 새 카드를 만들지 않고 그 카드를 완성한다.
+        # (스크롤이 튀지 않고 "생성 중 → 미리보기" 로 자연스럽게 전환된다)
+        if self._finish_pending_card(image_path, meta):
+            finished = getattr(self, "_pending_card_done", None)
+            return finished
         self._append_chat_message("ai", "이미지를 생성했어요!")
         return self._render_card(record)
 
     def _render_card(self, record: dict):
         """P6: 기록 dict에서 이미지 카드 위젯만 생성 (불러오기 경로)."""
-        # P19: 이미지 카드가 프롬프트를 보여주므로 enhance 편집기는 접는다.
-        self._mount_enhance_edit(False)
+        # P20: 결과 카드가 프롬프트를 보여주므로 확인용 프롬프트 카드는 걷어낸다.
+        self._remove_prompt_card()
         layout = self._chat_layout()
         if layout is None:
             return None
@@ -1485,6 +1496,159 @@ class MainController(QObject):
         except RuntimeError:
             logger.debug("이미지 카드 추가 실패", exc_info=True)
             return None
+
+    # -- P20: 프롬프트 카드 + 생성중 카드(같은 카드가 미리보기로 전환) -----
+    def _show_prompt_card(self, enhanced_text: str, original_text: str = ""):
+        """AI 가 다듬은 프롬프트를 확인 카드로 띄운다 (편집 가능).
+
+        enhancePromptEdit(숨김 데이터 저장소)에는 원본을, 카드 편집기에는
+        향상문을 둔다. 카드의 편집 내용은 enhancePromptEdit 로 흘러가므로
+        generation.run() 이 읽는 값과 항상 일치한다.
+        """
+        layout = self._chat_layout()
+        if layout is None:
+            return None
+        try:
+            # 이전 카드 정리 (새 전송 시 1개만 유지)
+            self._remove_prompt_card()
+            enhance = self.find(QPlainTextEdit, "enhancePromptEdit")
+            if enhance is not None:
+                enhance.setPlainText(enhanced_text or "")
+            card = PromptCard(
+                enhanced_text or "",
+                on_edit=self._on_prompt_card_edited,
+                on_revert=lambda: self._on_prompt_card_revert(original_text),
+                parent=self.window,
+            )
+            layout.insertWidget(self._chat_insert_index(), card)
+            self._prompt_card = card
+            self._prompt_card_original = original_text or ""
+            self._scroll_chat_to_bottom()
+            return card
+        except RuntimeError:
+            logger.debug("프롬프트 카드 표시 실패", exc_info=True)
+            return None
+
+    def _chat_insert_index(self) -> int:
+        """chatSpacer 바로 위 인덱스 (카드가 항상 스택 끝에 붙는다)."""
+        layout = self._chat_layout()
+        if layout is None:
+            return 0
+        for i in range(layout.count()):
+            item = layout.itemAt(i)
+            widget = item.widget() if item is not None else None
+            if widget is not None and widget.objectName() == "chatSpacer":
+                return i
+        return layout.count()
+
+    def _remove_prompt_card(self) -> None:
+        """프롬프트 카드를 채팅에서 제거한다."""
+        card = getattr(self, "_prompt_card", None)
+        self._prompt_card = None
+        if card is None:
+            return
+        try:
+            layout = self._chat_layout()
+            if layout is not None:
+                layout.removeWidget(card)
+            card.setParent(None)
+            card.deleteLater()
+        except RuntimeError:
+            logger.debug("프롬프트 카드 제거 실패", exc_info=True)
+
+    def _on_prompt_card_edited(self, text: str) -> None:
+        """카드에서 고친 내용을 enhancePromptEdit(스냅샷 저장소)로 전달."""
+        enhance = self.find(QPlainTextEdit, "enhancePromptEdit")
+        if enhance is None:
+            return
+        try:
+            if enhance.toPlainText() != text:
+                enhance.setPlainText(text)
+        except RuntimeError:
+            logger.debug("프롬프트 카드 편집 반영 실패", exc_info=True)
+
+    def _on_prompt_card_revert(self, original_text: str) -> None:
+        """'원문으로 되돌리기' — 원본 프롬프트로 복원한다."""
+        card = getattr(self, "_prompt_card", None)
+        enhance = self.find(QPlainTextEdit, "enhancePromptEdit")
+        try:
+            if enhance is not None:
+                enhance.setPlainText(original_text)
+            if card is not None:
+                card.set_prompt(original_text, revert_visible=False)
+        except RuntimeError:
+            logger.debug("프롬프트 되돌리기 실패", exc_info=True)
+
+    def _show_pending_card(self):
+        """생성 중 카드 (완료되면 이 카드가 그대로 미리보기가 된다)."""
+        layout = self._chat_layout()
+        if layout is None:
+            return None
+        try:
+            self._remove_prompt_card()
+            self._remove_pending_card()
+            card = ImageCard("", "", "", parent=self.window)
+            card.set_state_pending()
+            layout.insertWidget(self._chat_insert_index(), card)
+            self._pending_card = card
+            self._scroll_chat_to_bottom()
+            return card
+        except RuntimeError:
+            logger.debug("생성 중 카드 표시 실패", exc_info=True)
+            return None
+
+    def _remove_pending_card(self) -> None:
+        card = getattr(self, "_pending_card", None)
+        self._pending_card = None
+        if card is None:
+            return
+        try:
+            layout = self._chat_layout()
+            if layout is not None:
+                layout.removeWidget(card)
+            card.setParent(None)
+            card.deleteLater()
+        except RuntimeError:
+            logger.debug("생성 중 카드 제거 실패", exc_info=True)
+
+    def _finish_pending_card(self, image_path: str, meta_text: str) -> bool:
+        """생성 중 카드를 완성 카드로 전환한다 (같은 인스턴스 재사용).
+
+        새 카드를 만들지 않으므로 스크롤 위치가 튀지 않고,
+        '생성 중 → 미리보기' 전환이 자연스럽다.
+        """
+        card = getattr(self, "_pending_card", None)
+        if card is None:
+            return False
+        # _pending_card 는 유지한다 — 카드가 채팅에 남아야 하므로
+        # 참조만 해제하고, 다음 생성 때 교체/정리한다.
+        try:
+            card.set_state_ready(image_path, meta_text)
+            self._bind_pending_card_actions(card, image_path)
+            self._pending_card_done = card
+            return True
+        except RuntimeError:
+            logger.debug("생성 중 카드 전환 실패", exc_info=True)
+            return False
+
+    def _bind_pending_card_actions(self, card, image_path: str) -> None:
+        """완성된 카드에 미리보기 클릭과 접근성 이름을 건다."""
+        try:
+            card.image_label.clicked.connect(
+                lambda _c=False, path=image_path, focus=card.image_label:
+                self._open_preview(path, focus))
+        except RuntimeError:
+            pass
+        try:
+            card.image_label.setAccessibleName("생성된 이미지")
+            card.image_label.setAccessibleDescription("생성된 이미지")
+            card.save_button.setAccessibleName("이미지 저장")
+            card.copy_button.setAccessibleName("이미지 복사")
+            card.reuse_button.setAccessibleName("프롬프트 불러와 수정")
+            card.prompt_toggle.setAccessibleName("사용된 프롬프트 보기")
+            card.prompt_copy_button.setAccessibleName("프롬프트 복사")
+        except RuntimeError:
+            pass
 
     def _show_status_bubble(self):
         """P3: 생성 중 상태 버블을 채팅에 추가하고 반환."""
@@ -1803,6 +1967,8 @@ class MainController(QObject):
             if enhanced is not None and not self._enhance_prefilled:
                 enhanced.clear()
             self._pending_chat = {"text": text}
+            # P20: 프롬프트 카드에서 '원문으로 되돌리기' 에 쓸 원본 보관
+            self._pending_original_prompt = text
             edit = self.find(QPlainTextEdit, "chatInputEdit")
             if edit is not None:
                 edit.clear()
@@ -1810,17 +1976,19 @@ class MainController(QObject):
             if not self.is_lm_connected():
                 self._append_chat_message("ai", TEMPLATES["lm_off"])
             self.start_generation()
-            # P3: 채팅 경로로 시작됐으면 상태 버블 표시 + 신호 연결
+            # P20: 상태 버블 대신 "생성 중 카드"를 띄운다.
+            # 완료되면 이 카드가 그대로 이미지 미리보기로 전환된다.
             if self._is_generating():
-                bubble = self._show_status_bubble()
-                if bubble is not None and self.worker is not None:
+                card = self._show_pending_card()
+                if card is not None and self.worker is not None:
                     try:
-                        self.worker.signals.progress.connect(bubble.set_progress)
-                        self.worker.signals.status.connect(bubble.set_status)
+                        self.worker.signals.progress.connect(card.set_progress)
+                        self.worker.signals.status.connect(
+                            lambda text: card.set_progress(None, text))
                         self.worker.signals.finished.connect(
-                            lambda _ok: self._hide_status_bubble())
+                            lambda _ok: self._on_generation_finished())
                     except RuntimeError:
-                        logger.debug("상태 버블 신호 연결 실패", exc_info=True)
+                        logger.debug("생성 중 카드 신호 연결 실패", exc_info=True)
         except RuntimeError:
             logger.debug("채팅 전송 실패", exc_info=True)
 
@@ -3197,56 +3365,13 @@ class MainController(QObject):
         )
         self._set_progress_status("준비 완료")
 
-    # -- P19: enhancePromptEdit 를 채팅 스택에 하나만 마운트 (방법 C) ---------
-    def _mount_enhance_edit(self, mounted: bool) -> None:
-        """enhancePromptEdit 를 채팅 레이아웃(마지막)에 한 번만 올린다.
-
-        새 위젯을 만들지 않는다 — 기존 enhancePromptEdit 를 그대로 재사용하므로
-        스냅샷(capture_snapshot) 경로가 그대로 동작한다.
-        enhancement 는 "생성 대기 중인 프롬프트" 1개이므로 항상 하나뿐이다.
-        """
-        try:
-            enhance = self.find(QPlainTextEdit, "enhancePromptEdit")
-            chat = self.find(QWidget, "chatContentWidget")
-            if enhance is None or chat is None:
-                return
-            chat_layout = chat.layout()
-            if chat_layout is None:
-                return
-            index = chat_layout.indexOf(enhance)
-            if index < 0:
-                # 좌측 옵션 패널에서.chat 로 재부모화 (최초 1회)
-                enhance.setObjectName("enhancePromptEdit")
-                previous = enhance.parentWidget()
-                if previous is not None and previous.layout() is not None:
-                    previous.layout().removeWidget(enhance)
-                enhance.setParent(None)
-                enhance.setParent(chat)
-                # chatSpacer(맨 아래 스페이서) 바로 위에 둔다.
-                spacer_index = -1
-                for i in range(chat_layout.count()):
-                    item = chat_layout.itemAt(i)
-                    spacer = item.widget() if item is not None else None
-                    if spacer is not None and \
-                            spacer.objectName() == "chatSpacer":
-                        spacer_index = i
-                        break
-                insert_at = spacer_index if spacer_index >= 0 \
-                    else chat_layout.count()
-                chat_layout.insertWidget(insert_at, enhance)
-            enhance.setVisible(mounted)
-        except RuntimeError:
-            logger.debug("enhance 편집기 마운트 실패", exc_info=True)
-
     def _apply_enhanced_prompt(self, enhanced_prompt):
-        """향상된 프롬프트를 enhancePromptEdit에 적용 (P19: 채팅에 펼쳐 보여준다)"""
-        prompt_edit = self.find(QPlainTextEdit, "enhancePromptEdit")
-        if prompt_edit:
-            self._mount_enhance_edit(True)
-            prompt_edit.setPlainText(enhanced_prompt)
-            prompt_edit.setFocus()
-        else:
-            self.append_log("[ERROR] enhancePromptEdit을 찾을 수 없음!")
+        """향상된 프롬프트를 확인 카드로 표시 (P20: enhance 편집기 대신 카드).
+
+        카드가 enhancePromptEdit 로 편집 내용을 흘려보내므로,
+        generation.run() 이 읽는 값과 사용자가 본 값이 항상 일치한다.
+        """
+        self._show_prompt_card(enhanced_prompt, self._pending_original_prompt)
         self.append_log(f"프롬프트 향상 완료: {enhanced_prompt[:100]}...")
         self._set_progress_status("준비 완료")
 
@@ -3621,6 +3746,15 @@ class MainController(QObject):
         except (RuntimeError, AttributeError):
             pass
         self.append_log("로그를 초기화했습니다.")
+
+    def _on_generation_finished(self, ok: bool = True) -> None:
+        """P20: 생성 종료 — 실패/취소면 생성 중 카드를 정리한다.
+
+        성공이면 show_image() 가 카드를 미리보기로 전환한다.
+        """
+        self._hide_status_bubble()
+        if not ok:
+            self._remove_pending_card()
 
     def show_image(self, path, add_history=False):
         self.current_image_path = path

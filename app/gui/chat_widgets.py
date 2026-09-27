@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
+    QPlainTextEdit,
     QProgressBar,
     QPushButton,
     QSizePolicy,
@@ -141,8 +142,81 @@ class ChatMessage(QFrame):
         self.action_row.addWidget(button)
 
 
+class PromptCard(QFrame):
+    """P20: AI가 다듬은 프롬프트 확인 카드 (편집 가능).
+
+    enhancePromptEdit 를 그대로 재사용하지 않고 카드 안에 편집기를 두어,
+    "AI 가 뭘로 만들었는지 확인 → 고쳐서 쓰기" 를 한눈에 보여준다.
+    편집 내용은 on_edit 로 알려주고, 원문은 on_revert 로 되돌린다.
+    """
+
+    def __init__(self, prompt_text: str = "",
+                 on_edit: Optional[Callable[[str], None]] = None,
+                 on_revert: Optional[Callable[[], None]] = None,
+                 parent=None):
+        super().__init__(parent)
+        self.setObjectName("promptCard")
+        self.setFrameShape(QFrame.Shape.StyledPanel)
+
+        layout = QVBoxLayout(self)
+        layout.setSpacing(8)
+
+        head = QHBoxLayout()
+        head.setSpacing(8)
+        title = QLabel("✨ AI가 다듬은 프롬프트")
+        title.setObjectName("promptCardTitle")
+        head.addWidget(title)
+        head.addStretch(1)
+        self.revert_button = QPushButton("원문으로 되돌리기")
+        self.revert_button.setObjectName("promptCardRevert")
+        self.revert_button.setAccessibleName("프롬프트 원문으로 되돌리기")
+        self.revert_button.setVisible(False)
+        if on_revert is not None:
+            self.revert_button.clicked.connect(on_revert)
+        head.addWidget(self.revert_button)
+        layout.addLayout(head)
+
+        self.prompt_edit = QPlainTextEdit(prompt_text)
+        self.prompt_edit.setObjectName("promptCardEdit")
+        self.prompt_edit.setAccessibleName("AI가 다듬은 프롬프트")
+        self.prompt_edit.setPlaceholderText(
+            "AI가 다듬은 프롬프트가 여기에 표시됩니다. 직접 고친 뒤 그대로 생성됩니다.")
+        self.prompt_edit.setMinimumHeight(76)
+        self.prompt_edit.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
+        )
+        layout.addWidget(self.prompt_edit)
+
+        self.hint_label = QLabel(
+            "내용을 고쳐도 됩니다 — 고친 내용이 그대로 이미지 생성에 쓰입니다.")
+        self.hint_label.setObjectName("promptCardHint")
+        self.hint_label.setWordWrap(True)
+        layout.addWidget(self.hint_label)
+
+        self._on_edit = on_edit
+        if on_edit is not None:
+            self.prompt_edit.textChanged.connect(self._emit_edit)
+
+    def _emit_edit(self) -> None:
+        if self._on_edit is not None:
+            self._on_edit(self.prompt_edit.toPlainText())
+
+    def set_prompt(self, text: str, revert_visible: bool = False) -> None:
+        """내용을 채우고 되돌리기 버튼 노출 여부를 정한다."""
+        self.prompt_edit.setPlainText(text or "")
+        self.revert_button.setVisible(bool(revert_visible))
+
+    def text(self) -> str:
+        return self.prompt_edit.toPlainText().strip()
+
+
 class ImageCard(QFrame):
-    """생성 이미지 1장 + 메타 + 프롬프트 접기 + 저장/복사."""
+    """생성 이미지 1장 + 메타 + 프롬프트 접기 + 저장/복사.
+
+    P20: 생성 중 상태를 이 위젯 하나로 표현한다.
+      - set_state_pending() : 빈 이미지 영역 + "생성 중" 표시
+      - set_state_ready()   : 실제 이미지로 전환 (같은 카드 재사용)
+    """
 
     IMAGE_WIDTH = 480
 
@@ -171,9 +245,10 @@ class ImageCard(QFrame):
         if on_open is not None:
             self.image_label.clicked.connect(on_open)
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        pixmap = QPixmap(image_path)
+        pixmap = QPixmap(image_path) if image_path else QPixmap()
         if pixmap.isNull():
-            self.image_label.setText("이미지를 불러올 수 없습니다.")
+            self.image_label.setText("이미지를 불러올 수 없습니다."
+                                     if image_path else "")
         else:
             scaled = pixmap.scaledToWidth(
                 self.IMAGE_WIDTH, Qt.TransformationMode.SmoothTransformation
@@ -183,6 +258,23 @@ class ImageCard(QFrame):
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
         layout.addWidget(self.image_label)
+
+        # P20: 생성 중 표시 (같은 카드에서 상태만 전환)
+        self.pending_label = QLabel("이미지 생성 중...")
+        self.pending_label.setObjectName("imageCardPending")
+        self.pending_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.pending_label.setWordWrap(True)
+        self.pending_label.setMinimumHeight(180)
+        self.pending_label.setVisible(False)
+        layout.addWidget(self.pending_label)
+
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setObjectName("imageCardProgress")
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+        self.progress_bar.setTextVisible(False)
+        self.progress_bar.setVisible(False)
+        layout.addWidget(self.progress_bar)
 
         self.meta_label = QLabel(meta_text)
         self.meta_label.setObjectName("imageCardMeta")
@@ -236,6 +328,61 @@ class ImageCard(QFrame):
         actions.addWidget(self.reuse_button)
         actions.addStretch(1)
         layout.addLayout(actions)
+
+    # -- P20 상태 전환 (생성 중 → 완료, 같은 카드 재사용) -------------------
+    def set_state_pending(self, status_text: str = "이미지 생성 중...") -> None:
+        """생성 중 상태로 전환 (이미지 영역 자리에 진행 표시)."""
+        self.pending_label.setText(status_text)
+        self.pending_label.setVisible(True)
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setValue(0)
+        self.image_label.setVisible(False)
+        # 아직 결과물이 없으므로 결과 전용 UI 는 숨긴다.
+        self.save_button.setVisible(False)
+        self.copy_button.setVisible(False)
+        self.reuse_button.setVisible(False)
+        self.prompt_toggle.setVisible(False)
+        self.prompt_label.setVisible(False)
+        self.prompt_copy_button.setVisible(False)
+        self.meta_label.setVisible(False)
+
+    def set_progress(self, percent: int, status_text: str = "") -> None:
+        """진행률/상태 텍스트 갱신 (생성 중에만 의미 한다).
+
+        percent 가 None 이거나 숫자가 아니면 진행률은 그대로 두고
+        텍스트만 바꾼다. (worker 의 status 신호는 값 없이 텍스트만 보낸다)
+        """
+        if status_text:
+            self.pending_label.setText(status_text)
+        if percent is None:
+            return
+        try:
+            value = int(percent)
+        except (TypeError, ValueError):
+            return
+        self.progress_bar.setValue(max(0, min(100, value)))
+
+    def set_state_ready(self, image_path: str, meta_text: str = "") -> None:
+        """완료 상태로 전환 — 생성 중이었던 이 카드가 미리보기가 된다."""
+        self.pending_label.setVisible(False)
+        self.progress_bar.setVisible(False)
+        self.image_label.setVisible(True)
+        self.image_label.setText("")
+        pixmap = QPixmap(image_path) if image_path else QPixmap()
+        if pixmap.isNull():
+            self.image_label.setText("이미지를 불러올 수 없습니다.")
+        else:
+            scaled = pixmap.scaledToWidth(
+                self.IMAGE_WIDTH, Qt.TransformationMode.SmoothTransformation
+            )
+            self.image_label.setPixmap(scaled)
+        if meta_text:
+            self.meta_label.setText(meta_text)
+        self.meta_label.setVisible(True)
+        self.save_button.setVisible(True)
+        self.copy_button.setVisible(True)
+        self.prompt_toggle.setVisible(True)
+        self.prompt_copy_button.setVisible(True)
 
 
 class GenerationStatusBubble(QFrame):
