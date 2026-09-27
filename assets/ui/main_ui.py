@@ -194,7 +194,7 @@ class Ui_MainWindow(object):
         self.preset_1024x1024 = QPushButton(self.leftContentWidget)
         self.preset_1024x1024.setObjectName(u"preset_1024x1024")
         self.preset_1024x1024.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        self.preset_1024x1024.setMinimumSize(QSize(0, 30))
+        self.preset_1024x1024.setMinimumSize(QSize(0, 60))
         self.preset_1024x1024.setMaximumSize(QSize(220, 16777215))
 
         self.presetsButtonLayout.addWidget(self.preset_1024x1024)
@@ -202,7 +202,7 @@ class Ui_MainWindow(object):
         self.preset_896x1152 = QPushButton(self.leftContentWidget)
         self.preset_896x1152.setObjectName(u"preset_896x1152")
         self.preset_896x1152.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        self.preset_896x1152.setMinimumSize(QSize(0, 30))
+        self.preset_896x1152.setMinimumSize(QSize(0, 60))
         self.preset_896x1152.setMaximumSize(QSize(220, 16777215))
 
         self.presetsButtonLayout.addWidget(self.preset_896x1152)
@@ -210,7 +210,7 @@ class Ui_MainWindow(object):
         self.preset_1152x896 = QPushButton(self.leftContentWidget)
         self.preset_1152x896.setObjectName(u"preset_1152x896")
         self.preset_1152x896.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        self.preset_1152x896.setMinimumSize(QSize(0, 30))
+        self.preset_1152x896.setMinimumSize(QSize(0, 60))
         self.preset_1152x896.setMaximumSize(QSize(220, 16777215))
 
         self.presetsButtonLayout.addWidget(self.preset_1152x896)
@@ -462,6 +462,7 @@ class Ui_MainWindow(object):
 
         self.facedetailerPanel = QFrame(self.leftContentWidget)
         self.facedetailerPanel.setObjectName(u"facedetailerPanel")
+        self.facedetailerPanel.setVisible(False)
         sizePolicy.setHeightForWidth(self.facedetailerPanel.sizePolicy().hasHeightForWidth())
         self.facedetailerPanel.setSizePolicy(sizePolicy)
         self.facedetailerPanelVBox = QVBoxLayout(self.facedetailerPanel)
@@ -878,6 +879,7 @@ class Ui_MainWindow(object):
 
         self.openOutputFolderButton = QPushButton(self.leftContentWidget)
         self.openOutputFolderButton.setObjectName(u"openOutputFolderButton")
+        self.openOutputFolderButton.setVisible(False)
         self.openOutputFolderButton.setMinimumSize(QSize(0, 34))
         self.openOutputFolderButton.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 

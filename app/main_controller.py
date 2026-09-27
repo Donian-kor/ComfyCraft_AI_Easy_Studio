@@ -334,16 +334,21 @@ class MainController(QObject):
             gen_stop_btn.setChecked(False)
             # PlayStopButton의 toggled 시그널에 맞게 연결
             gen_stop_btn.toggled.connect(self._on_gen_stop_state_changed)
-        self.find(QPushButton, "enhancePromptButton").clicked.connect(
-            self.enhance_prompt_only
-        )
+        enhance_prompt_btn = self.find(QPushButton, "enhancePromptButton")
+        if enhance_prompt_btn is not None:
+            enhance_prompt_btn.clicked.connect(self.enhance_prompt_only)
+            # P19: enhancePromptEdit 가 채팅에 보이므로 중복 버튼은 감춘다.
+            # enhance_prompt_only 경로(프로그래밍 호출)는 그대로 살아 있다.
+            enhance_prompt_btn.setVisible(False)
         self._setup_zanime_style_buttons()
         reset_button = self.find(QPushButton, "resetButton")
         if reset_button is not None:
             reset_button.clicked.connect(self.clear_logs)
-        self.find(QPushButton, "openOutputFolderButton").clicked.connect(
-            self.open_output_folder
-        )
+        # P19: 폴더 열기는 프리뷰 모달로 옮겨 결과 컨텍스트에서 동작한다.
+        open_folder_button = self.find(QPushButton, "openOutputFolderButton")
+        if open_folder_button is not None:
+            open_folder_button.clicked.connect(self.open_output_folder)
+            open_folder_button.setVisible(False)
         save_button = self.find(QPushButton, "saveImageButton")
         if save_button is not None:
             save_button.clicked.connect(self.save_image_as)
@@ -402,6 +407,7 @@ class MainController(QObject):
         self._pending_chat = None
         self._status_bubble = None
         self._pending_zanime_style = False
+        self._enhance_prefilled = False
         self._refresh_send_state()
 
         # P9: 접근성 이름 + 라이브 리전 + 인라인 에러 라벨
@@ -617,8 +623,9 @@ class MainController(QObject):
             content = self.find(QWidget, "leftContentWidget")
             if content is not None:
                 content.setFixedWidth(self.PANEL_WIDTH)
+            # P19: enhancePromptEdit 는 채팅으로 옮겨지므로 여기서 폭을 잡지 않는다.
             for name in ("facedetailerPanel", "negativePromptFrame",
-                         "enhancePromptEdit", "positivePromptEdit",
+                         "positivePromptEdit",
                          "modelCurrentLabel"):
                 widget = self.find(QWidget, name)
                 if widget is not None:
@@ -878,7 +885,9 @@ class MainController(QObject):
         """
         widgets = []
         # 항상 숨김 유지 (히든 홀더)
-        always_hidden = {"historyPage", "enhancePromptEdit", "positivePromptEdit"}
+        # P19: enhancePromptEdit 는 enhance_prompt_only 로만 쓰이므로 숨긴다.
+        # 채팅에 보이는 enhancePromptEdit 는 같은 위젯을 재사용하므로 제외.
+        always_hidden = {"historyPage", "positivePromptEdit"}
         try:
             container = self.find(QWidget, "leftContentWidget")
             if container is None:
@@ -1264,11 +1273,62 @@ class MainController(QObject):
             except ValueError:
                 index = len(paths) - 1
             modal = ImagePreviewModal(
-                self.window, on_save=self._save_preview_image)
+                self.window, on_save=self._save_preview_image,
+                on_rewrite=self._on_preview_rewrite,
+                on_regenerate=self._on_preview_regenerate,
+                on_open_folder=self.open_output_folder)
             modal.open_with(paths, index,
                             return_focus_widget=return_focus_widget)
         except RuntimeError:
             logger.debug("미리보기 열기 실패", exc_info=True)
+
+    def _snapshot_for_image(self, image_path: str) -> dict:
+        """P19: 이미지 경로로 해당 생성의 스냅샷을 찾는다 (없으면 빈 dict)."""
+        for record in getattr(self, "_chat_log", []):
+            if not isinstance(record, dict):
+                continue
+            if record.get("kind") == "image" and \
+                    str(record.get("image_path", "")) == image_path:
+                snapshot = record.get("snapshot", {})
+                if isinstance(snapshot, dict):
+                    return snapshot
+        return {}
+
+    def _on_preview_rewrite(self, image_path: str) -> None:
+        """P19: 프리뷰 모달 → 프롬프트 재작성 (입력창에 복원, 편집 모드)."""
+        try:
+            self._on_reuse_request(self._snapshot_for_image(image_path))
+        except RuntimeError:
+            logger.debug("프리뷰 프롬프트 재작성 실패", exc_info=True)
+
+    def _on_preview_regenerate(self, image_path: str) -> None:
+        """P19: 프리뷰 모달 → 다시 만들기 (저장된 스냅샷으로 즉시 재생성).
+
+        프롬프트는 이미 AI가 다듬어진 enhance_prompt 를 쓰므로,
+        enhancePromptEdit 에 담아 두어 재향상을 건너뛴다.
+        """
+        if self._is_generating():
+            self.append_log("생성 중에는 다시 만들 수 없어요.")
+            return
+        try:
+            snapshot = self._snapshot_for_image(image_path)
+            if not snapshot:
+                self.append_log("이 이미지의 설정을 찾을 수 없어 다시 만들지 못했어요.")
+                return
+            self._restore_snapshot(snapshot)
+            prompt = str(snapshot.get("prompt", ""))
+            enhanced = self.find(QPlainTextEdit, "enhancePromptEdit")
+            # 재향상 건너뛰기: enhance 채널에 이미 다듬은 프롬프트를 넣어 둔다.
+            # _begin_send 가 enhance 를 비우므로 플래그로 보호한다.
+            self._enhance_prefilled = True
+            if enhanced is not None:
+                enhanced.setPlainText(snapshot.get("enhance_prompt") or prompt)
+            try:
+                self._begin_send(prompt or "(프롬프트 없음)", append_user=True)
+            finally:
+                self._enhance_prefilled = False
+        except RuntimeError:
+            logger.debug("프리뷰 다시 만들기 실패", exc_info=True)
 
     def _save_preview_image(self, image_path: str) -> None:
         """P7: 미리보기에서 보는 이미지 저장."""
@@ -1378,6 +1438,8 @@ class MainController(QObject):
 
     def _render_card(self, record: dict):
         """P6: 기록 dict에서 이미지 카드 위젯만 생성 (불러오기 경로)."""
+        # P19: 이미지 카드가 프롬프트를 보여주므로 enhance 편집기는 접는다.
+        self._mount_enhance_edit(False)
         layout = self._chat_layout()
         if layout is None:
             return None
@@ -1738,7 +1800,7 @@ class MainController(QObject):
             if positive is not None:
                 positive.setPlainText(text)
             enhanced = self.find(QPlainTextEdit, "enhancePromptEdit")
-            if enhanced is not None:
+            if enhanced is not None and not self._enhance_prefilled:
                 enhanced.clear()
             self._pending_chat = {"text": text}
             edit = self.find(QPlainTextEdit, "chatInputEdit")
@@ -3135,11 +3197,54 @@ class MainController(QObject):
         )
         self._set_progress_status("준비 완료")
 
+    # -- P19: enhancePromptEdit 를 채팅 스택에 하나만 마운트 (방법 C) ---------
+    def _mount_enhance_edit(self, mounted: bool) -> None:
+        """enhancePromptEdit 를 채팅 레이아웃(마지막)에 한 번만 올린다.
+
+        새 위젯을 만들지 않는다 — 기존 enhancePromptEdit 를 그대로 재사용하므로
+        스냅샷(capture_snapshot) 경로가 그대로 동작한다.
+        enhancement 는 "생성 대기 중인 프롬프트" 1개이므로 항상 하나뿐이다.
+        """
+        try:
+            enhance = self.find(QPlainTextEdit, "enhancePromptEdit")
+            chat = self.find(QWidget, "chatContentWidget")
+            if enhance is None or chat is None:
+                return
+            chat_layout = chat.layout()
+            if chat_layout is None:
+                return
+            index = chat_layout.indexOf(enhance)
+            if index < 0:
+                # 좌측 옵션 패널에서.chat 로 재부모화 (최초 1회)
+                enhance.setObjectName("enhancePromptEdit")
+                previous = enhance.parentWidget()
+                if previous is not None and previous.layout() is not None:
+                    previous.layout().removeWidget(enhance)
+                enhance.setParent(None)
+                enhance.setParent(chat)
+                # chatSpacer(맨 아래 스페이서) 바로 위에 둔다.
+                spacer_index = -1
+                for i in range(chat_layout.count()):
+                    item = chat_layout.itemAt(i)
+                    spacer = item.widget() if item is not None else None
+                    if spacer is not None and \
+                            spacer.objectName() == "chatSpacer":
+                        spacer_index = i
+                        break
+                insert_at = spacer_index if spacer_index >= 0 \
+                    else chat_layout.count()
+                chat_layout.insertWidget(insert_at, enhance)
+            enhance.setVisible(mounted)
+        except RuntimeError:
+            logger.debug("enhance 편집기 마운트 실패", exc_info=True)
+
     def _apply_enhanced_prompt(self, enhanced_prompt):
-        """향상된 프롬프트를 enhancePromptEdit에 적용"""
+        """향상된 프롬프트를 enhancePromptEdit에 적용 (P19: 채팅에 펼쳐 보여준다)"""
         prompt_edit = self.find(QPlainTextEdit, "enhancePromptEdit")
         if prompt_edit:
+            self._mount_enhance_edit(True)
             prompt_edit.setPlainText(enhanced_prompt)
+            prompt_edit.setFocus()
         else:
             self.append_log("[ERROR] enhancePromptEdit을 찾을 수 없음!")
         self.append_log(f"프롬프트 향상 완료: {enhanced_prompt[:100]}...")

@@ -255,7 +255,7 @@
                 <string>□ 정사각 (1:1)
 1024×1024</string>
                </property>
-              <property name="minimumSize"><size><width>0</width><height>30</height></size></property><property name="maximumSize"><size><width>220</width><height>16777215</height></size></property></widget>
+              <property name="minimumSize"><size><width>0</width><height>60</height></size></property><property name="maximumSize"><size><width>220</width><height>16777215</height></size></property></widget>
              </item>
              <item>
               <widget class="QPushButton" name="preset_896x1152">
@@ -266,7 +266,7 @@
                 <string>▯ 세로형 (9:16) ★
 896×1152</string>
                </property>
-              <property name="minimumSize"><size><width>0</width><height>30</height></size></property><property name="maximumSize"><size><width>220</width><height>16777215</height></size></property></widget>
+              <property name="minimumSize"><size><width>0</width><height>60</height></size></property><property name="maximumSize"><size><width>220</width><height>16777215</height></size></property></widget>
              </item>
              <item>
               <widget class="QPushButton" name="preset_1152x896">
@@ -277,7 +277,7 @@
                 <string>▭ 와이드 (16:9)
 1152×896</string>
                </property>
-              <property name="minimumSize"><size><width>0</width><height>30</height></size></property><property name="maximumSize"><size><width>220</width><height>16777215</height></size></property></widget>
+              <property name="minimumSize"><size><width>0</width><height>60</height></size></property><property name="maximumSize"><size><width>220</width><height>16777215</height></size></property></widget>
              </item>
             </layout>
            </item>
@@ -632,6 +632,9 @@
            </item>
            <item>
             <widget class="QFrame" name="facedetailerPanel">
+             <property name="visible">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy"><sizepolicy hsizetype="Expanding" vsizetype="Preferred"><horstretch>0</horstretch><verstretch>0</verstretch></sizepolicy></property><layout class="QVBoxLayout" name="facedetailerPanelVBox"><property name="spacing"><number>2</number></property><property name="leftMargin"><number>4</number></property><property name="rightMargin"><number>4</number></property><property name="topMargin"><number>4</number></property><property name="bottomMargin"><number>4</number></property><item><layout class="QHBoxLayout" name="fdOptRow"><property name="spacing"><number>6</number></property><item><widget class="QLabel" name="facedetailerDenoiseLabel">
                       <property name="toolTip">
                        <string>얼굴을 얼마나 새로 그릴지 정합니다. 기본값 0.40 추천. 높으면 얼굴이 완전히 바뀔 수 있습니다.</string>
@@ -1086,6 +1089,9 @@
            </item>
            <item>
             <widget class="QPushButton" name="openOutputFolderButton">
+             <property name="visible">
+              <bool>false</bool>
+             </property>
              <property name="minimumSize">
               <size>
                <width>0</width>

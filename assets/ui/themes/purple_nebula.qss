@@ -810,3 +810,31 @@ QLabel[status="warning"] {
 QLabel[status="pending"] {
     color: #d9d1ec;
 }
+
+/* ---------- P19: enhancement 편집기(채팅) + 옵션 섹션 캡션 ---------- */
+#enhancePromptEdit {
+    background-color: #4f4570;
+    color: #ece7f7;
+    border: 1px solid #a78bfa;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 13px;
+    selection-background-color: #a78bfa;
+    selection-color: #ffffff;
+}
+#enhancePromptEdit:focus { border: 2px solid #a78bfa; }
+#enhancePromptEdit::placeholder { color: #c4aefb; }
+
+/* 옵션 섹션 캡션: 상단 구분선 + 여백 (B안) */
+#capResolution, #capSampling, #capFace, #capPrompt, #capNegative, #capAdvanced {
+    border-top: 1px solid rgba(128, 128, 128, 0.35);
+    padding-top: 14px;
+    margin-top: 6px;
+    font-weight: 600;
+}
+
+/* 프리뷰 모달 P19 액션 버튼 */
+#previewRewriteBtn, #previewRegenerateBtn, #previewFolderBtn {
+    padding: 6px 14px;
+    border-radius: 6px;
+}

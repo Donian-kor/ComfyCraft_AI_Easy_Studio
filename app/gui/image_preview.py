@@ -41,13 +41,19 @@ class ImagePreviewModal(QDialog):
     MAX_ZOOM = 8.0
 
     def __init__(self, parent: Optional[QWidget] = None,
-                 on_save: Optional[Callable[[str], None]] = None):
+                 on_save: Optional[Callable[[str], None]] = None,
+                 on_rewrite: Optional[Callable[[str], None]] = None,
+                 on_regenerate: Optional[Callable[[str], None]] = None,
+                 on_open_folder: Optional[Callable[[], None]] = None):
         super().__init__(parent)
         self.setObjectName("imagePreviewModal")
         self.setWindowTitle("이미지 미리보기")
         self.setModal(True)
         self.setMinimumSize(640, 480)
         self._on_save = on_save
+        self._on_rewrite = on_rewrite
+        self._on_regenerate = on_regenerate
+        self._on_open_folder = on_open_folder
 
         self._paths: List[str] = []
         self._index = 0
@@ -102,11 +108,70 @@ class ImagePreviewModal(QDialog):
             bar.addWidget(button)
         layout.addLayout(bar)
 
+        # P19: 결과 컨텍스트 액션 행 (프롬프트 재작성 · 다시 만들기 · 폴더)
+        self.actions_bar = QHBoxLayout()
+        self.actions_bar.setSpacing(8)
+        self.rewrite_button = QPushButton("✏️ 프롬프트 재작성")
+        self.rewrite_button.setObjectName("previewRewriteBtn")
+        self.rewrite_button.setAccessibleName("프롬프트 재작성")
+        self.rewrite_button.setToolTip(
+            "이 이미지를 만든 프롬프트와 옵션을 불러와 다시 편집합니다.")
+        self.rewrite_button.clicked.connect(self._on_rewrite_clicked)
+        self.regenerate_button = QPushButton("↻ 다시 만들기")
+        self.regenerate_button.setObjectName("previewRegenerateBtn")
+        self.regenerate_button.setAccessibleName("다시 만들기")
+        self.regenerate_button.setToolTip(
+            "이 이미지를 만들 때 사용한 프롬프트와 옵션으로 바로 다시 생성합니다.")
+        self.regenerate_button.clicked.connect(self._on_regenerate_clicked)
+        self.folder_button = QPushButton("📁 폴더 열기")
+        self.folder_button.setObjectName("previewFolderBtn")
+        self.folder_button.setAccessibleName("출력 폴더 열기")
+        self.folder_button.setToolTip("이미지가 저장된 폴더를 엽니다.")
+        self.folder_button.clicked.connect(self._on_folder_clicked)
+        for button in (self.rewrite_button, self.regenerate_button,
+                       self.folder_button):
+            self.actions_bar.addWidget(button)
+        self.actions_bar.addStretch(1)
+        layout.addLayout(self.actions_bar)
+
         self._register_shortcut("Esc", self.close)
         self._register_shortcut("Left", self.show_prev)
         self._register_shortcut("Right", self.show_next)
         self._register_shortcut("+", self.zoom_in)
         self._register_shortcut("-", self.zoom_out)
+
+    # -- P19 액션 ----------------------------------------------------------
+    def _current_path(self) -> str:
+        """현재 보고 있는 이미지 경로 (없으면 빈 문자열)."""
+        if not self._paths:
+            return ""
+        return self._paths[self._index]
+
+    def _run_and_close(self, callback, *args) -> None:
+        """액션 실행 후 모달을 닫는다 (콜백 오류는 무시)."""
+        if callback is None:
+            return
+        try:
+            callback(*args)
+        except Exception:
+            pass
+        self.close()
+
+    def _on_rewrite_clicked(self) -> None:
+        """프롬프트 재작성: 현재 이미지의 스냅샷으로 입력창을 복원."""
+        self._run_and_close(self._on_rewrite, self._current_path())
+
+    def _on_regenerate_clicked(self) -> None:
+        """다시 만들기: 현재 이미지의 스냅샷으로 즉시 재생성."""
+        self._run_and_close(self._on_regenerate, self._current_path())
+
+    def _on_folder_clicked(self) -> None:
+        """출력 폴더 열기 (모달은 닫지 않는다)."""
+        if self._on_open_folder is not None:
+            try:
+                self._on_open_folder()
+            except Exception:
+                pass
 
     def _register_shortcut(self, key: str, slot) -> None:
         try:
