@@ -80,6 +80,8 @@ from .sections.execution import (
     ElapsedTimer,
 )
 
+from .sections.session import SessionManager
+
 __version__ = "0.3.0"
 
 __all__ = [
@@ -151,4 +153,6 @@ __all__ = [
     "format_elapsed",
     "LoadingAnimation",
     "ElapsedTimer",
+    # 06_Session
+    "SessionManager",
 ]

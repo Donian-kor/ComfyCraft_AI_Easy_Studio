@@ -133,6 +133,7 @@ class ImageCard(QFrame):
         on_save: Optional[Callable[[], None]] = None,
         on_copy_prompt: Optional[Callable[[], None]] = None,
         on_copy_image: Optional[Callable[[], None]] = None,
+        on_reuse: Optional[Callable[[], None]] = None,
         parent=None,
     ):
         super().__init__(parent)
@@ -198,8 +199,16 @@ class ImageCard(QFrame):
         self.copy_button.setObjectName("imageCardCopy")
         if on_copy_image is not None:
             self.copy_button.clicked.connect(on_copy_image)
+        # P6: 수정 요청 (프롬프트+옵션 전체 복원). 콜백 없으면 숨김.
+        self.reuse_button = QPushButton("수정 요청")
+        self.reuse_button.setObjectName("imageCardReuse")
+        if on_reuse is not None:
+            self.reuse_button.clicked.connect(on_reuse)
+        else:
+            self.reuse_button.setVisible(False)
         actions.addWidget(self.save_button)
         actions.addWidget(self.copy_button)
+        actions.addWidget(self.reuse_button)
         actions.addStretch(1)
         layout.addLayout(actions)
 

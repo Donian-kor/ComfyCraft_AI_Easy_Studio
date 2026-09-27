@@ -38,10 +38,12 @@ from PySide6.QtWidgets import (
     QGraphicsOpacityEffect,
     QGroupBox,
     QHBoxLayout,
+    QInputDialog,
     QLabel,
     QLineEdit,
     QListWidget,
     QListWidgetItem,
+    QMenu,
     QMessageBox,
     QPlainTextEdit,
     QProgressBar,
@@ -53,6 +55,7 @@ from PySide6.QtWidgets import (
     QSpinBox,
     QTabWidget,
     QTextBrowser,
+    QToolButton,
     QVBoxLayout,
     QWidget,
 )
@@ -91,6 +94,7 @@ from app import (
     LMStudioApiClient,
     LoadingAnimation,
     PromptEnhanceWorker,
+    SessionManager,
     build_filename_prefix,
     build_generation_snapshot,
     build_negative_prompt,
@@ -391,6 +395,9 @@ class MainController(QObject):
         # P1: 좌측 레일 버튼 연결 (클릭 토글, 호버 펼침 없음)
         self._setup_rail_buttons()
 
+        # P6: 세션·이력 (session.json + ◷ 패널 + ▾ 메뉴)
+        self._setup_sessions()
+
         # P5: 옵션 다듬기 — 향상 박스 숨김(표시는 채팅 인라인이 담당),
         # 되돌리기 버튼 추가. 구조 변경 없음.
         enhance_card = self.find(QFrame, "enhancePromptCard")
@@ -595,7 +602,25 @@ class MainController(QObject):
             new_chat_button.clicked.connect(self._on_new_chat_clicked)
 
     def _on_new_chat_clicked(self) -> None:
-        """P1: 채팅 영역 비우기 (세션 전환은 P6에서 연결)."""
+        """P1: 채팅 영역 비우기. P6: 세션 저장 후 새 세션 생성."""
+        if self._is_generating():
+            self.append_log("생성 중에는 새 대화를 시작할 수 없어요. 기다리거나 취소해주세요.")
+            return
+        try:
+            self._flush_session()
+            manager = getattr(self, "session_manager", None)
+            if manager is not None:
+                self._current_session = manager.new_session(
+                    model=self._comfy_model_file())
+                manager.save_session(self._current_session)
+                self._refresh_session_views()
+            self._chat_log = []
+            self._clear_chat_widgets()
+        except RuntimeError:
+            logger.debug("새 대화 시작 실패", exc_info=True)
+
+    def _clear_chat_widgets(self) -> None:
+        """채팅 위젯 전부 제거 (spacer 유지)."""
         try:
             container = self.find(QWidget, "chatContentWidget")
             layout = container.layout() if container is not None else None
@@ -621,6 +646,384 @@ class MainController(QObject):
             logger.debug("채팅 비우기 실패", exc_info=True)
 
     # ──────────────────────────────────────────────────────────────────────
+    # P6: 세션·이력 (session.json + ◷ 패널 + ▾ 메뉴 + 수정 요청)
+    # ──────────────────────────────────────────────────────────────────────
+
+    def _setup_sessions(self) -> None:
+        """P6: 세션 관리자 + 이력 페이지 + 새 대화 스플릿 메뉴."""
+        try:
+            self.session_manager = SessionManager(
+                self.output_dir / ".sessions")
+        except Exception as exc:
+            logger.debug("세션 관리자 초기화 실패: %s", exc_info=True)
+            self.session_manager = None
+        self._chat_log = []
+        self._current_session = None
+        self._history_shown = 50
+        self._panel_page = "options"
+
+        # 이력 페이지 (숨김 상태로 옵션 컨테이너에 추가)
+        try:
+            left_layout = self.find(QVBoxLayout, "leftContentLayout")
+            if left_layout is not None and self.find(
+                    QWidget, "historyPage") is None:
+                page = QWidget()
+                page.setObjectName("historyPage")
+                page_layout = QVBoxLayout(page)
+                title = QLabel("대화 이력")
+                title.setObjectName("historyPageTitle")
+                page_layout.addWidget(title)
+                history_list = QListWidget()
+                history_list.setObjectName("historyList")
+                history_list.itemClicked.connect(self._on_history_item_clicked)
+                history_list.setContextMenuPolicy(
+                    Qt.ContextMenuPolicy.CustomContextMenu)
+                history_list.customContextMenuRequested.connect(
+                    self._on_history_context_menu)
+                page_layout.addWidget(history_list)
+                self._history_list = history_list
+                page.setVisible(False)
+                left_layout.addWidget(page)
+                self._history_page = page
+            else:
+                self._history_page = self.find(QWidget, "historyPage")
+                self._history_list = self.find(QListWidget, "historyList")
+        except RuntimeError:
+            logger.debug("이력 페이지 생성 실패", exc_info=True)
+            self._history_page = None
+            self._history_list = None
+
+        # railHome/railHistory → 페이지 전환으로 재연결 (P1 토글 대체)
+        try:
+            home = self.find(QPushButton, "railHomeBtn")
+            if home is not None:
+                try:
+                    home.clicked.disconnect()
+                except Exception:
+                    pass
+                home.clicked.connect(lambda: self._rail_page_toggle("options"))
+            hist = self.find(QPushButton, "railHistoryBtn")
+            if hist is not None:
+                try:
+                    hist.clicked.disconnect()
+                except Exception:
+                    pass
+                hist.clicked.connect(lambda: self._rail_page_toggle("history"))
+        except RuntimeError:
+            logger.debug("레일 페이지 연결 실패", exc_info=True)
+
+        # 새 대화 버튼 → 스플릿(QToolButton) 교체: 클릭=새 세션, ▾=최근 5개
+        try:
+            old = self.find(QPushButton, "newChatBtn")
+            if old is not None:
+                from PySide6.QtWidgets import QToolButton as _QToolButton
+                parent = old.parentWidget()
+                layout = parent.layout() if parent is not None else None
+                if layout is not None:
+                    tool = _QToolButton(parent)
+                    tool.setObjectName("newChatBtn")
+                    tool.setText("＋ 새 대화")
+                    tool.setCursor(Qt.CursorShape.PointingHandCursor)
+                    tool.setPopupMode(
+                        _QToolButton.ToolButtonPopupMode.MenuButtonPopup)
+                    menu = QMenu(tool)
+                    menu.aboutToShow.connect(self._rebuild_recent_menu)
+                    tool.setMenu(menu)
+                    self._recent_menu = menu
+                    tool.clicked.connect(self._on_new_chat_clicked)
+                    index = layout.indexOf(old)
+                    layout.removeWidget(old)
+                    old.setParent(None)
+                    old.deleteLater()
+                    layout.insertWidget(max(0, index), tool)
+        except RuntimeError:
+            logger.debug("새 대화 스플릿 교체 실패", exc_info=True)
+
+        # 시작 시 마지막 세션 복원
+        try:
+            manager = getattr(self, "session_manager", None)
+            if manager is not None:
+                recent = manager.list_sessions(limit=1)
+                if recent:
+                    self._switch_session(recent[0].get("id", ""), silent=True)
+        except Exception:
+            logger.debug("시작 세션 복원 실패", exc_info=True)
+
+    # -- 페이지 전환 ------------------------------------------------------
+    def _options_widgets(self):
+        widgets = []
+        for name in ("step1Card", "step2Card", "viewerCard",
+                     "generateButton", "logGroupBox"):
+            try:
+                widget = self.find(QWidget, name)
+            except RuntimeError:
+                widget = None
+            if widget is not None:
+                widgets.append(widget)
+        return widgets
+
+    def _rail_page_toggle(self, page: str) -> None:
+        """P6: 같은 버튼 재클릭이면 패널 접힘, 아니면 내용 교체+펼침."""
+        try:
+            panel = self.find(QWidget, "leftScrollArea")
+            if panel is None:
+                return
+            if panel.isVisible() and self._panel_page == page:
+                panel.setVisible(False)
+                return
+            panel.setVisible(True)
+            self._show_panel_page(page)
+        except RuntimeError:
+            logger.debug("레일 페이지 토글 실패", exc_info=True)
+
+    def _show_panel_page(self, page: str) -> None:
+        self._panel_page = page
+        show_history = (page == "history")
+        for widget in self._options_widgets():
+            try:
+                widget.setVisible(not show_history)
+            except RuntimeError:
+                pass
+        try:
+            if self._history_page is not None:
+                self._history_page.setVisible(show_history)
+        except RuntimeError:
+            pass
+        if show_history:
+            self._refresh_history_list()
+
+    # -- 세션 저장/복원 ----------------------------------------------------
+    def _ensure_session(self) -> None:
+        manager = getattr(self, "session_manager", None)
+        if manager is None:
+            return
+        if self._current_session is None:
+            self._current_session = manager.new_session(
+                model=self._comfy_model_file())
+
+    def _flush_session(self) -> bool:
+        """현재 세션을 파일에 저장. 성공 시 True."""
+        try:
+            manager = getattr(self, "session_manager", None)
+            session = getattr(self, "_current_session", None)
+            if manager is None or session is None:
+                return False
+            session["messages"] = list(getattr(self, "_chat_log", []))
+            session["model"] = self._comfy_model_file()
+            last_snapshot: dict = {}
+            for record in reversed(session["messages"]):
+                if record.get("kind") == "image" and record.get("snapshot"):
+                    last_snapshot = record["snapshot"]
+                    break
+            session["last_snapshot"] = last_snapshot
+            ok = manager.save_session(session)
+            if ok:
+                self._refresh_session_views()
+            return ok
+        except Exception:
+            logger.debug("세션 저장 실패", exc_info=True)
+            return False
+
+    def _switch_session(self, session_id: str, silent: bool = False) -> bool:
+        """P6: 세션 전환 (생성 중 차단)."""
+        if self._is_generating():
+            if not silent:
+                self.append_log("생성 중에는 세션을 전환할 수 없어요.")
+            return False
+        try:
+            manager = getattr(self, "session_manager", None)
+            if manager is None or not session_id:
+                return False
+            self._flush_session()
+            session = manager.load_session(session_id)
+            if session is None:
+                if not silent:
+                    self.append_log("세션을 불러올 수 없어요.")
+                return False
+            self._current_session = session
+            self._chat_log = []
+            self._clear_chat_widgets()
+            for record in session.get("messages", []):
+                if not isinstance(record, dict):
+                    continue
+                kind = record.get("kind", "ai")
+                if kind == "image":
+                    self._chat_log.append(record)
+                    self._render_card(record)
+                else:
+                    self._chat_log.append(record)
+                    self._render_message(record)
+            self._refresh_session_views()
+            return True
+        except Exception:
+            logger.debug("세션 전환 실패", exc_info=True)
+            return False
+
+    def _refresh_session_views(self) -> None:
+        """▾ 메뉴·◷ 목록용 단일 원천 갱신 (구독 뷰 새로고침)."""
+        try:
+            self._refresh_history_list()
+        except Exception:
+            logger.debug("세션 뷰 갱신 실패", exc_info=True)
+
+    # -- 이력 목록 ----------------------------------------------------------
+    def _refresh_history_list(self, reset_paging: bool = True) -> None:
+        history_list = getattr(self, "_history_list", None)
+        manager = getattr(self, "session_manager", None)
+        if history_list is None or manager is None:
+            return
+        try:
+            if reset_paging:
+                self._history_shown = 50
+            history_list.blockSignals(True)
+            history_list.clear()
+            entries = manager.list_sessions()
+            current_id = (getattr(self, "_current_session", None) or {}).get(
+                "session_id", "")
+            for entry in entries[: self._history_shown]:
+                title = entry.get("title", "새 대화") or "새 대화"
+                meta = f"{entry.get('model', '')} · {str(entry.get('updated_at', ''))[:16]}"
+                item = QListWidgetItem(f"{title}\n{meta}")
+                item.setData(Qt.ItemDataRole.UserRole, entry.get("id", ""))
+                if entry.get("id", "") == current_id:
+                    item.setText(f"● {title}\n{meta}")
+                history_list.addItem(item)
+            if len(entries) > self._history_shown:
+                more = QListWidgetItem(
+                    f"더 보기 ({len(entries) - self._history_shown}개)")
+                more.setData(Qt.ItemDataRole.UserRole, "__more__")
+                history_list.addItem(more)
+            history_list.blockSignals(False)
+        except RuntimeError:
+            logger.debug("이력 목록 갱신 실패", exc_info=True)
+
+    def _on_history_item_clicked(self, item) -> None:
+        try:
+            sid = item.data(Qt.ItemDataRole.UserRole)
+            if sid == "__more__":
+                self._history_shown += 50
+                self._refresh_history_list(reset_paging=False)
+                return
+            if sid:
+                self._switch_session(str(sid))
+        except RuntimeError:
+            logger.debug("이력 항목 클릭 실패", exc_info=True)
+
+    def _on_history_context_menu(self, position) -> None:
+        history_list = getattr(self, "_history_list", None)
+        manager = getattr(self, "session_manager", None)
+        if history_list is None or manager is None:
+            return
+        try:
+            item = history_list.itemAt(position)
+            if item is None:
+                return
+            sid = str(item.data(Qt.ItemDataRole.UserRole) or "")
+            if not sid or sid == "__more__":
+                return
+            menu = QMenu(history_list)
+            rename_action = menu.addAction("이름 변경")
+            delete_action = menu.addAction("삭제")
+            copy_action = menu.addAction("프롬프트 복사")
+            chosen = menu.exec(history_list.mapToGlobal(position))
+            if chosen == rename_action:
+                if self._is_generating():
+                    self.append_log("생성 중에는 이름을 변경할 수 없어요.")
+                    return
+                new_title, ok = QInputDialog.getText(
+                    self.window, "이름 변경", "세션 이름:",
+                    text=self._session_title_of(sid))
+                if ok and manager.rename_session(sid, new_title):
+                    self._refresh_session_views()
+            elif chosen == delete_action:
+                if self._is_generating():
+                    self.append_log("생성 중에는 삭제할 수 없어요.")
+                    return
+                answer = show_message_box(
+                    self.window, QMessageBox.Icon.Question, "세션 삭제",
+                    "이 대화를 삭제할까요? (이미지 파일은 유지됩니다.)",
+                    QMessageBox.StandardButton.Yes
+                    | QMessageBox.StandardButton.No,
+                )
+                if answer == QMessageBox.StandardButton.Yes:
+                    if manager.delete_session(sid):
+                        current = getattr(self, "_current_session", None) or {}
+                        if current.get("session_id") == sid:
+                            self._current_session = None
+                            self._chat_log = []
+                            self._clear_chat_widgets()
+                        self._refresh_session_views()
+            elif chosen == copy_action:
+                prompt = self._session_first_prompt(sid)
+                if prompt:
+                    QApplication.clipboard().setText(prompt)
+                    self.append_log("프롬프트를 복사했어요.")
+        except RuntimeError:
+            logger.debug("이력 메뉴 실패", exc_info=True)
+
+    def _session_title_of(self, session_id: str) -> str:
+        try:
+            manager = getattr(self, "session_manager", None)
+            session = manager.load_session(session_id) if manager else None
+            return (session or {}).get("title", "")
+        except Exception:
+            return ""
+
+    def _session_first_prompt(self, session_id: str) -> str:
+        try:
+            manager = getattr(self, "session_manager", None)
+            session = manager.load_session(session_id) if manager else None
+            for record in (session or {}).get("messages", []):
+                if isinstance(record, dict) and record.get("kind") == "user":
+                    return str(record.get("text", ""))
+            return ""
+        except Exception:
+            return ""
+
+    # -- ▾ 최근 메뉴 ---------------------------------------------------------
+    def _rebuild_recent_menu(self) -> None:
+        menu = getattr(self, "_recent_menu", None)
+        manager = getattr(self, "session_manager", None)
+        if menu is None or manager is None:
+            return
+        try:
+            menu.clear()
+            for entry in manager.list_sessions(limit=5):
+                title = entry.get("title", "새 대화") or "새 대화"
+                action = menu.addAction(title)
+                action.setData(entry.get("id", ""))
+                action.triggered.connect(
+                    lambda _checked=False, sid=entry.get("id", ""):
+                    self._switch_session(str(sid)))
+            menu.addSeparator()
+            menu.addAction("전체 보기는 ◷ 대화 이력").setEnabled(False)
+        except RuntimeError:
+            logger.debug("최근 메뉴 갱신 실패", exc_info=True)
+
+    # -- 수정 요청 ------------------------------------------------------------
+    def _on_reuse_request(self, snapshot: dict) -> None:
+        """P6: 해당 생성의 프롬프트+옵션 전체 복원 후 입력창 포커스."""
+        if self._is_generating():
+            self.append_log("생성 중에는 수정 요청을 할 수 없어요.")
+            return
+        try:
+            self._restore_snapshot(snapshot or {})
+            edit = self.find(QPlainTextEdit, "chatInputEdit")
+            prompt_text = ""
+            enhanced = self.find(QPlainTextEdit, "enhancePromptEdit")
+            if enhanced is not None:
+                prompt_text = enhanced.toPlainText().strip()
+            if not prompt_text and isinstance(snapshot, dict):
+                prompt_text = str(snapshot.get("prompt", ""))
+            if edit is not None:
+                edit.setPlainText(prompt_text)
+                edit.setFocus()
+            preview = (prompt_text[:30] + "…") if len(prompt_text) > 30 else prompt_text
+            self._append_chat_message("system", f"편집 중: {preview}")
+        except RuntimeError:
+            logger.debug("수정 요청 실패", exc_info=True)
+
+    # ──────────────────────────────────────────────────────────────────────
     # P2: 채팅 송수신 (ChatMessage/ImageCard + 전송 배선)
     # ──────────────────────────────────────────────────────────────────────
 
@@ -644,11 +1047,23 @@ class MainController(QObject):
 
     def _append_chat_message(self, role: str, text: str):
         """채팅에 메시지 1개 추가하고 위젯 반환 (실패 시 None)."""
+        from datetime import datetime
+        record = {"kind": role, "text": text,
+                  "timestamp": datetime.now().isoformat(timespec="seconds")}
+        try:
+            self._chat_log.append(record)
+        except AttributeError:
+            self._chat_log = [record]
+        return self._render_message(record)
+
+    def _render_message(self, record: dict):
+        """P6: 기록 dict에서 위젯만 생성 (불러오기 경로, 기록 없음)."""
         layout = self._chat_layout()
         if layout is None:
             return None
         try:
-            message = ChatMessage(role, text, self.window)
+            message = ChatMessage(record.get("kind", "ai"),
+                                  record.get("text", ""), self.window)
             # 하단 spacer 앞으로 삽입 (spacer가 있으면 그 앞, 없으면 맨 뒤)
             insert_at = layout.count()
             for i in range(layout.count()):
@@ -666,20 +1081,37 @@ class MainController(QObject):
     def _append_image_card(self, image_path: str, snapshot: dict,
                            elapsed_text: str, prompt_text: str):
         """AI 응답 + 이미지 카드 추가."""
+        from datetime import datetime
         model_name = str(snapshot.get("comfy_model", ""))
         model_stem = Path(model_name).stem if model_name else "모델"
         meta = (f"{model_stem} · {snapshot.get('width', '?')}x{snapshot.get('height', '?')} "
                 f"· 시드 {snapshot.get('seed', '?')} · {elapsed_text} 소요")
+        record = {"kind": "image", "text": "이미지를 생성했어요!",
+                  "timestamp": datetime.now().isoformat(timespec="seconds"),
+                  "image_path": image_path, "meta": meta,
+                  "prompt": prompt_text or "(프롬프트 없음)",
+                  "snapshot": dict(snapshot)}
+        try:
+            self._chat_log.append(record)
+        except AttributeError:
+            self._chat_log = [record]
         self._append_chat_message("ai", "이미지를 생성했어요!")
+        return self._render_card(record)
+
+    def _render_card(self, record: dict):
+        """P6: 기록 dict에서 이미지 카드 위젯만 생성 (불러오기 경로)."""
         layout = self._chat_layout()
         if layout is None:
             return None
         try:
+            snapshot = record.get("snapshot", {})
             card = ImageCard(
-                image_path, meta, prompt_text or "(프롬프트 없음)",
+                record.get("image_path", ""), record.get("meta", ""),
+                record.get("prompt", ""),
                 on_save=self.save_image_as,
                 on_copy_prompt=self._copy_enhanced_prompt,
                 on_copy_image=self._copy_image_to_clipboard,
+                on_reuse=lambda: self._on_reuse_request(snapshot),
                 parent=self.window,
             )
             insert_at = layout.count()
@@ -845,7 +1277,12 @@ class MainController(QObject):
                 return
             if self._needs_zanime_style():
                 # 생성하지 않고 스타일 선택 요청 (원문 보관)
+                self._ensure_session()
                 self._append_chat_message("user", text)
+                session = getattr(self, "_current_session", None)
+                if isinstance(session, dict) and session.get("title", "새 대화") in ("새 대화", ""):
+                    session["title"] = text[:20]
+                self._flush_session()
                 edit.clear()
                 self._request_zanime_style(text)
                 return
@@ -856,8 +1293,14 @@ class MainController(QObject):
     def _begin_send(self, text: str, append_user: bool = True) -> None:
         """P4: 실제 전송 코어 (일반 전송·스타일 선택 후 자동 생성 공용)."""
         try:
+            self._ensure_session()
             if append_user:
                 self._append_chat_message("user", text)
+                # 첫 사용자 메시지로 세션 제목 자동 부여
+                session = getattr(self, "_current_session", None)
+                if isinstance(session, dict) and session.get("title", "새 대화") in ("새 대화", ""):
+                    session["title"] = text[:20]
+                self._flush_session()
             # 기존 프롬프트 경로와 동기화 + 오래된 향상문 초기화 (오염 방지)
             positive = self.find(QPlainTextEdit, "positivePromptEdit")
             if positive is not None:
@@ -2553,6 +2996,8 @@ class MainController(QObject):
                 if not prompt_text:
                     prompt_text = pending.get("text", "")
                 self._append_image_card(path, snapshot, elapsed, prompt_text)
+                # P6: 생성 완료 시점 저장 (트리거 ②)
+                self._flush_session()
             except Exception as e:
                 logger.warning("채팅 이미지 카드 추가 실패: %s", e, exc_info=True)
 
@@ -2627,6 +3072,11 @@ class MainController(QObject):
 
     def _finalize_window_close(self):
         """정리(close())가 모두 끝난 뒤 실제 창 종료를 허용하고 수행한다."""
+        # P6: 종료 시 마지막 세션 저장 (트리거 ④)
+        try:
+            self._flush_session()
+        except Exception:
+            logger.debug("종료 시 세션 저장 실패", exc_info=True)
         self._close_allowed = True
         self.window.close()
 
@@ -2868,43 +3318,51 @@ class MainController(QObject):
         if img_path and Path(img_path).exists():
             self.show_image(img_path)
 
-        # 2. 프롬프트 복원
-        if "prompt" in snap:
-            self.find(QPlainTextEdit, "positivePromptEdit").setPlainText(snap.get("prompt", ""))
-        if "enhance_prompt" in snap and snap.get("enhance_prompt"):
-            self.find(QPlainTextEdit, "enhancePromptEdit").setPlainText(snap.get("enhance_prompt", ""))
-        if "negative" in snap:
-            self.find(QPlainTextEdit, "negativePromptEdit").setPlainText(snap.get("negative", ""))
-
-        # 3. 모델 및 해상도, 시드, CFG, 스텝 복원
-        if "comfy_model" in snap:
-            # P4: 정확한 파일명으로 복원 (표시명 기준 setCurrentText 대체)
-            self._set_comfy_model_file(snap.get("comfy_model"))
-        if "width" in snap and "height" in snap:
-            self.apply_preset(snap["width"], snap["height"])
-        if "steps" in snap:
-            self.set_steps_value(snap["steps"])
-        if "cfg" in snap:
-            self.set_cfg_value(snap["cfg"])
-        if "seed" in snap and snap["seed"] != -1:
-            self.find(QSpinBox, "seedSpinBox").setValue(snap["seed"])
-        if "sampler" in snap:
-            self.find(QComboBox, "samplerComboBox").setCurrentText(snap["sampler"])
-        if "scheduler" in snap:
-            self.find(QComboBox, "schedulerComboBox").setCurrentText(snap["scheduler"])
-        if "zanime_style" in snap and snap.get("zanime_style"):
-            try:
-                self.config.prompts.zanime_style = str(snap.get("zanime_style", "")).strip().lower()
-                self.config_manager.set_config(self.config)
-                self.refresh_zanime_style_buttons()
-            except Exception:
-                logger.debug("zanime 스타일 복원 실패", exc_info=True)
-        self.update_zanime_style_visibility()
-
-        # 4. FaceDetailer 옵션 복원
-        self._restore_facedetailer_from_snapshot(snap)
-
+        self._restore_snapshot(snap)
         self.append_log(f"최근 생성 기록 [{index + 1}번]의 설정 및 프롬프트를 성공적으로 복원했습니다.")
+
+    def _restore_snapshot(self, snap: dict) -> None:
+        """P6: 스냅샷 전체를 UI에 복원 (프롬프트+모델+옵션). 썸네일·재사용 공용."""
+        if not isinstance(snap, dict) or not snap:
+            return
+        try:
+            # 2. 프롬프트 복원
+            if "prompt" in snap:
+                self.find(QPlainTextEdit, "positivePromptEdit").setPlainText(snap.get("prompt", ""))
+            if "enhance_prompt" in snap and snap.get("enhance_prompt"):
+                self.find(QPlainTextEdit, "enhancePromptEdit").setPlainText(snap.get("enhance_prompt", ""))
+            if "negative" in snap:
+                self.find(QPlainTextEdit, "negativePromptEdit").setPlainText(snap.get("negative", ""))
+
+            # 3. 모델 및 해상도, 시드, CFG, 스텝 복원
+            if "comfy_model" in snap:
+                # P4: 정확한 파일명으로 복원 (표시명 기준 setCurrentText 대체)
+                self._set_comfy_model_file(snap.get("comfy_model"))
+            if "width" in snap and "height" in snap:
+                self.apply_preset(snap["width"], snap["height"])
+            if "steps" in snap:
+                self.set_steps_value(snap["steps"])
+            if "cfg" in snap:
+                self.set_cfg_value(snap["cfg"])
+            if "seed" in snap and snap["seed"] != -1:
+                self.find(QSpinBox, "seedSpinBox").setValue(snap["seed"])
+            if "sampler" in snap:
+                self.find(QComboBox, "samplerComboBox").setCurrentText(snap["sampler"])
+            if "scheduler" in snap:
+                self.find(QComboBox, "schedulerComboBox").setCurrentText(snap["scheduler"])
+            if "zanime_style" in snap and snap.get("zanime_style"):
+                try:
+                    self.config.prompts.zanime_style = str(snap.get("zanime_style", "")).strip().lower()
+                    self.config_manager.set_config(self.config)
+                    self.refresh_zanime_style_buttons()
+                except Exception:
+                    logger.debug("zanime 스타일 복원 실패", exc_info=True)
+            self.update_zanime_style_visibility()
+
+            # 4. FaceDetailer 옵션 복원
+            self._restore_facedetailer_from_snapshot(snap)
+        except RuntimeError:
+            logger.debug("스냅샷 복원 실패", exc_info=True)
 
     def add_to_history(self, path, snapshot):
         """새로 생성된 이미지를 최근 기록 히스토리 목록에 추가하고 썸네일 갱신"""

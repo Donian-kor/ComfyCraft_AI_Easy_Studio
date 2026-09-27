@@ -21,9 +21,15 @@ UI_FILE = BASE_DIR / "assets" / "ui" / "main.ui"
 def _make_controller():
     # refresh_models는 패치하지 않는다: 클래스 패치가 인터프리터 종료 시
     # C++ 삭제 충돌을 유발함. 서버가 없으면 연결 실패로 즉시 끝나 안전하다.
+    # 세션 관리자는 임시 디렉토리로 격리한다 (실제 outputs 오염 방지).
+    import tempfile
+    from app.sections.session import SessionManager
     app = QApplication.instance() or QApplication([])
     window = load_ui(UI_FILE)
     controller = main_module.MainController(window)
+    tmp = tempfile.TemporaryDirectory()
+    controller.session_manager = SessionManager(Path(tmp.name) / ".sessions")
+    controller._tmpdir = tmp
     return controller
 
 

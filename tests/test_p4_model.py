@@ -26,9 +26,16 @@ FILENAMES = [
 
 
 def _make_controller():
+    # 세션 관리자는 임시 디렉토리로 격리한다 (실제 outputs 오염 방지).
+    import tempfile
+    from app.sections.session import SessionManager
+    from pathlib import Path as _Path
     app = QApplication.instance() or QApplication([])
     window = load_ui(UI_FILE)
     controller = main_module.MainController(window)
+    tmp = tempfile.TemporaryDirectory()
+    controller.session_manager = SessionManager(_Path(tmp.name) / ".sessions")
+    controller._tmpdir = tmp
     return controller
 
 
