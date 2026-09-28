@@ -34,30 +34,33 @@ class ComfyUIConfig:
 
 @dataclass
 class GenerationConfig:
-    default_width: int = 1024
-    default_height: int = 1024
-    default_steps: int = 20
-    default_cfg: float = 7.0
+    # 기본값/범위는 ComfyUI 실제 노드 스키마 기준이다.
+    #   EmptyLatentImage.width/height : min 16, max 16384, step 8
+    #   KSampler.steps                : min 1,   max 10000
+    #   KSampler.cfg                  : min 0.0, max 100.0, step 0.1
+    default_width: int = 1152
+    default_height: int = 896
+    default_steps: int = 9
+    default_cfg: float = 1.0
     default_seed: int = -1
-    width_min: int = 256
-    width_max: int = 2048
-    height_min: int = 256
-    height_max: int = 2048
+    width_min: int = 16
+    width_max: int = 16384
+    height_min: int = 16
+    height_max: int = 16384
     steps_min: int = 1
-    steps_max: int = 100
-    cfg_min: float = 1.0
-    cfg_max: float = 30.0
+    steps_max: int = 10000
+    cfg_min: float = 0.0
+    cfg_max: float = 100.0
     width_increment: int = 64
     height_increment: int = 64
-    cfg_increment: float = 0.5
+    cfg_increment: float = 0.1
 
 
 @dataclass
 class WorkflowConfig:
-    checkpoint_template: str = "workflows/checkpoint.json"
-    gguf_template: str = "workflows/gguf_unet.json"
-    flux_gguf_template: str = "workflows/flux_gguf.json"
-    zimage_template: str = "workflows/zimage.json"
+    checkpoint_template: str = "workflows/base/checkpoint_loadersimple.json"
+    unet_clip_template: str = "workflows/base/unet_clploadergguf.json"
+    unet_dualclip_template: str = "workflows/base/unet_dualclploadergguf.json"
     sampler_name: str = "euler"
     scheduler: str = "normal"
     denoise: float = 1.0
@@ -203,25 +206,27 @@ class ConfigManager:
             max_wait_seconds=comfy_raw.get("max_wait_seconds", 600),
         )
         
-        # 생성 설정
+        # 생성 설정 — 폴백 기본값은 GenerationConfig 데이터클래스가 단일 출처다
+        # (하드코딩이 이미지와 어긋나는 사고 방지, 범위는 ComfyUI 노드 기준)
         gen_raw = raw.get("generation", {})
+        _gen_defaults = GenerationConfig()
         generation = GenerationConfig(
-            default_width=gen_raw.get("default_width", 1024),
-            default_height=gen_raw.get("default_height", 1024),
-            default_steps=gen_raw.get("default_steps", 20),
-            default_cfg=gen_raw.get("default_cfg", 7.0),
-            default_seed=gen_raw.get("default_seed", -1),
-            width_min=gen_raw.get("width_min", 256),
-            width_max=gen_raw.get("width_max", 2048),
-            height_min=gen_raw.get("height_min", 256),
-            height_max=gen_raw.get("height_max", 2048),
-            steps_min=gen_raw.get("steps_min", 1),
-            steps_max=gen_raw.get("steps_max", 100),
-            cfg_min=gen_raw.get("cfg_min", 1.0),
-            cfg_max=gen_raw.get("cfg_max", 30.0),
-            width_increment=gen_raw.get("width_increment", 64),
-            height_increment=gen_raw.get("height_increment", 64),
-            cfg_increment=gen_raw.get("cfg_increment", 0.5),
+            default_width=gen_raw.get("default_width", _gen_defaults.default_width),
+            default_height=gen_raw.get("default_height", _gen_defaults.default_height),
+            default_steps=gen_raw.get("default_steps", _gen_defaults.default_steps),
+            default_cfg=gen_raw.get("default_cfg", _gen_defaults.default_cfg),
+            default_seed=gen_raw.get("default_seed", _gen_defaults.default_seed),
+            width_min=gen_raw.get("width_min", _gen_defaults.width_min),
+            width_max=gen_raw.get("width_max", _gen_defaults.width_max),
+            height_min=gen_raw.get("height_min", _gen_defaults.height_min),
+            height_max=gen_raw.get("height_max", _gen_defaults.height_max),
+            steps_min=gen_raw.get("steps_min", _gen_defaults.steps_min),
+            steps_max=gen_raw.get("steps_max", _gen_defaults.steps_max),
+            cfg_min=gen_raw.get("cfg_min", _gen_defaults.cfg_min),
+            cfg_max=gen_raw.get("cfg_max", _gen_defaults.cfg_max),
+            width_increment=gen_raw.get("width_increment", _gen_defaults.width_increment),
+            height_increment=gen_raw.get("height_increment", _gen_defaults.height_increment),
+            cfg_increment=gen_raw.get("cfg_increment", _gen_defaults.cfg_increment),
         )
         
         # 프롬프트 설정 - prompt.json에서 로드 (load_external_prompts 사용)
@@ -249,10 +254,17 @@ class ConfigManager:
         # 워크플로우 설정
         wf_raw = raw.get("workflow", {})
         workflow = WorkflowConfig(
-            checkpoint_template=wf_raw.get("checkpoint_template", "workflows/checkpoint.json"),
-            gguf_template=wf_raw.get("gguf_template", "workflows/gguf_unet.json"),
-            flux_gguf_template=wf_raw.get("flux_gguf_template", "workflows/flux_gguf.json"),
-            zimage_template=wf_raw.get("zimage_template", "workflows/zimage.json"),
+            checkpoint_template=wf_raw.get(
+                "checkpoint_template",
+                wf_raw.get("checkpoint", "workflows/base/checkpoint_loadersimple.json"),
+            ),
+            unet_clip_template=wf_raw.get(
+                "unet_clip_template",
+                wf_raw.get("gguf_template", wf_raw.get("zimage_template", "workflows/base/unet_clploadergguf.json")),
+            ),
+            unet_dualclip_template=wf_raw.get(
+                "unet_dualclip_template",
+                wf_raw.get("flux_gguf_template", "workflows/base/unet_dualclploadergguf.json")),
             sampler_name=wf_raw.get("sampler_name", "euler"),
             scheduler=wf_raw.get("scheduler", "normal"),
             denoise=wf_raw.get("denoise", 1.0),
@@ -426,9 +438,8 @@ class ConfigManager:
             },
             "workflow": {
                 "checkpoint_template": config.workflow.checkpoint_template,
-                "gguf_template": config.workflow.gguf_template,
-                "flux_gguf_template": config.workflow.flux_gguf_template,
-                "zimage_template": config.workflow.zimage_template,
+                "unet_clip_template": config.workflow.unet_clip_template,
+                "unet_dualclip_template": config.workflow.unet_dualclip_template,
                 "sampler_name": config.workflow.sampler_name,
                 "scheduler": config.workflow.scheduler,
                 "denoise": config.workflow.denoise,

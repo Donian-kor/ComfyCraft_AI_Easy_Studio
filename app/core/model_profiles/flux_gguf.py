@@ -9,6 +9,7 @@ class FluxGGUFProfile(ModelProfile):
             aliases=("flux",),
             patterns=("flux",),
             workflow_type="flux_gguf",
+            base="unet_dualclploadergguf",
             default_clip1="clip_l.safetensors",
             default_clip2="t5-v1_1-xxl-encoder-Q4_K_M.gguf",
             default_vae="diffusion_pytorch_model.safetensors",

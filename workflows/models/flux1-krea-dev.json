@@ -5,17 +5,18 @@
       "unet_name": "__MODEL_NAME__"
     },
     "_meta": {
-      "title": "Load Unet (GGUF)"
+      "title": "Unet Loader (GGUF)"
     }
   },
   "2": {
-    "class_type": "CLIPLoaderGGUF",
+    "class_type": "DualCLIPLoaderGGUF",
     "inputs": {
-      "clip_name": "__CLIP_NAME__",
-      "type": "stable_diffusion"
+      "clip_name1": "__CLIP_NAME1__",
+      "clip_name2": "__CLIP_NAME2__",
+      "type": "flux"
     },
     "_meta": {
-      "title": "Load CLIP"
+      "title": "DualCLIPLoader (GGUF)"
     }
   },
   "3": {
@@ -28,25 +29,29 @@
     }
   },
   "4": {
-    "class_type": "TextEncodeZImageOmni",
+    "class_type": "CLIPTextEncode",
     "inputs": {
-      "prompt": "__POSITIVE_PROMPT__",
-      "clip": ["2", 0],
-      "auto_resize_images": true
+      "text": "__POSITIVE_PROMPT__",
+      "clip": [
+        "2",
+        0
+      ]
     },
     "_meta": {
-      "title": "Z-Image Text Encode (Positive)"
+      "title": "CLIP Text Encode (Positive)"
     }
   },
   "5": {
-    "class_type": "TextEncodeZImageOmni",
+    "class_type": "CLIPTextEncode",
     "inputs": {
-      "prompt": "__NEGATIVE_PROMPT__",
-      "clip": ["2", 0],
-      "auto_resize_images": true
+      "text": "__NEGATIVE_PROMPT__",
+      "clip": [
+        "2",
+        0
+      ]
     },
     "_meta": {
-      "title": "Z-Image Text Encode (Negative)"
+      "title": "CLIP Text Encode (Negative)"
     }
   },
   "6": {
@@ -60,19 +65,44 @@
       "title": "Empty Latent Image"
     }
   },
+  "10": {
+    "class_type": "FluxGuidance",
+    "inputs": {
+      "guidance": 3.5,
+      "conditioning": [
+        "4",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "Flux Guidance"
+    }
+  },
   "7": {
     "class_type": "KSampler",
     "inputs": {
       "seed": "__SEED__",
       "steps": "__STEPS__",
-      "cfg": "__CFG__",
+      "cfg": 1.0,
       "sampler_name": "__SAMPLER_NAME__",
       "scheduler": "__SCHEDULER__",
       "denoise": "__DENOISE__",
-      "model": ["1", 0],
-      "positive": ["4", 0],
-      "negative": ["5", 0],
-      "latent_image": ["6", 0]
+      "model": [
+        "1",
+        0
+      ],
+      "positive": [
+        "10",
+        0
+      ],
+      "negative": [
+        "5",
+        0
+      ],
+      "latent_image": [
+        "6",
+        0
+      ]
     },
     "_meta": {
       "title": "KSampler"
@@ -81,8 +111,14 @@
   "8": {
     "class_type": "VAEDecode",
     "inputs": {
-      "samples": ["7", 0],
-      "vae": ["3", 0]
+      "samples": [
+        "7",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ]
     },
     "_meta": {
       "title": "VAE Decode"
@@ -92,7 +128,10 @@
     "class_type": "SaveImage",
     "inputs": {
       "filename_prefix": "__FILENAME_PREFIX__",
-      "images": ["8", 0]
+      "images": [
+        "8",
+        0
+      ]
     },
     "_meta": {
       "title": "Save Image"

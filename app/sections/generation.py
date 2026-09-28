@@ -520,105 +520,33 @@ class GenerationWorker:
         # 마지막에 FaceDetailer를 공통으로 1번 주입한다.
         # (Checkpoint뿐 아니라 Flux/GGUF/ZImage에서도 얼굴 보정이 동작하도록)
         # 커스텀 워크플로우를 이미 썼다면(base_wf != None) 아래 분기는 건너뛴다.
+        #
+        # 기준점(base)은 3종류다 (workflows/base/):
+        #   checkpoint_loadersimple  : MODEL+CLIP+VAE 내장 (단일 파일)
+        #   unet_clploadergguf       : Unet + CLIP 1개 + VAE
+        #   unet_dualclploadergguf   : Unet + CLIP 2개 + VAE + FluxGuidance
+        # 프로필의 resolved_base() 값이 base/<파일명>.json 과 1:1 대응한다.
+        base_name = ""
+        if hasattr(profile, "resolved_base"):
+            try:
+                base_name = str(profile.resolved_base() or "")
+            except Exception:
+                base_name = str(getattr(profile, "workflow_type", "") or "")
 
-        # ZImage/Turbo 모델 처리
-        if base_wf is None and self.controller.model_registry.is_zimage(model_name):
-            required_nodes = ["UnetLoaderGGUF", "CLIPLoaderGGUF", "VAELoader", "KSampler", "TextEncodeZImageOmni"]
+        # 기준점 2: Unet + 단일 CLIP (ZImage 등)
+        if base_wf is None and base_name == "unet_clploadergguf":
+            required_nodes = ["UnetLoaderGGUF", "CLIPLoaderGGUF", "VAELoader", "KSampler"]
             missing = [name for name in required_nodes if not self._comfyui_node_exists(name, comfy_url)]
             if missing:
-                if manager.is_gguf_model(model_name):
-                    raise RuntimeError(
-                        f"ZImage 전용 노드 누락: {', '.join(missing)}. "
-                        f"ComfyUI 서버에 해당 커스텀 노드를 설치해주세요."
-                    )
-                self.emit_log(f"ZImage 전용 노드 누락: {', '.join(missing)}. 기본 checkpoint 경로로 대체합니다.")
-                base_wf = manager.render_checkpoint_workflow(
-                    model_name=model_name,
-                    positive_prompt=prompt,
-                    negative_prompt=negative,
-                    width=s["width"],
-                    height=s["height"],
-                    seed=seed,
-                    steps=s["steps"],
-                    cfg=s["cfg"],
-                    filename_prefix=prefix
+                raise RuntimeError(
+                    f"Unet+CLIP 기준점 노드 누락: {', '.join(missing)}. "
+                    f"ComfyUI 서버에 해당 커스텀 노드를 설치해주세요."
                 )
-            else:
-                clips = self.controller.model_fetcher.get_comfyui_clips(comfy_url)
-                vaes = self.controller.model_fetcher.get_comfyui_vaes(comfy_url)
-                if not clips:
-                    raise RuntimeError("ComfyUI CLIP 모델을 찾을 수 없습니다.")
-                base_wf = manager.render_zimage_workflow(
-                    model_name=model_name,
-                    positive_prompt=prompt,
-                    negative_prompt=negative,
-                    width=s["width"],
-                    height=s["height"],
-                    seed=seed,
-                    steps=s["steps"],
-                    cfg=s["cfg"],
-                    clip_name=profile.select_clip(clips),
-                    vae_name=profile.select_vae(vaes),
-                    sampler_name=s["sampler"],
-                    scheduler=s["scheduler"],
-                    denoise=s["denoise"],
-                    filename_prefix=prefix
-                )
-
-        # Flux 모델 처리
-        if base_wf is None and self.controller.model_registry.is_flux(model_name):
-            required_nodes = ["UnetLoaderGGUF", "DualCLIPLoaderGGUF", "FluxGuidance", "VAELoader"]
-            missing = [name for name in required_nodes if not self._comfyui_node_exists(name, comfy_url)]
-            if missing:
-                if manager.is_gguf_model(model_name):
-                    raise RuntimeError(
-                        f"Flux 전용 노드 누락: {', '.join(missing)}. "
-                        f"ComfyUI 서버에 해당 커스텀 노드를 설치해주세요."
-                    )
-                self.emit_log(f"Flux 전용 노드 누락: {', '.join(missing)}. 기본 checkpoint 경로로 대체합니다.")
-                base_wf = manager.render_checkpoint_workflow(
-                    model_name=model_name,
-                    positive_prompt=prompt,
-                    negative_prompt=negative,
-                    width=s["width"],
-                    height=s["height"],
-                    seed=seed,
-                    steps=s["steps"],
-                    cfg=s["cfg"],
-                    filename_prefix=prefix
-                )
-            else:
-                clips = self.controller.model_fetcher.get_comfyui_clips(comfy_url)
-                vaes = self.controller.model_fetcher.get_comfyui_vaes(comfy_url)
-                if len(clips) < 2:
-                    raise RuntimeError("Flux 모델은 2개의 CLIP 모델이 필요합니다. ComfyUI에 Flux용 CLIP 2개를 로드해 주세요.")
-                clip1, clip2 = profile.select_clip_pair(clips)
-                base_wf = manager.render_flux_gguf_workflow(
-                    model_name=model_name,
-                    positive_prompt=prompt,
-                    negative_prompt=negative,
-                    width=s["width"],
-                    height=s["height"],
-                    seed=seed,
-                    steps=s["steps"],
-                    guidance=max(1.0, s["cfg"]),
-                    clip_name1=clip1,
-                    clip_name2=clip2,
-                    clip_type="flux",
-                    vae_name=profile.select_vae(vaes),
-                    sampler_name=s["sampler"],
-                    scheduler=s["scheduler"],
-                    denoise=s["denoise"],
-                    filename_prefix=prefix
-                )
-
-        # GGUF/UNET 모델 처리
-        if base_wf is None and manager.is_gguf_model(model_name):
             clips = self.controller.model_fetcher.get_comfyui_clips(comfy_url)
             vaes = self.controller.model_fetcher.get_comfyui_vaes(comfy_url)
             if not clips:
                 raise RuntimeError("ComfyUI CLIP 모델을 찾을 수 없습니다.")
-            base_wf = manager.render_gguf_workflow(
+            base_wf = manager.render_zimage_workflow(
                 model_name=model_name,
                 positive_prompt=prompt,
                 negative_prompt=negative,
@@ -627,11 +555,7 @@ class GenerationWorker:
                 seed=seed,
                 steps=s["steps"],
                 cfg=s["cfg"],
-                unet_class="UnetLoaderGGUF",
-                weight_dtype="default",
-                clip_class="CLIPLoaderGGUF" if clips[0].lower().endswith(".gguf") else "CLIPLoader",
-                clip_name=clips[0],
-                clip_type="stable_diffusion",
+                clip_name=profile.select_clip(clips),
                 vae_name=profile.select_vae(vaes),
                 sampler_name=s["sampler"],
                 scheduler=s["scheduler"],
@@ -639,7 +563,40 @@ class GenerationWorker:
                 filename_prefix=prefix
             )
 
-        # Checkpoint 모델 처리 (위에서 처리되지 않은 나머지 전부)
+        # 기준점 3: Unet + Dual CLIP (Flux 등)
+        if base_wf is None and base_name == "unet_dualclploadergguf":
+            required_nodes = ["UnetLoaderGGUF", "DualCLIPLoaderGGUF", "FluxGuidance", "VAELoader"]
+            missing = [name for name in required_nodes if not self._comfyui_node_exists(name, comfy_url)]
+            if missing:
+                raise RuntimeError(
+                    f"Unet+DualCLIP 기준점 노드 누락: {', '.join(missing)}. "
+                    f"ComfyUI 서버에 해당 커스텀 노드를 설치해주세요."
+                )
+            clips = self.controller.model_fetcher.get_comfyui_clips(comfy_url)
+            vaes = self.controller.model_fetcher.get_comfyui_vaes(comfy_url)
+            if len(clips) < 2:
+                raise RuntimeError("Flux 모델은 2개의 CLIP 모델이 필요합니다. ComfyUI에 Flux용 CLIP 2개를 로드해 주세요.")
+            clip1, clip2 = profile.select_clip_pair(clips)
+            base_wf = manager.render_flux_gguf_workflow(
+                model_name=model_name,
+                positive_prompt=prompt,
+                negative_prompt=negative,
+                width=s["width"],
+                height=s["height"],
+                seed=seed,
+                steps=s["steps"],
+                guidance=max(1.0, s["cfg"]),
+                clip_name1=clip1,
+                clip_name2=clip2,
+                clip_type="flux",
+                vae_name=profile.select_vae(vaes),
+                sampler_name=s["sampler"],
+                scheduler=s["scheduler"],
+                denoise=s["denoise"],
+                filename_prefix=prefix
+            )
+
+        # 기준점 1: Checkpoint (단일 파일) — 위에서 처리되지 않은 나머지 전부
         if base_wf is None:
             base_wf = manager.render_checkpoint_workflow(
                 model_name=model_name,

@@ -292,7 +292,14 @@ class MainController(QObject):
         sampler = self.find(QComboBox, "samplerComboBox")
         sampler.clear()
         sampler.addItems(list(SAMPLER_NAMES))
-        sampler.setCurrentText("DPM++ 2M·균형")
+        # 저장된 설정값(config.workflow.sampler_name)을 라벨로 되돌려 초기 선택한다.
+        # (세션이 있으면 _switch_session 이 last_snapshot 으로 다시 덮어쓴다)
+        saved_sampler = str(getattr(self.config.workflow, "sampler_name", "") or "")
+        saved_sampler_label = next(
+            (label for label, value in SAMPLER_NAMES.items() if value == saved_sampler),
+            "DPM++ 2M·균형",
+        )
+        sampler.setCurrentText(saved_sampler_label)
         sampler.currentTextChanged.connect(self._on_sampler_changed)
 
         self._zanime_style_buttons = {}
@@ -301,14 +308,20 @@ class MainController(QObject):
         if scheduler_combo is not None:
             scheduler_combo.clear()
             scheduler_combo.addItems(SCHEDULER_NAMES)
-            scheduler_combo.setCurrentText("normal")
-            scheduler_combo.setCurrentIndex(0)
+            saved_scheduler = str(getattr(self.config.workflow, "scheduler", "") or "")
+            if saved_scheduler in SCHEDULER_NAMES:
+                scheduler_combo.setCurrentText(saved_scheduler)
+            else:
+                scheduler_combo.setCurrentIndex(0)
 
         denoise_spin = self.find(QDoubleSpinBox, "denoiseSpinBox")
         if denoise_spin is not None:
             denoise_spin.setRange(0.0, 1.0)
             denoise_spin.setSingleStep(0.1)
-            denoise_spin.setValue(1.0)
+            try:
+                denoise_spin.setValue(float(getattr(self.config.workflow, "denoise", 1.0)))
+            except (TypeError, ValueError):
+                denoise_spin.setValue(1.0)
 
         # FaceDetailer ComboBox 초기화
         # 공식 FaceDetailer sam_detection_hint 옵션과 동일하게 유지
@@ -1151,11 +1164,32 @@ class MainController(QObject):
             self._chat_log = messages_from_raw(session.get("messages", []))
             self._reset_generation_state()
             self._render_chat()
+            # 생성 완료 시 저장해 둔 마지막 옵션값(steps/cfg/sampler/scheduler/
+            # denoise 등)을 UI에 되돌린다. 한 세션에서 3번 생성했다면 마지막
+            # 결과본의 값이 남아 있다(_flush_session 이 역순으로 채운다).
+            self._restore_session_options(session)
             self._refresh_session_views()
             return True
         except Exception:
             logger.debug("세션 전환 실패", exc_info=True)
             return False
+
+    def _restore_session_options(self, session) -> None:
+        """세션의 last_snapshot 을 옵션 UI에 복원한다 (프로그램 재실행 대응).
+
+        set_models() 는 blockSignals 로 감싸여 있어 apply_model_defaults 가
+        옵션을 덮어쓰지 않는다. 따라서 여기서 마지막으로 값을 확정하면
+        사용자가 쓰던 값이 재실행 후에도 그대로 유지된다.
+        """
+        try:
+            snapshot = (session or {}).get("last_snapshot") or {}
+            if not isinstance(snapshot, dict) or not snapshot:
+                return
+            self._restore_snapshot(snapshot)
+            logger.debug("세션 옵션 복원 완료: %s",
+                         {k: snapshot.get(k) for k in ("steps", "cfg", "sampler", "scheduler")})
+        except Exception:
+            logger.debug("세션 옵션 복원 실패", exc_info=True)
 
     def _refresh_session_views(self) -> None:
         """▾ 메뉴·◷ 목록용 단일 원천 갱신 (구독 뷰 새로고침)."""
@@ -2787,13 +2821,15 @@ class MainController(QObject):
             denoise_spin.setValue(1.0)
 
         # 로드한 모델 프로파일 정보를 로그에 표시
+        # 기준점(base) 이름이 곧 workflows/base/<base>.json 이다.
+        base_name = profile.resolved_base()
+        base_desc = {
+            "checkpoint_loadersimple": "Checkpoint (단일 파일)",
+            "unet_clploadergguf": "Unet + CLIP 1개",
+            "unet_dualclploadergguf": "Unet + DualCLIP",
+        }.get(base_name, base_name)
         profile_info = f"모델 프로파일 로드: [{profile.family.upper()}] {profile.name}"
-        if profile.workflow_type == "gguf":
-            profile_info += " (GGUF)"
-        elif profile.workflow_type == "zimage":
-            profile_info += " (ZImage-GGUF)"
-        elif profile.workflow_type == "flux_gguf":
-            profile_info += " (Flux-GGUF)"
+        profile_info += f" ({base_desc})"
         profile_info += f" | Steps: {profile.default_steps}, CFG: {profile.default_cfg}, Sampler: {display}"
         self.append_log(profile_info)
 
@@ -4081,9 +4117,30 @@ class MainController(QObject):
             if "seed" in snap and snap["seed"] != -1:
                 self.find(QSpinBox, "seedSpinBox").setValue(snap["seed"])
             if "sampler" in snap:
-                self.find(QComboBox, "samplerComboBox").setCurrentText(snap["sampler"])
+                # 콤보는 라벨을 담는다("DPM++ 2M·균형"). 스냅샷은 실제 값
+                # ("dpmpp_2m")이므로 라벨로 되돌려 선택해야 매칭된다.
+                sampler_value = str(snap.get("sampler", "") or "")
+                sampler_label = next(
+                    (label for label, value in SAMPLER_NAMES.items()
+                     if value == sampler_value),
+                    sampler_value,
+                )
+                combo = self.find(QComboBox, "samplerComboBox")
+                if combo is not None and sampler_label:
+                    combo.setCurrentText(sampler_label)
             if "scheduler" in snap:
-                self.find(QComboBox, "schedulerComboBox").setCurrentText(snap["scheduler"])
+                scheduler_value = str(snap.get("scheduler", "") or "")
+                scheduler_combo = self.find(QComboBox, "schedulerComboBox")
+                if scheduler_combo is not None and scheduler_value:
+                    if scheduler_combo.findText(scheduler_value) >= 0:
+                        scheduler_combo.setCurrentText(scheduler_value)
+            if "denoise" in snap:
+                denoise_spin = self.find(QDoubleSpinBox, "denoiseSpinBox")
+                if denoise_spin is not None:
+                    try:
+                        denoise_spin.setValue(float(snap.get("denoise", 1.0)))
+                    except (TypeError, ValueError):
+                        pass
             if "zanime_style" in snap and snap.get("zanime_style"):
                 try:
                     self.config.prompts.zanime_style = str(snap.get("zanime_style", "")).strip().lower()

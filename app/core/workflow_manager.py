@@ -30,28 +30,35 @@ class WorkflowManager:
         self._load_templates()
     
     def _load_templates(self) -> None:
-        """설정된 템플릿 파일들 로드"""
+        """설정된 템플릿 파일들 로드 (base 3종 기준)"""
         base_dir = Path(__file__).resolve().parent.parent.parent
 
-        # 체크포인트 템플릿
-        checkpoint_path = base_dir / self.config.workflow.checkpoint_template
+        # 1) Checkpoint (단일 파일)
+        checkpoint_path = base_dir / getattr(
+            self.config.workflow, "checkpoint_template", "workflows/base/checkpoint_loadersimple.json"
+        )
         if checkpoint_path.exists():
             self._templates["checkpoint"] = self._load_template("checkpoint", checkpoint_path)
+            self._templates["checkpoint_loadersimple"] = self._templates["checkpoint"]
 
-        # GGUF/UNET 템플릿
-        gguf_path = base_dir / self.config.workflow.gguf_template
-        if gguf_path.exists():
-            self._templates["gguf"] = self._load_template("gguf", gguf_path)
+        # 2) Unet + 단일 CLIP (GGUF / ZImage 공용)
+        unet_clip_path = base_dir / getattr(
+            self.config.workflow, "unet_clip_template", "workflows/base/unet_clploadergguf.json"
+        )
+        if unet_clip_path.exists():
+            tmpl = self._load_template("unet_clploadergguf", unet_clip_path)
+            self._templates["unet_clploadergguf"] = tmpl
+            self._templates["gguf"] = tmpl
+            self._templates["zimage"] = tmpl
 
-        # Flux GGUF 템플릿
-        flux_gguf_path = base_dir / self.config.workflow.flux_gguf_template
-        if flux_gguf_path.exists():
-            self._templates["flux_gguf"] = self._load_template("flux_gguf", flux_gguf_path)
-
-        # ZImage 템플릿
-        zimage_path = base_dir / self.config.workflow.zimage_template
-        if zimage_path.exists():
-            self._templates["zimage"] = self._load_template("zimage", zimage_path)
+        # 3) Unet + Dual CLIP (Flux 등)
+        unet_dualclip_path = base_dir / getattr(
+            self.config.workflow, "unet_dualclip_template", "workflows/base/unet_dualclploadergguf.json"
+        )
+        if unet_dualclip_path.exists():
+            tmpl = self._load_template("unet_dualclploadergguf", unet_dualclip_path)
+            self._templates["unet_dualclploadergguf"] = tmpl
+            self._templates["flux_gguf"] = tmpl
     
     def _load_template(self, name: str, path: Path) -> WorkflowTemplate:
         """템플릿 파일 로드 및 플레이스홀더 추출"""
@@ -172,6 +179,8 @@ class WorkflowManager:
             "__CLIP_NAME__": clip_name,
             "__CLIP_TYPE__": clip_type,
             "__VAE_NAME__": vae_name,
+            "__TEXT_CLASS__": "CLIPTextEncode",
+            "__TEXT_FIELD__": "text",
             "__FILENAME_PREFIX__": prefix,
         }
         
@@ -241,10 +250,10 @@ class WorkflowManager:
         denoise: Optional[float] = None,
         filename_prefix: Optional[str] = None
     ) -> Dict[str, Any]:
-        """ZImage 전용 워크플로우 렌더링"""
-        template = self.get_template("zimage")
+        """ZImage 전용 워크플로우 렌더링 (unet_clploadergguf 템플릿 사용)"""
+        template = self.get_template("unet_clploadergguf") or self.get_template("zimage")
         if not template:
-            raise ValueError("ZImage workflow template not found")
+            raise ValueError("unet_clploadergguf workflow template not found")
 
         prefix = filename_prefix or self.config.output.filename_prefix
 
@@ -261,23 +270,35 @@ class WorkflowManager:
             "__SCHEDULER__": scheduler or self.config.workflow.scheduler,
             "__DENOISE__": self.config.workflow.denoise if denoise is None else denoise,
             "__CLIP_NAME__": clip_name,
+            "__CLIP_TYPE__": "stable_diffusion",
             "__VAE_NAME__": vae_name,
+            "__TEXT_CLASS__": "TextEncodeZImageOmni",
+            "__TEXT_FIELD__": "prompt",
             "__FILENAME_PREFIX__": prefix,
         }
 
         return self._render_template(template.raw_template, replacements)
 
     def _render_template(self, template: Dict[str, Any], replacements: Dict[str, Any]) -> Dict[str, Any]:
-        """템플릿에 값 치환하여 최종 워크플로우 생성"""
+        """템플릿에 값 치환하여 최종 워크플로우 생성
+
+        dict 의 키도 치환한다. base 템플릿의 노드 4/5 는 인코더 이름에 따라
+        필드명이 달라지므로(__TEXT_FIELD__ → text / prompt), 키까지 바꿔야
+        ComfyUI 가 올바른 입력 이름을 받는다.
+        """
         def replace_value(value: Any) -> Any:
             if isinstance(value, str):
                 return replacements.get(value, value)
             elif isinstance(value, dict):
-                return {k: replace_value(v) for k, v in value.items()}
+                return {
+                    (replacements.get(k, k) if isinstance(k, str) else k):
+                        replace_value(v)
+                    for k, v in value.items()
+                }
             elif isinstance(value, list):
                 return [replace_value(item) for item in value]
             return value
-        
+
         return replace_value(template)
 
     def render_custom_workflow(

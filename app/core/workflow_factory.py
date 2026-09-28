@@ -17,14 +17,17 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-# 기본 템플릿: 워크플로우 종류(wf_type) → 파일명
+# 기본 템플릿: 워크플로우 종류(wf_type/base) → base/ 하위 파일명
 TEMPLATE_FILES = {
-    "checkpoint": "checkpoint.json",
-    "gguf": "gguf_unet.json",
-    "flux_gguf": "flux_gguf.json",
-    "zimage": "zimage.json",
+    "checkpoint": "base/checkpoint_loadersimple.json",
+    "checkpoint_loadersimple": "base/checkpoint_loadersimple.json",
+    "gguf": "base/unet_clploadergguf.json",
+    "unet_clploadergguf": "base/unet_clploadergguf.json",
+    "flux_gguf": "base/unet_dualclploadergguf.json",
+    "unet_dualclploadergguf": "base/unet_dualclploadergguf.json",
+    "zimage": "base/unet_clploadergguf.json",
 }
-DEFAULT_TEMPLATE_NAME = "checkpoint.json"
+DEFAULT_TEMPLATE_NAME = "base/checkpoint_loadersimple.json"
 
 # 4cut과 동일한 상수 (워크플로우 골격이 같으므로 그대로 쓸 수 있다)
 DEFAULT_MODEL_PLACEHOLDER = "YOUR_MODEL.safetensors"
@@ -40,9 +43,11 @@ PLACEHOLDER_VALUES = (DEFAULT_MODEL_PLACEHOLDER, "__MODEL_NAME__", "__CHECKPOINT
 COMMON_REQUIRED_NODE_TYPES = ("KSampler", "SaveImage", "VAEDecode")
 REQUIRED_BY_WF_TYPE = {
     "checkpoint": ("CheckpointLoaderSimple", "CLIPTextEncode"),
-    # 로더/인코더가 플레이스홀더라 공통 노드만 검사한다.
+    "checkpoint_loadersimple": ("CheckpointLoaderSimple", "CLIPTextEncode"),
     "gguf": ("KSampler", "SaveImage", "VAEDecode"),
+    "unet_clploadergguf": ("UnetLoaderGGUF", "CLIPLoaderGGUF", "SaveImage", "VAEDecode"),
     "flux_gguf": ("UnetLoaderGGUF", "DualCLIPLoaderGGUF", "CLIPTextEncode"),
+    "unet_dualclploadergguf": ("UnetLoaderGGUF", "DualCLIPLoaderGGUF", "CLIPTextEncode"),
     "zimage": ("UnetLoaderGGUF", "CLIPLoaderGGUF", "TextEncodeZImageOmni"),
 }
 # 모델 파일명이 주입되는 입력 필드 (로더마다 이름이 다르다)

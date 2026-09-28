@@ -19,6 +19,7 @@ class ZanimeAioProfile(ModelProfile):
                 "anime_aio",
             ),
             workflow_type="checkpoint",
+            base="checkpoint_loadersimple",
             default_clip1="",
             default_clip2="",
             default_vae="",

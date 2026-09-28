@@ -1,36 +1,50 @@
 {
   "1": {
-    "class_type": "__UNET_CLASS__",
+    "class_type": "UnetLoaderGGUF",
     "inputs": {
-      "unet_name": "__MODEL_NAME__",
-      "weight_dtype": "__WEIGHT_DTYPE__"
+      "unet_name": "__MODEL_NAME__"
+    },
+    "_meta": {
+      "title": "Load Unet (GGUF)"
     }
   },
   "2": {
-    "class_type": "__CLIP_CLASS__",
+    "class_type": "CLIPLoaderGGUF",
     "inputs": {
       "clip_name": "__CLIP_NAME__",
       "type": "__CLIP_TYPE__"
+    },
+    "_meta": {
+      "title": "Load CLIP"
     }
   },
   "3": {
     "class_type": "VAELoader",
     "inputs": {
       "vae_name": "__VAE_NAME__"
+    },
+    "_meta": {
+      "title": "Load VAE"
     }
   },
   "4": {
-    "class_type": "CLIPTextEncode",
+    "class_type": "__TEXT_CLASS__",
     "inputs": {
-      "text": "__POSITIVE_PROMPT__",
+      "__TEXT_FIELD__": "__POSITIVE_PROMPT__",
       "clip": ["2", 0]
+    },
+    "_meta": {
+      "title": "Text Encode (Positive)"
     }
   },
   "5": {
-    "class_type": "CLIPTextEncode",
+    "class_type": "__TEXT_CLASS__",
     "inputs": {
-      "text": "__NEGATIVE_PROMPT__",
+      "__TEXT_FIELD__": "__NEGATIVE_PROMPT__",
       "clip": ["2", 0]
+    },
+    "_meta": {
+      "title": "Text Encode (Negative)"
     }
   },
   "6": {
@@ -39,6 +53,9 @@
       "width": "__WIDTH__",
       "height": "__HEIGHT__",
       "batch_size": 1
+    },
+    "_meta": {
+      "title": "Empty Latent Image"
     }
   },
   "7": {
@@ -54,6 +71,9 @@
       "positive": ["4", 0],
       "negative": ["5", 0],
       "latent_image": ["6", 0]
+    },
+    "_meta": {
+      "title": "KSampler"
     }
   },
   "8": {
@@ -61,6 +81,9 @@
     "inputs": {
       "samples": ["7", 0],
       "vae": ["3", 0]
+    },
+    "_meta": {
+      "title": "VAE Decode"
     }
   },
   "9": {
@@ -68,6 +91,9 @@
     "inputs": {
       "filename_prefix": "__FILENAME_PREFIX__",
       "images": ["8", 0]
+    },
+    "_meta": {
+      "title": "Save Image"
     }
   }
 }

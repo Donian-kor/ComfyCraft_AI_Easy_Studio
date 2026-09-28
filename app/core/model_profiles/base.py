@@ -21,6 +21,9 @@ class ModelProfile:
     priority: int = 100
     # P13: 자동 생성된 커스텀 워크플로우 파일 경로(비어 있으면 workflow_type 기본 템플릿 사용)
     workflow_file: str = ""
+    # 기준점(base) 이름 — workflows/base/<base>.json 과 1:1 대응.
+    # 빈 값이면 workflow_type 으로 폴백한다.
+    base: str = ""
 
     def matches(self, model_name: str) -> bool:
         if not model_name:
@@ -72,6 +75,7 @@ class ModelProfile:
     def as_preset(self) -> dict:
         return {
             "type": self.workflow_type,
+            "base": self.base or self.workflow_type,
             "clip1": self.default_clip1,
             "clip2": self.default_clip2,
             "vae": self.default_vae,
@@ -80,3 +84,7 @@ class ModelProfile:
             "sampler_name": self.sampler_name,
             "scheduler": self.scheduler,
         }
+
+    def resolved_base(self) -> str:
+        """기준점 이름. base 가 비어 있으면 workflow_type 으로 폴백한다."""
+        return (self.base or self.workflow_type or "checkpoint").strip()
