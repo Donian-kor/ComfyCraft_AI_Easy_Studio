@@ -151,7 +151,7 @@ from app.models.chat import (
     messages_to_raw,
 )
 
-# P9: 상태 템플릿 11종 (기획서 §8). 고정 문장 + 빈칸 채움.
+# P9: 상태 템플릿 12종 (기획서 §8). 고정 문장 + 빈칸 채움.
 # 기존 동작 경로의 인라인 문구는 테스트 호환을 위해 유지하고,
 # 신규 분기(환영·LM 미연결·금지어)는 이 표를 사용한다.
 TEMPLATES = {
@@ -161,8 +161,9 @@ TEMPLATES = {
     "generating": "{summary} 이미지를 만들고 있어요...",
     "model_changed": "{model} 모델 최적 설정이 적용되었어요 ({feature}).",
     "options_reset": "생성 옵션을 기본값으로 되돌렸어요.",
+    "revising": "이미지 수정하여 생성 하겠습니다.",
     "failed": "이미지 생성에 실패했어요. 원인: {reason}",
-    "lm_off": "프롬프트 향상 없이 원문으로 생성해요.",
+    "lm_off": "프롬프트 향상 없이 입력하신 내용으로 생성해요.",
     "blocked": "이 표현은 사용할 수 없어요.",
     "busy": "생성 중이에요. 기다리거나 취소해주세요.",
     "style_pick": "Z-Anime 스타일을 골라주세요.",
@@ -779,7 +780,6 @@ class MainController(QObject):
         return ChatViewManager(
             scroll, content,
             on_save=self.save_image_as,
-            on_copy_prompt=self._copy_enhanced_prompt,
             on_copy_image=self._copy_image_to_clipboard,
             on_reuse=self._on_reuse_request,
             on_open_preview=self._open_preview,
@@ -1486,24 +1486,34 @@ class MainController(QObject):
             logger.debug("미리보기 저장 실패", exc_info=True)
 
     def _on_reuse_request(self, snapshot: dict) -> None:
-        """P6: 해당 생성의 프롬프트+옵션 전체 복원 후 입력창 포커스."""
+        """P6: 수정 요청 — 프롬프트+옵션 전체 복원 후 곧바로 다시 생성한다.
+
+        이미 AI가 다듬은 enhance_prompt 를 enhance 채널에 담아 두어
+        재향상을 건너뛴다(프리뷰 "다시 만들기" 와 같은 경로).
+        """
         if self._is_generating():
             self.append_log("생성 중에는 수정 요청을 할 수 없어요.")
             return
+        if not isinstance(snapshot, dict) or not snapshot:
+            self.append_log("이 이미지의 설정을 찾을 수 없어 수정할 수 없어요.")
+            return
         try:
-            self._restore_snapshot(snapshot or {})
-            edit = self.find(QPlainTextEdit, "chatInputEdit")
-            prompt_text = ""
+            self._restore_snapshot(snapshot)
+            prompt = str(snapshot.get("prompt", ""))
+            if not prompt:
+                self.append_log("이 이미지의 설정을 찾을 수 없어 수정할 수 없어요.")
+                return
             enhanced = self.find(QPlainTextEdit, "enhancePromptEdit")
+            # 재향상 건너뛰기: enhance 채널에 이미 다듬은 프롬프트를 넣어 둔다.
+            # _begin_send 가 enhance 를 비우므로 플래그로 보호한다.
+            self._enhance_prefilled = True
             if enhanced is not None:
-                prompt_text = enhanced.toPlainText().strip()
-            if not prompt_text and isinstance(snapshot, dict):
-                prompt_text = str(snapshot.get("prompt", ""))
-            if edit is not None:
-                edit.setPlainText(prompt_text)
-                edit.setFocus()
-            preview = (prompt_text[:30] + "…") if len(prompt_text) > 30 else prompt_text
-            self._append_chat_message("system", f"편집 중: {preview}")
+                enhanced.setPlainText(snapshot.get("enhance_prompt") or prompt)
+            self._append_chat_message("ai", TEMPLATES["revising"])
+            try:
+                self._begin_send(prompt, append_user=True)
+            finally:
+                self._enhance_prefilled = False
         except RuntimeError:
             logger.debug("수정 요청 실패", exc_info=True)
 
@@ -3771,8 +3781,17 @@ class MainController(QObject):
         except Exception as e:  # noqa: BLE001 - 카드 실패가 생성 결과를 버리면 안 됨
             logger.warning("생성 카드 전환 실패: %s", e, exc_info=True)
 
-    def save_image_as(self):
-        if not self.current_image_path:
+    def save_image_as(self, image_path: Optional[str] = None):
+        """이미지 저장.
+
+        image_path 가 주어지면 그 경로(카드가 가진 이미지)를 저장하고,
+        없으면 마지막 생성 이미지(current_image_path) 를 저장한다.
+        .ui 버튼은 Qt clicked(bool) 로 직접 연결되므로 bool 값은 무시한다.
+        """
+        if isinstance(image_path, bool):
+            image_path = None
+        path = image_path or self.current_image_path
+        if not path:
             show_message_box(
                 self.window,
                 QMessageBox.Icon.Information,
@@ -3780,7 +3799,7 @@ class MainController(QObject):
                 "저장할 이미지가 없습니다.",
             )
             return
-        target = save_image_as(self.window, self.current_image_path, self.output_dir)
+        target = save_image_as(self.window, path, self.output_dir)
         if target:
             self.append_log(f"이미지 저장: {target}")
 
@@ -4027,10 +4046,19 @@ class MainController(QObject):
                 QTimer.singleShot(1500, lambda: btn.setText(orig_text))
             self.append_log("프롬프트가 클립보드에 복사되었습니다.")
 
-    def _copy_image_to_clipboard(self):
+    def _copy_image_to_clipboard(self, image_path: Optional[str] = None):
+        """결과 이미지를 클립보드에 복사.
+
+        image_path 가 주어지면 그 경로(카드가 가진 이미지)를 복사하고,
+        없으면 마지막 생성 이미지(current_image_path) 를 복사한다.
+        .ui 버튼은 Qt clicked(bool) 로 직접 연결되므로 bool 값은 무시한다.
+        """
+        if isinstance(image_path, bool):
+            image_path = None
         # 항상 원본 파일 우선 복사 (미리보기용으로 축소된 픽스맵 화질 손실 방지)
-        if self.current_image_path and Path(self.current_image_path).exists():
-            pix = QPixmap(str(self.current_image_path))
+        path = image_path or self.current_image_path
+        if path and Path(str(path)).exists():
+            pix = QPixmap(str(path))
             if not pix.isNull():
                 QApplication.clipboard().setPixmap(pix)
                 btn = self.find(QPushButton, "copyImageButton")

@@ -4,7 +4,7 @@
 - ChatMessage: role(user/ai/system)별 말풍선. action_row는 P4/P6 버튼이 얹히는 자리.
 - PromptCard: AI 가 다듬은 프롬프트 확인 카드 (편집 가능).
 - GenerationCard: 생성 중 카드 (상태 + 진행률 + 취소).
-- ImageCard: 완성 이미지 + 메타 + 프롬프트 접기/복사 + 저장/복사/수정 요청.
+- ImageCard: 완성 이미지 + 메타 + 프롬프트 접기 + 저장/복사/수정 요청.
 
 위젯은 상태를 갖지 않는다. 어떤 카드를 그릴지는 ChatViewManager 가
 세션 메시지(kind/metadata)로부터 결정한다.
@@ -14,7 +14,7 @@ from __future__ import annotations
 from typing import Callable, Optional
 
 from PySide6.QtCore import Qt, QTimer, Signal
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QFontMetrics, QPixmap
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -76,9 +76,83 @@ def describe_model(profile, filename: str, used_shorts=None):
 
 
 class ClickableLabel(QLabel):
-    """클릭 시 clicked 시그널을 보내는 라벨 (카드 이미지용)."""
+    """클릭 시 clicked 시그널을 보내는 라벨 (카드 이미지용).
+
+    4cut(4cut_LocalComic_Studio studio/ui/chat_widgets.py AspectPixmapLabel) 의
+    비율 유지 자동 리사이즈 동작을 그대로 이식했다.
+    기존에는 생성 시점에 scaledToWidth(480) 로 한 번만 스케일을 고정해
+    창을 넓혀도 이미지가 커지지 않았고, 세로로 긴 이미지(1152x896 등)는
+    라벨 영역을 벗어났다. 이제 위젯 크기에 맞춰 언제든 다시 맞춘다.
+    (색상·테마는 QSS 가 담당하므로 이 클래스는 픽스맵 크기만 다룬다)
+    """
 
     clicked = Signal()
+
+    # 창이 좁아져도 이 폭 아래로는 줄이지 않는다 (아래로 분주해지는 것을 막음).
+    MIN_RENDER = 60
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._pixmap: Optional[QPixmap] = None
+        self._path = ""
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setMinimumSize(self.MIN_RENDER, self.MIN_RENDER)
+
+    def set_image_path(self, path: str) -> bool:
+        """경로의 이미지를 불러와 크기에 맞춰 표시한다. 실패 시 False."""
+        self._path = str(path or "")
+        if self._path:
+            pixmap = QPixmap(self._path)
+            if not pixmap.isNull():
+                self._pixmap = pixmap
+                self._render()
+                return True
+        self._pixmap = None
+        self.clear()
+        return False
+
+    def image_path(self) -> str:
+        return self._path
+
+    def source_pixmap(self) -> Optional[QPixmap]:
+        return self._pixmap
+
+    def _render(self) -> None:
+        """위젯 크기에 맞춰 비율을 유지한 채 다시 스케일한다.
+
+        세로가 Fixed 정책이라 높이는 위젯이 스스로 계산해 갱신해야 한다.
+        가로 폭에 맞춰 비율로 높이를 정한 뒤 setFixedHeight 로 알리고,
+        다시 그려 반복되는 것을 막기 위해 폭이 실제로 바뀐 경우만 갱신한다.
+        """
+        if self._pixmap is None or self._pixmap.isNull():
+            return
+        source = self._pixmap
+        width = max(self.MIN_RENDER, self.width())
+        # 세로는 가로 폭에서 비율로 계산한다 (위젯 높이에 의존하지 않는다).
+        height = max(
+            self.MIN_RENDER,
+            int(round(width * source.height() / max(1, source.width()))),
+        )
+        if self.height() != height:
+            self.setFixedHeight(height)
+        self.setPixmap(source.scaled(
+            width,
+            height,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        ))
+
+    def resizeEvent(self, event) -> None:  # noqa: N802
+        super().resizeEvent(event)
+        # 높이 갱신(setFixedHeight)이 다시 resizeEvent 를 부르므로 폭이 실제로
+        # 달라졌을 때만 다시 그린다. 무한 재귀를 막는다.
+        if self.width() != getattr(self, "_last_render_width", None):
+            self._last_render_width = self.width()
+            self._render()
+
+    def showEvent(self, event) -> None:  # noqa: N802
+        super().showEvent(event)
+        self._render()
 
     def mousePressEvent(self, event) -> None:  # noqa: N802
         self.clicked.emit()
@@ -87,6 +161,11 @@ class ClickableLabel(QLabel):
 
 class ChatMessage(QFrame):
     """대화 메시지 1개. role에 따라 정렬·색상이 달라진다."""
+
+    # 말풍선 최대 폭(기존 body.setMaximumWidth 과 같은 값).
+    BUBBLE_MAX_WIDTH = 600
+    # 버블 QSS padding(10px 14px)의 좌우 합 + Qt 가 정확히 재지 않는 여유분.
+    BUBBLE_PADDING = 32
 
     def __init__(self, role: str, text: str, parent=None):
         super().__init__(parent)
@@ -105,7 +184,7 @@ class ChatMessage(QFrame):
             return avatar
 
         self.body = QFrame()
-        self.body.setMaximumWidth(600)
+        self.body.setMaximumWidth(self.BUBBLE_MAX_WIDTH)
         self.body_layout = QVBoxLayout(self.body)
         self.body_layout.setContentsMargins(0, 0, 0, 0)
         self.body_layout.setSpacing(6)
@@ -144,6 +223,34 @@ class ChatMessage(QFrame):
     def add_action(self, button: QPushButton) -> None:
         """액션 행에 버튼 추가 (P4 스타일 버튼·P6 수정 요청용)."""
         self.action_row.addWidget(button)
+
+    def set_text(self, text: str) -> None:
+        """버블 문구 교체. 최소 폭도 함께 갱신한다."""
+        self.bubble.setText(str(text))
+        self._apply_bubble_min_width()
+
+    def _bubble_min_width(self) -> int:
+        """문장이 한 단어씩 세로로 접히지 않도록 하는 최소 폭.
+
+        wordWrap 이 켜진 QLabel 은 heightForWidth 를 쓰기 때문에, 레이아웃이
+        가로 폭을 줄 때 자연폭(sizeHint) 이 아니라 minimumSizeHint — 즉
+        가장 긴 단어 하나의 폭 — 을 배정한다. 그 결과 문장이 60px 폭으로
+        접혀 한 단어씩 세로로 줄바꿈된다. 그래서 자연폭을 최소 폭으로 명시한다.
+        """
+        text = self.bubble.text()
+        if not text:
+            return 0
+        width = QFontMetrics(self.bubble.font()).horizontalAdvance(text)
+        return min(self.BUBBLE_MAX_WIDTH, width + self.BUBBLE_PADDING)
+
+    def _apply_bubble_min_width(self) -> None:
+        self.bubble.setMinimumWidth(self._bubble_min_width())
+
+    def showEvent(self, event):  # noqa: N802
+        # 생성 시점에는 스타일이 아직 polish 되기 전이라 폰트 크기가 확정되지
+        # 않는다. 실제로 그려질 때 한 번 다시 계산해 테마 전환까지 흡수한다.
+        self._apply_bubble_min_width()
+        super().showEvent(event)
 
 
 class PromptCard(QFrame):
@@ -222,16 +329,18 @@ class ImageCard(QFrame):
      상태 머신으로 두지 않는다)
     """
 
-    IMAGE_WIDTH = 480
+    # 이미지의 최대 표시 폭. 화면 폭에 맞춰 ��하되 이 값을 넘지 않는다.
+    IMAGE_MAX_WIDTH = 560
+    # 최소 표시 폭. 매우 좁은 화면에서도 이 폭 아래로 줄이지 않는다.
+    IMAGE_MIN_WIDTH = 260
 
     def __init__(
         self,
         image_path: str,
         meta_text: str,
         prompt_text: str,
-        on_save: Optional[Callable[[], None]] = None,
-        on_copy_prompt: Optional[Callable[[], None]] = None,
-        on_copy_image: Optional[Callable[[], None]] = None,
+        on_save: Optional[Callable[[str], None]] = None,
+        on_copy_image: Optional[Callable[[str], None]] = None,
         on_reuse: Optional[Callable[[], None]] = None,
         on_open: Optional[Callable[[], None]] = None,
         parent=None,
@@ -239,6 +348,9 @@ class ImageCard(QFrame):
         super().__init__(parent)
         self.setObjectName("imageCard")
         self.setFrameShape(QFrame.Shape.StyledPanel)
+        # 카드마다 자기 이미지를 기억한다. 콜백이 경로를 받도록 해서
+        # 전역 '마지막 생성 이미지(current_image_path)' 에 의존하지 않는다.
+        self.image_path = str(image_path or "")
 
         layout = QVBoxLayout(self)
         layout.setSpacing(8)
@@ -248,20 +360,17 @@ class ImageCard(QFrame):
         self.image_label.setCursor(Qt.CursorShape.PointingHandCursor)
         if on_open is not None:
             self.image_label.clicked.connect(on_open)
-        self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        pixmap = QPixmap(image_path) if image_path else QPixmap()
-        if pixmap.isNull():
+        if not self.image_label.set_image_path(self.image_path):
             self.image_label.setText("이미지를 불러올 수 없습니다."
-                                     if image_path else "")
-        else:
-            scaled = pixmap.scaledToWidth(
-                self.IMAGE_WIDTH, Qt.TransformationMode.SmoothTransformation
-            )
-            self.image_label.setPixmap(scaled)
+                                     if self.image_path else "")
+        self.image_label.setMinimumWidth(self.IMAGE_MIN_WIDTH)
+        self.image_label.setMaximumWidth(self.IMAGE_MAX_WIDTH)
+        # 세로 방향으로는 이미지가 정한 만큼만 차지해야 하므로 Fixed 를 유지한다.
+        # (가로는 아래 resizeEvent 에서 위젯 크기에 맞춰 다시 맞춘다)
         self.image_label.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
-        layout.addWidget(self.image_label)
+        layout.addWidget(self.image_label, 0, Qt.AlignmentFlag.AlignHCenter)
 
         # P20: 생성 중 표시 (같은 카드에서 상태만 전환)
         self.pending_label = QLabel("이미지 생성 중...")
@@ -300,11 +409,6 @@ class ImageCard(QFrame):
         self.prompt_toggle.toggled.connect(self.prompt_label.setVisible)
         prompt_row = QHBoxLayout()
         prompt_row.addWidget(self.prompt_toggle)
-        self.prompt_copy_button = QPushButton("복사")
-        self.prompt_copy_button.setObjectName("imageCardPromptCopy")
-        if on_copy_prompt is not None:
-            self.prompt_copy_button.clicked.connect(on_copy_prompt)
-        prompt_row.addWidget(self.prompt_copy_button)
         prompt_row.addStretch(1)
         layout.addLayout(prompt_row)
         layout.addWidget(self.prompt_label)
@@ -315,16 +419,21 @@ class ImageCard(QFrame):
         self.save_button = QPushButton("저장")
         self.save_button.setObjectName("imageCardSave")
         if on_save is not None:
-            self.save_button.clicked.connect(on_save)
+            self.save_button.clicked.connect(
+                lambda _checked=False: on_save(self.image_path))
         self.copy_button = QPushButton("복사")
         self.copy_button.setObjectName("imageCardCopy")
         if on_copy_image is not None:
-            self.copy_button.clicked.connect(on_copy_image)
+            self.copy_button.clicked.connect(
+                lambda _checked=False: on_copy_image(self.image_path))
         # P6: 수정 요청 (프롬프트+옵션 전체 복원). 콜백 없으면 숨김.
+        # clicked(bool) 의 bool 이 스냅샷 자리에 매핑되면 스냅샷이 False 로 덮이므로
+        # 시그널 인자를 버리고 무인자 호출로 감싼다.
         self.reuse_button = QPushButton("수정 요청")
         self.reuse_button.setObjectName("imageCardReuse")
         if on_reuse is not None:
-            self.reuse_button.clicked.connect(on_reuse)
+            self.reuse_button.clicked.connect(
+                lambda _checked=False: on_reuse())
         else:
             self.reuse_button.setVisible(False)
         actions.addWidget(self.save_button)

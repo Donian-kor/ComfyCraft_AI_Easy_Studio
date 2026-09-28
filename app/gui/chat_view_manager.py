@@ -15,7 +15,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Optional
 
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import QCoreApplication, QEvent, QTimer
 from PySide6.QtWidgets import QScrollArea, QVBoxLayout, QWidget
 
 from app.gui.chat_widgets import (
@@ -41,14 +41,13 @@ class ChatViewManager:
     NEAR_BOTTOM_THRESHOLD = 40
 
     def __init__(self, scroll: QScrollArea, content: QWidget,
-                 on_save=None, on_copy_prompt=None, on_copy_image=None,
+                 on_save=None, on_copy_image=None,
                  on_reuse=None, on_open_preview=None, on_edit_prompt=None,
                  on_revert_prompt=None, on_cancel=None):
         self.scroll = scroll
         self.content = content
         self._layout: QVBoxLayout = content.layout()
         self._on_save = on_save
-        self._on_copy_prompt = on_copy_prompt
         self._on_copy_image = on_copy_image
         self._on_reuse = on_reuse
         self._on_open_preview = on_open_preview
@@ -147,22 +146,31 @@ class ChatViewManager:
     def clear(self) -> None:
         """채팅 위젯 전부 제거 (spacer 유지).
 
-        removeWidget() 가 레이아웃 크기를 줄이므로 인덱스를 실시간으로
-        돌면 항목을 건너뛴다. 제거 대상을 먼저 스냅샷으로 모은 뒤 처리한다.
+        spacer(항목 0)는 남기고, 나머지를 takeAt() 으로 레이아웃에서 떼어낸다.
+        takeAt() 은 인덱스를 실시간으로 줄이므로 앞에서부터 반복해도 안전하다.
+
+        setParent(None) 만 쓰면 부모를 잃은 위젯이 Qt 에서 독립 top-level
+        window 로 승격해, deleteLater() 파괴가 지연되는 동안 창으로 남는다.
+        그러면 같은 호출 스택 안에서 다시 render() 했을 때 파괴 대기 중인 옛
+        카드 위에 새 카드가 겹쳐 보인다 — "창이 여러 개 떴다가 사라지는" 증상.
+        그래서 setParent(None) 으로 부모를 정리한 뒤, 예약된 DeferredDelete 를
+        즉시 처리해 파괴까지 끝내 버린다. 끝나면 창도 남지 않고 findChildren
+        에서도 즉시 빠져 자연히 정리된다.
         """
         self._gen_widgets.clear()
-        leftovers = []
-        for i in range(self._layout.count()):
-            item = self._layout.itemAt(i)
+        while self._layout.count() > 1:
+            item = self._layout.takeAt(0)
             if item is None:
                 continue
             widget = item.widget()
-            if widget is not None:
-                leftovers.append(widget)
-        for widget in leftovers:
-            self._layout.removeWidget(widget)
+            if widget is None:
+                continue
+            widget.hide()
             widget.setParent(None)
             widget.deleteLater()
+        # 위에서 예약한 파괴를 지금 처리해, 다음 render() 전에 완전히 비운다.
+        QCoreApplication.sendPostedEvents(
+            None, QEvent.Type.DeferredDelete)
 
     def _current_value(self) -> int:
         try:
@@ -269,7 +277,6 @@ class ChatViewManager:
         card = ImageCard(
             image_path, str(meta.get("meta", "")), str(meta.get("prompt", "")),
             on_save=self._on_save,
-            on_copy_prompt=self._on_copy_prompt,
             on_copy_image=self._on_copy_image,
             on_reuse=(lambda s=snapshot: self._on_reuse(s)) if self._on_reuse else None,
             parent=self.content,
@@ -292,7 +299,6 @@ class ChatViewManager:
             card.copy_button.setAccessibleName("이미지 복사")
             card.reuse_button.setAccessibleName("프롬프트 불러와 수정")
             card.prompt_toggle.setAccessibleName("사용된 프롬프트 보기")
-            card.prompt_copy_button.setAccessibleName("프롬프트 복사")
         except (RuntimeError, AttributeError):
             pass
 

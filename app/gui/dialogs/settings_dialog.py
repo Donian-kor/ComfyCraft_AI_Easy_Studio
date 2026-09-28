@@ -25,6 +25,43 @@ from app.paths import SETTINGS_DIALOG_FILE
 
 BASE_NAMES = ("checkpoint_loadersimple", "unet_clploadergguf", "unet_dualclploadergguf")
 
+# 기준점(base) technical 이름을 사용자에게 보여줄 한국어 형태.
+# 내부값(base)이라 저장/파생 로직에는 절대 쓰지 않는다 — 표시 전용.
+BASE_LABELS = {
+    "checkpoint_loadersimple": "A형 · 단일 파일",
+    "unet_clploadergguf": "B형 · 분리형 1",
+    "unet_dualclploadergguf": "C형 · 분리형 2",
+}
+
+
+def visible_profiles(model_registry) -> list:
+    """[자동 판별] 목록에 보여줄 프로필 — 사용자가 편집하는 JSON 프로필만.
+
+    내장(builtin) 프로필은 default_profiles.json 이 없을 때만 쓰는 폴백이라,
+    같은 계열이 JSON 으로도 등록돼 있으면 목록에서 숨긴다(중복 표시 방지).
+    """
+    profiles = list(getattr(model_registry, "profiles", []))
+    json_profiles = [p for p in profiles if getattr(p, "_from_json", False)]
+    if not json_profiles:
+        return profiles
+    return json_profiles
+
+
+def format_profile_line(profile) -> str:
+    """[자동 판별] 목록 1줄 — 이름과 A/B/C형, 최적값만 보여준다.
+
+    기준점의 기술 이름(checkpoint_loadersimple 등)은 내부값이므로 노출하지 않는다.
+    """
+    base = ""
+    try:
+        base = str(getattr(profile, "resolved_base", None) and profile.resolved_base()
+                   or profile.workflow_type or "").strip()
+    except (AttributeError, RuntimeError):
+        base = str(getattr(profile, "workflow_type", "") or "").strip()
+    label = BASE_LABELS.get(base, "알 수 없음")
+    return (f"✓ {profile.name} · {label} "
+            f"(Steps {profile.default_steps} / CFG {profile.default_cfg})")
+
 
 def apply_profile_status(label, message: str, ok: bool | None = None) -> None:
     """수동 프로필 검증 라벨에 결과/안내 문구를 표시한다.
@@ -311,11 +348,8 @@ def _setup_model_tab(dlg, controller) -> None:
     if auto_list is not None:
         try:
             auto_list.clear()
-            for profile in getattr(controller.model_registry, "profiles", []):
-                auto_list.addItem(
-                    f"{profile.name} · {profile.family} · "
-                    f"{profile.workflow_type} "
-                    f"(Steps {profile.default_steps} / CFG {profile.default_cfg})")
+            for profile in visible_profiles(controller.model_registry):
+                auto_list.addItem(format_profile_line(profile))
         except RuntimeError:
             pass
 
@@ -692,10 +726,8 @@ def _setup_model_tab_refresh_only(dlg, controller) -> None:
         if auto_list is None:
             return
         auto_list.clear()
-        for profile in getattr(controller.model_registry, "profiles", []):
-            auto_list.addItem(
-                f"{profile.name} · {profile.family} · "
-                f"{profile.workflow_type}")
+        for profile in visible_profiles(controller.model_registry):
+            auto_list.addItem(format_profile_line(profile))
     except RuntimeError:
         pass
 

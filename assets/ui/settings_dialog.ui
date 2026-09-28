@@ -211,68 +211,52 @@
           <attribute name="title">
            <string>자동 판별</string>
           </attribute>
-          <widget class="QListWidget" name="profileAutoList">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>20</y>
-             <width>529</width>
-             <height>451</height>
-            </rect>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>90</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>11111111</height>
-            </size>
-           </property>
-           <property name="resizeMode">
-            <enum>QListView::ResizeMode::Fixed</enum>
-           </property>
-          </widget>
-          <widget class="QLabel" name="modelAutoHintLabel">
-           <property name="geometry">
-            <rect>
-             <x>30</x>
-             <y>520</y>
-             <width>491</width>
-             <height>40</height>
-            </rect>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>275</width>
-             <height>40</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>인식되지 않는 모델이 있으면 [수동 등록] 탭에서 직접 등록하세요.</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignmentFlag::AlignCenter</set>
-           </property>
-           <property name="wordWrap">
-            <bool>true</bool>
-           </property>
-          </widget>
+          <layout class="QVBoxLayout" name="modelAutoTabLayout">
+           <item>
+            <widget class="QListWidget" name="profileAutoList">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>1</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>90</height>
+              </size>
+             </property>
+             <property name="resizeMode">
+              <enum>QListView::ResizeMode::Fixed</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="modelAutoHintLabel">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>275</width>
+               <height>40</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>인식되지 않는 모델이 있으면 [수동 등록] 탭에서 직접 등록하세요.</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignmentFlag::AlignCenter</set>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
          <widget class="QWidget" name="modelManualTab">
           <attribute name="title">
