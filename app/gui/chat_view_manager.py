@@ -149,13 +149,14 @@ class ChatViewManager:
         spacer(항목 0)는 남기고, 나머지를 takeAt() 으로 레이아웃에서 떼어낸다.
         takeAt() 은 인덱스를 실시간으로 줄이므로 앞에서부터 반복해도 안전하다.
 
-        setParent(None) 만 쓰면 부모를 잃은 위젯이 Qt 에서 독립 top-level
-        window 로 승격해, deleteLater() 파괴가 지연되는 동안 창으로 남는다.
-        그러면 같은 호출 스택 안에서 다시 render() 했을 때 파괴 대기 중인 옛
-        카드 위에 새 카드가 겹쳐 보인다 — "창이 여러 개 떴다가 사라지는" 증상.
-        그래서 setParent(None) 으로 부모를 정리한 뒤, 예약된 DeferredDelete 를
-        즉시 처리해 파괴까지 끝내 버린다. 끝나면 창도 남지 않고 findChildren
-        에서도 즉시 빠져 자연히 정리된다.
+        회귀: 여기서 setParent(None) 을 부르면 부모를 잃은 위젯이 Qt 에서
+        독립 top-level window 로 승격한다(실측 isWindow=True, OS 창까지
+        생성). Qt 문서가 금지한 패턴이며, 사용자에게는 창이 순간 뜨고
+        사라지거나 겹쳐 보이는 "창이 사라졌다 나타난다" 증상이 된다.
+        takeAt() 만으로 레이아웃에서 빠지므로 부모는 그대로 두고,
+        deleteLater() 로 파괴만 예약하면 된다.
+        파괴가 지연되는 동안 옛 카드가 새 카드 위에 겹쳐 보일 수 있으므로
+        예약된 DeferredDelete 를 즉시 처리해 끝내 버린다.
         """
         self._gen_widgets.clear()
         while self._layout.count() > 1:
@@ -165,8 +166,8 @@ class ChatViewManager:
             widget = item.widget()
             if widget is None:
                 continue
+            # 부모는 유지한다. setParent(None) 은 독립 창을 만든다.
             widget.hide()
-            widget.setParent(None)
             widget.deleteLater()
         # 위에서 예약한 파괴를 지금 처리해, 다음 render() 전에 완전히 비운다.
         QCoreApplication.sendPostedEvents(
@@ -243,8 +244,13 @@ class ChatViewManager:
         return row
 
     def _build_generation(self, message: ChatMessageData) -> Optional[QWidget]:
-        """프롬프트 확인 카드 또는 생성 중 카드."""
-        row = ChatMessage("ai", "", self.content)
+        """프롬프트 확인 카드 또는 생성 중 카드.
+
+        message.say 가 있으면 카드 위에 AI 말풍선으로 붙인다 — 카드가
+        '무엇을 하고 있는가'(기술 상태)를 보여주는 동안, 말풍선이
+        '지금 내가 뭘 하는지'를 사람 말투로 말한다.
+        """
+        row = ChatMessage("ai", message.say, self.content)
         if message.phase == PHASE_GENERATING:
             card = GenerationCard(
                 on_cancel=self._on_cancel, parent=self.content)
@@ -269,11 +275,15 @@ class ChatViewManager:
         return row
 
     def _build_image(self, message: ChatMessageData) -> Optional[QWidget]:
-        """완성 이미지 카드."""
+        """완성 이미지 카드.
+
+        say 가 있으면 진행 중이던 말풍선이 완료 문구로 제자리 바뀐다.
+        say 가 없으면(레거시 세션) ChatMessage 가 말풍선을 감춘다.
+        """
         meta = message.metadata
         image_path = str(meta.get("image_path", ""))
         snapshot = dict(meta.get("snapshot", {}))
-        row = ChatMessage("ai", "", self.content)
+        row = ChatMessage("ai", message.say, self.content)
         card = ImageCard(
             image_path, str(meta.get("meta", "")), str(meta.get("prompt", "")),
             on_save=self._on_save,
@@ -305,13 +315,19 @@ class ChatViewManager:
     # ── 진행 중 카드 갱신 (전체 재렌더 없이) ─────────────────────────────
     def update_generation(self, message_id: str, status: str = "",
                           progress: Optional[int] = None,
-                          enhanced: Optional[str] = None) -> None:
-        """생성 카드의 상태만 바꾼다 (같은 메시지, 같은 카드)."""
+                          enhanced: Optional[str] = None,
+                          say: Optional[str] = None) -> None:
+        """생성 카드의 상태만 바꾼다 (같은 메시지, 같은 카드).
+
+        say 가 주어지면 카드 위 AI 말풍선 문구도 함께 갱신한다.
+        """
         entry = self._gen_widgets.get(message_id)
         if not entry:
             return
-        _row, card = entry
+        row, card = entry
         try:
+            if say is not None:
+                row.set_text(say)
             if isinstance(card, GenerationCard):
                 if status:
                     card.set_status(status)

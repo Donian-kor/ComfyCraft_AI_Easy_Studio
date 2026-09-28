@@ -87,8 +87,17 @@ def _upgrade_buttons(root) -> None:
         # 중요: deleteLater()만 호출하면 이벤트 루프가 돌 때까지 옛 버튼이
         # 위젯 트리에 남아 있어서, main.py 의 findChild()가 삭제 예정인
         # 옛 버튼을 먼저 찾아 시그널이 연결되고 나중에 삭제돼 버린다.
-        # 따라서 위젯 트리에서 즉시 제거(setParent(None))한 뒤 지운다.
-        old.setParent(None)
+        # 그래서 지금 바로 숨겨 두고 지운다.
+        #
+        # 회귀: 예전에 setParent(None) 으로 트리에서 빼려 했지만, Qt 는
+        # 부모 없는 위젯을 top-level window 로 승격시킨다(실측 isWindow=True).
+        # 원래 크기(예: 100x30) 그대로 작은 독립 창이 떴다가 deleteLater
+        # 로 사라진다 — "조그만 창이 나타났다 사라지는" 증상의 원인.
+        # hide() 로는 findChild() 가 여전히 찾으므로, 부모는 그대로 두고
+        # deleteLater() 로 파괴를 예약한다. findChild 는 곧바로 지워질
+        # 객체까지 안정적으로 건너뛸 필요가 없고(호출부가 곧바로 끝난다),
+        # 창이 뜨는 것보다 안전하다.
+        old.hide()
         old.deleteLater()
 
 

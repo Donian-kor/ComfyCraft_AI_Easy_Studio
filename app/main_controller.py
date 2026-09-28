@@ -145,6 +145,7 @@ from app.models.chat import (
     KIND_TEXT,
     PHASE_GENERATING,
     PHASE_PROMPT,
+    SAY_DONE,
     ChatMessageData,
     GenerationState,
     messages_from_raw,
@@ -154,19 +155,38 @@ from app.models.chat import (
 # P9: 상태 템플릿 12종 (기획서 §8). 고정 문장 + 빈칸 채움.
 # 기존 동작 경로의 인라인 문구는 테스트 호환을 위해 유지하고,
 # 신규 분기(환영·LM 미연결·금지어)는 이 표를 사용한다.
+# 톤: "만들다"보다 "그리다" — 사용자가 아티스트와 대화하는 느낌을 낸다.
 TEMPLATES = {
-    "welcome": "안녕하세요! 어떤 이미지를 만들어드릴까요?",
-    "done": "{model}으로 그렸어요. ({elapsed} 소요)",
-    "edited": "{style} 스타일로 수정했어요.",
-    "generating": "{summary} 이미지를 만들고 있어요...",
-    "model_changed": "{model} 모델 최적 설정이 적용되었어요 ({feature}).",
-    "options_reset": "생성 옵션을 기본값으로 되돌렸어요.",
-    "revising": "이미지 수정하여 생성 하겠습니다.",
-    "failed": "이미지 생성에 실패했어요. 원인: {reason}",
-    "lm_off": "프롬프트 향상 없이 입력하신 내용으로 생성해요.",
-    "blocked": "이 표현은 사용할 수 없어요.",
-    "busy": "생성 중이에요. 기다리거나 취소해주세요.",
-    "style_pick": "Z-Anime 스타일을 골라주세요.",
+    "welcome": "안녕하세요? 무엇을 그려드릴까요?",
+    # 완료 발화는 "결과 요약"이 아니라 AI 의 반응이다. 모델명·해상도·시드·
+    # 소요시간은 이미지 카드 메타 줄에 이미 있으므로 여기서는 되풀이하지 않는다.
+    # 정의는 SAY_DONE 한 곳에만 있다 — 레거시 세션 마이그레이션도 같은 값을 쓴다.
+    "done": SAY_DONE,
+    "edited": "{style} 느낌을 살려 다시 그렸어요.",
+    "generating": "{summary} 이미지를 그리고 있어요...",
+    "model_changed": "{model}에 맞춰 이미지 그릴 준비를 마쳤어요. ({feature})",
+    "options_reset": "이미지 옵션을 처음 상태로 돌려놓았어요.",
+    "revising": "이미지를 다시 다듬어볼게요.",
+    "failed": "이미지를 완성하지 못했어요. 원인: {reason}",
+    "lm_off": "프롬프트 AI향상 없이 말씀해주신 내용 그대로 그릴게요.",
+    "blocked": "이 표현은 안돼요.",
+    "busy": "지금 이미지를 그리고 있어요. 잠시만 기다려주세요.",
+    "style_pick": "어떤 Z-Anime 느낌으로 그려볼까요?",
+}
+
+# A: 진행 단계별 AI 발화. 값은 TEMPLATES 를 직접 쓰지 않고 단계마다 한 문장씩
+# 지정한다 — "지금 뭘 하는지"를 AI 의 목소리로 말하기 위한 것이지,
+# 상태 문자열(ComfyUI 연결 확인 등)을 그대로 읽어 말하는 게 아니다.
+SAY_BY_STEP = {
+    "queue": "ComfyUI 에 이미지 그려달라고 부탁했어요...",
+    "connect": "서버실에 연결하고 있어요...",
+    "enhance": "프롬프트를 다듬고 있어요...",
+    "sample": "픽셀을 하나씩 칠하고 있어요...",
+    "compose": "마무리하고 있어요...",
+    "finalize": "마지막 손질을 하고 있어요...",
+    "stopping": "여기서 멈출게요...",
+    # 완료 발화는 SAY_BY_STEP 이 아니라 TEMPLATES["done"] 하나만 쓴다.
+    # 여기에도 넣으면 같은 말이 두 곳에서 갈라져 버린다.
 }
 
 UI_FILE = BASE_DIR / "assets" / "ui" / "main.ui"
@@ -576,6 +596,9 @@ class MainController(QObject):
             return
         applied = apply_theme(app, key)
         self._apply_zanime_style_theme(applied)
+        # 테마를 바꾸면 폰트·패딩이 달라지므로 입력창 높이를 다시 계산한다.
+        # (QSS 가 씌워진 뒤에 재야 실제 패딩이 반영된다)
+        QTimer.singleShot(0, self._apply_chat_input_height)
         if save_theme_choice(applied):
             display_name = AVAILABLE_THEMES.get(applied, applied)
             self.append_log(f"테마 변경: {display_name}")
@@ -630,8 +653,8 @@ class MainController(QObject):
             self.apply_model_defaults(exact)
             self._reset_facedetailer_to_defaults()
             self.append_log(f"옵션을 기본값으로 되돌렸습니다 ({exact}).")
-            self._append_chat_message(
-                "system", "생성 옵션을 기본값으로 되돌렸어요.")
+            # C: system 가운데 라벨 대신 AI 말풍선으로 말한다(TEMPLATES options_reset).
+            self._append_chat_message("ai", TEMPLATES["options_reset"])
         except RuntimeError:
             logger.debug("옵션 되돌리기 실패", exc_info=True)
 
@@ -716,20 +739,11 @@ class MainController(QObject):
         - newChatBtn: 새 대화
         존재하지 않는 위젯은 조용히 건너뛴다.
         """
-        panel = self.find(QWidget, "leftScrollArea")
-
-        def toggle_panel() -> None:
-            try:
-                if panel is not None:
-                    panel.setVisible(not panel.isVisible())
-            except RuntimeError:
-                logger.debug("옵션 패널 토글 실패", exc_info=True)
-
-        # 홈은 여기서 연결하지 않는다 — P6에서 전용 핸들러로 재연결한다.
-        for name in ("railOptionsBtn", "railHistoryBtn"):
-            button = self.find(QPushButton, name)
-            if button is not None:
-                button.clicked.connect(toggle_panel)
+        # P1 의 toggle_panel 연결은 P6 이 페이지 전환으로 대체하므로
+        # 여기서 연결하지 않는다. 여기서 붙였다가 P6 에서 끊으려면
+        # 무인자 disconnect() 가 필요하고, 슬롯이 0 개일 때 그 호출은
+        # PySide6 의 "Failed to disconnect (None)" 경고를 남긴다.
+        # 처음부터 P6 만 연결하면 경고도 중복 실행도 없다.
         settings_button = self.find(QPushButton, "railSettingsBtn")
         if settings_button is not None:
             settings_button.clicked.connect(self._show_settings_dialog)
@@ -833,7 +847,8 @@ class MainController(QObject):
             logger.debug("채팅 렌더 실패", exc_info=True)
 
     def _refresh_chat_progress(self, status: str = "",
-                               progress: Optional[int] = None) -> None:
+                               progress: Optional[int] = None,
+                               say: Optional[str] = None) -> None:
         """진행 중 카드의 상태만 갱신 (전체 재렌더 없음 → 스크롤 점프 없음)."""
         view = getattr(self, "chat_view", None)
         state = getattr(self, "_gen_state", None)
@@ -841,7 +856,7 @@ class MainController(QObject):
             return
         try:
             view.update_generation(state.message_id, status=status,
-                                   progress=progress)
+                                   progress=progress, say=say)
         except RuntimeError:
             logger.debug("생성 카드 갱신 실패", exc_info=True)
 
@@ -930,29 +945,20 @@ class MainController(QObject):
             self._history_list = None
 
         # P14: railOptions(옵션)/railHistory(이력) → 페이지 전환.
-        # railHome(홈) → P1에서 옵션 토글로 연결돼 있었으므로 해제하고
-        # "패널 접기 + 채팅 복귀"로 재연결한다 (기획서 v5.0 목업 1-A).
+        # railHome(홈) → "패널 접기 + 채팅 복귀" (기획서 v5.0 목업 1-A).
+        # P1 은 이 세 버튼에 아무것도 연결하지 않으므로 여기서 곧바로
+        # 연결하면 끝이다. 무인자 disconnect() 로 "기존 연결을 끈다" 는
+        # 방식을 쓰면 슬롯이 0 개인 버튼에서 PySide6 가
+        # "Failed to disconnect (None)" RuntimeWarning 을 남긴다.
         try:
             home = self.find(QPushButton, "railHomeBtn")
             if home is not None:
-                try:
-                    home.clicked.disconnect()
-                except (RuntimeError, TypeError):
-                    pass  # 아직 연결된 슬롯이 없음 (P14에서 P1 연결을 제거)
                 home.clicked.connect(self._rail_home_clicked)
             opt = self.find(QPushButton, "railOptionsBtn")
             if opt is not None:
-                try:
-                    opt.clicked.disconnect()
-                except Exception:
-                    pass
                 opt.clicked.connect(lambda: self._rail_page_toggle("options"))
             hist = self.find(QPushButton, "railHistoryBtn")
             if hist is not None:
-                try:
-                    hist.clicked.disconnect()
-                except Exception:
-                    pass
                 hist.clicked.connect(lambda: self._rail_page_toggle("history"))
         except RuntimeError:
             logger.debug("레일 페이지 연결 실패", exc_info=True)
@@ -978,7 +984,13 @@ class MainController(QObject):
                     tool.clicked.connect(self._on_new_chat_clicked)
                     index = layout.indexOf(old)
                     layout.removeWidget(old)
-                    old.setParent(None)
+                    # 회귀: setParent(None) 은 부모를 잃은 위젯을 Qt 가
+                    # top-level window 로 승격시킨다(실측 isWindow=True).
+                    # 원래 크기(예: 100x30) 그대로 작은 독립 창이 떴다가
+                    # deleteLater 로 사라진다 — "조그만 창이 나타났다
+                    # 사라지는" 증상. removeWidget() 이 이미 위젯 트리에서
+                    # 빼므로 부모를 버릴 필요가 없다.
+                    old.hide()
                     old.deleteLater()
                     layout.insertWidget(max(0, index), tool)
         except RuntimeError:
@@ -1634,6 +1646,9 @@ class MainController(QObject):
             return
         message.phase = PHASE_GENERATING
         message.metadata.setdefault("status", "이미지 생성 중...")
+        # A: 생성 시작 즉시 AI 가 한마디 한다 — 카드가 뜨면서 "그리고 있어요" 로
+        # 말해, 사용자에게 "지금 뭐 하고 있구나" 가 먼저 보이게 한다.
+        message.say = SAY_BY_STEP["connect"]
         self._render_chat()
 
     def _setup_chat_accessibility(self) -> None:
@@ -1815,9 +1830,27 @@ class MainController(QObject):
     def _on_chat_enter_pressed(self) -> None:
         """Enter: 생성 중이면 무시하고 안내, 아니면 채팅 전송."""
         if self._is_generating():
+            # C: 로그만 남기고 사용자에게는 아무 말도 하지 않던 것을
+            # AI 말풍선(인라인)으로 알린다. 반복 입력 시 메시지가 쌓이지
+            # 않도록 짧은 쿨다운을 둔다.
             self.append_log("생성 중이에요. 기다리거나 정지 버튼(■)으로 취소해주세요.")
+            self._show_busy_hint()
             return
         self._send_chat_text()
+
+    # 같은 안내가 연속으로 쌓이지 않도록 하는 최소 간격(초).
+    _BUSY_HINT_COOLDOWN = 3.0
+
+    def _show_busy_hint(self) -> None:
+        """생성 중 입력 시 TEMPLATES busy 를 인라인으로 알린다."""
+        try:
+            now = time.monotonic()
+            if now - getattr(self, "_last_busy_hint", 0.0) < self._BUSY_HINT_COOLDOWN:
+                return
+            self._last_busy_hint = now
+            self._show_input_error(TEMPLATES["busy"])
+        except RuntimeError:
+            logger.debug("생성 중 안내 표시 실패", exc_info=True)
 
     def _on_chat_send_or_stop(self) -> None:
         """하위 호환 별칭 (버튼 클릭과 동일)."""
@@ -2127,6 +2160,46 @@ class MainController(QObject):
         except Exception:
             logger.debug("긍정 프롬프트 높이 계산 실패", exc_info=True)
 
+    def _apply_chat_input_height(self) -> None:
+        """채팅 입력창 높이를 '패딩 포함 1줄' 기준으로 다시 계산한다.
+
+        .ui 는 chatInputEdit 를 34px 로 고정하는데, 테마 QSS 가 모든
+        QPlainTextEdit 에 세로 6px 패딩을 준다. 그럼 34px 안에 그릴 수 있는
+        영역이 20px 로 줄고, 한글 폰트(Malgun Gothic)의 줄 높이가 그보다
+        가까워지면 글자 아래가 잘린다 — 사용자가 본 증상.
+
+        다른 입력창(_apply_positive_prompt_height 등)처럼 폰트 메트릭으로
+        '1줄 + 패딩 + 프레임'이 정확히 들어가는 높이를 구해 덮어쓴다.
+        높이는 1줄로 고정하되 입력 중 화면이 아래로 밀리지 않는다.
+        """
+        edit = self.find(QPlainTextEdit, "chatInputEdit")
+        if edit is None:
+            return
+        try:
+            line_height = edit.fontMetrics().lineSpacing()
+            frame = edit.frameWidth() * 2
+            # 테마 QSS 의 세로 패딩(chatInputEdit 규칙의 2px x 2). 값을 그대로
+            # 반영해 '패딩을 더한 1줄' 높이를 확보한다.
+            padding = self._chat_input_v_padding()
+            target = line_height + frame + padding + 4
+            edit.setMinimumHeight(target)
+            edit.setMaximumHeight(target)
+            edit.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+            edit.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        except Exception:
+            logger.debug("채팅 입력창 높이 계산 실패", exc_info=True)
+
+    @staticmethod
+    def _chat_input_v_padding() -> int:
+        """테마 QSS 가 chatInputEdit 에 주는 세로 패딩 합계(px).
+
+        두 테마 모두 `QPlainTextEdit#chatInputEdit { padding: 2px 10px; }`
+        규칙을 갖는다. contentsRect 로 재지 않고 명세값을 쓴다 — 테마를
+        바꾼 직후에는 스타일이 아직 polish 되지 않아 실제 값이 0 이 되어
+        보정이 무력화된다. QSS 를 바꿀 때 이 값도 같이 갱신할 것.
+        """
+        return 4
+
     def _setup_dynamic_enhance_prompt_height(self) -> None:
         """향상 프롬프트 입력칸 높이가 내용에 따라 늘고 줄게 만든다.
 
@@ -2306,7 +2379,7 @@ class MainController(QObject):
         self._play_zanime_style_animation(normalized)
         label = ZANIME_STYLE_LABELS.get(normalized, normalized)
         self.append_log(f"Z-ANIME 스타일 선택: {label}")
-        # ★ 새 스타일 선택 시 이전 향상 프롬프트 초기화 (스타일별 그림체 적용 보장)
+        # ★ 새 스타일 선택 시 이전 향상 프롬프트 초기화 (스타일별 스타일체 적용 보장)
         try:
             enhance_prompt_edit = self.find(QPlainTextEdit, "enhancePromptEdit")
             if enhance_prompt_edit is not None:
@@ -2355,8 +2428,35 @@ class MainController(QObject):
         """P11: 진행 위젯 삭제됨 — 상태 버블이 대신 표시하므로 아무 것도 안 함."""
         return
 
+    # 진행 상태 문자열 → AI 발화 단계. GenerationWorker 가 보내는 문구에서
+    # 핵심 동사를 뽑아 SAY_BY_STEP 키로 매핑한다. 매핑되지 않으면 None 이고
+    # 그때는 말풍선을 건드리지 않는다(카드 상태만 바뀐다).
+    _SAY_PATTERNS = (
+        ("ComfyUI 연결", "connect"),
+        ("연결 확인", "connect"),
+        ("프롬프트 향상", "enhance"),
+        ("큐 등록", "queue"),
+        ("워크플로우 준비", "sample"),
+        ("샘플링", "sample"),
+        ("K-Sampler", "sample"),
+        ("다운로드", "finalize"),
+        ("대사", "compose"),
+        ("합성", "compose"),
+        ("중단", "stopping"),
+    )
+
+    def _say_for_progress(self, text: str) -> Optional[str]:
+        """진행 상태 문구에 대응하는 AI 발화 문구 (없으면 None)."""
+        raw = str(text or "")
+        if not raw:
+            return None
+        for needle, step in self._SAY_PATTERNS:
+            if needle in raw:
+                return SAY_BY_STEP.get(step)
+        return None
+
     def _set_progress_status(self, text: str) -> None:
-        """진행 상태 텍스트 (헤더 라벨 + 생성 중 카드)."""
+        """진행 상태 텍스트 (헤더 라벨 + 생성 중 카드 + AI 발화)."""
         try:
             label = self.find(QLabel, "progressStatusLabel")
             if label is not None:
@@ -2365,8 +2465,14 @@ class MainController(QObject):
             pass
         # P20: 생성 중 카드의 상태 문구도 함께 갱신
         message = self._active_generation_message()
-        if message is not None and message.metadata.get("status") != text:
-            message.metadata["status"] = text
+        if message is not None:
+            if message.metadata.get("status") != text:
+                message.metadata["status"] = text
+            # A: 카드의 기술 상태와 별개로, AI 말풍선이 사람 말투로 진행을 말한다.
+            say = self._say_for_progress(text)
+            if say is not None and message.say != say:
+                message.say = say
+                self._refresh_chat_progress(say=say)
         self._refresh_chat_progress(status=text)
 
     def _set_progress_percent(self, text: str) -> None:
@@ -2537,10 +2643,9 @@ class MainController(QObject):
                         current_label.setText(f"현재 모델: {short}")
                 except RuntimeError:
                     pass
-                self._append_chat_message(
-                    "system",
-                    f"{short} 모델 최적 설정이 적용되었어요 ({feature}).",
-                )
+                # C: model_changed 템플릿 + AI 말풍선(system 가운데 라벨 아님).
+                self._append_chat_message("ai", TEMPLATES["model_changed"].format(
+                    model=short, feature=feature))
             except RuntimeError:
                 logger.debug("모델 변경 시스템 메시지 실패", exc_info=True)
         except RuntimeError:
@@ -3672,6 +3777,7 @@ class MainController(QObject):
         """[다시 시도] 마지막 사용자 요청으로 재생성."""
         if self._is_generating():
             self.append_log("생성 중이에요. 기다리거나 취소해주세요.")
+            self._show_busy_hint()
             return
         text = self._last_user_text()
         if text:
@@ -3771,9 +3877,12 @@ class MainController(QObject):
                 prompt_text = str(message.metadata.get("original", ""))
             meta = self._image_meta_text(snapshot, elapsed)
             # ★ 카드 전환 = kind 변경. 새 메시지를 만들지 않는다.
+            # 완료 발화는 진행 중이던 카드 위 말풍선을 그대로 물려받아 제자리에서
+            # 바뀐다. 여기서 _append_chat_message 로 다시 만들면 "빈 말풍선 + 중복
+            # 말풍선" 이 남으므로 새 메시지를 만들지 않는다.
             message.become_image(path, meta=meta,
                                  prompt=prompt_text or "(프롬프트 없음)",
-                                 snapshot=snapshot)
+                                 snapshot=snapshot, say=TEMPLATES["done"])
             self._gen_state = None
             self._render_chat()
             # 생성 완료 시점에 저장 (트리거 ②)
@@ -3982,6 +4091,9 @@ class MainController(QObject):
         self._apply_negative_prompt_height()
         self._apply_positive_prompt_height()
         self._setup_dynamic_enhance_prompt_height()
+        # 6-2. 채팅 입력창: .ui 의 34px 는 QSS 패딩을 무시한 값이라 글자가
+        # 아래로 잘린다. 테마가 바뀔 때마다(= 폰트/패딩이 달라질 때) 다시 계산.
+        self._apply_chat_input_height()
 
         # 7. 접이식 고급 설정 토글 (얼굴 보정과 동일한 체크박스 방식으로 통일)
         adv_check = self.find(QCheckBox, "advancedToggleBtn")

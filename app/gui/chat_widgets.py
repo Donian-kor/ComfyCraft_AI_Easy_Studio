@@ -189,11 +189,21 @@ class ChatMessage(QFrame):
         self.body_layout.setContentsMargins(0, 0, 0, 0)
         self.body_layout.setSpacing(6)
 
-        self.bubble = QLabel(text)
+        # 부모(self.body)를 넘겨 "독립 창" 이 될 수 없게 만든다.
+        # 부모 없이 만든 위젯은 Qt 가 top-level window 로 승격시키며,
+        # 그 상태에서 setVisible(True) 가 호출되면 실제 OS 창이 만들어져
+        # "시작 직후 작은 창이 나타났다 사라지는" 증상이 된다.
+        # (tests/test_no_orphan_windows.py 가 이 경로를 막는다)
+        self.bubble = QLabel(text, self.body)
         self.bubble.setWordWrap(True)
         self.bubble.setTextInteractionFlags(
             Qt.TextInteractionFlag.TextSelectableByMouse
         )
+        # 회귀: 이미지가 말풍선 자리(빈 ChatMessage 아래 카드)를 쓰면서
+        # 완료 발화를 아래에 새 메시지로 또 만들면 "빈 말풍선 + 중복 말풍선" 이
+        # 남는다. 발화가 없면 말풍선 자체를 감춰 자리를 비운다.
+        # (레거시 세션의 say 없는 이미지 카드도 여기서 함께 정리된다)
+        self.bubble.setVisible(bool(str(text or "").strip()))
         self.body_layout.addWidget(self.bubble)
 
         # P4/P6 액션 버튼이 얹히는 행 (기본 비어 있음)
@@ -225,8 +235,14 @@ class ChatMessage(QFrame):
         self.action_row.addWidget(button)
 
     def set_text(self, text: str) -> None:
-        """버블 문구 교체. 최소 폭도 함께 갱신한다."""
-        self.bubble.setText(str(text))
+        """버블 문구 교체. 최소 폭도 함께 갱신한다.
+
+        진행 중 말풍선이 완료 문구로 제자리 바뀔 때 쓰인다.
+        문구가 비면 말풍선을 감춰 빈 자리를 남기지 않는다.
+        """
+        value = str(text or "")
+        self.bubble.setText(value)
+        self.bubble.setVisible(bool(value.strip()))
         self._apply_bubble_min_width()
 
     def _bubble_min_width(self) -> int:
@@ -360,11 +376,13 @@ class ImageCard(QFrame):
         self.image_label.setCursor(Qt.CursorShape.PointingHandCursor)
         if on_open is not None:
             self.image_label.clicked.connect(on_open)
+        # 크기 제한을 먼저 걸고 그 다음 이미지를 싣는다. 순서가 반대면
+        # 제한 폭(560)을 넘은 크기로 스케일된 픽스맵이 남는다(가로 잘림).
+        self.image_label.setMinimumWidth(self.IMAGE_MIN_WIDTH)
+        self.image_label.setMaximumWidth(self.IMAGE_MAX_WIDTH)
         if not self.image_label.set_image_path(self.image_path):
             self.image_label.setText("이미지를 불러올 수 없습니다."
                                      if self.image_path else "")
-        self.image_label.setMinimumWidth(self.IMAGE_MIN_WIDTH)
-        self.image_label.setMaximumWidth(self.IMAGE_MAX_WIDTH)
         # 세로 방향으로는 이미지가 정한 만큼만 차지해야 하므로 Fixed 를 유지한다.
         # (가로는 아래 resizeEvent 에서 위젯 크기에 맞춰 다시 맞춘다)
         self.image_label.setSizePolicy(
@@ -416,21 +434,27 @@ class ImageCard(QFrame):
         # 액션 버튼
         actions = QHBoxLayout()
         actions.setSpacing(8)
+        # 액션 버튼 위계 (4cut 의 primaryAction / subtleButton 규칙을 따르되
+        # 색은 각 테마 QSS 가 정한다 — 이쪽은 이름만 부여한다).
+        # objectName 을 바꿀 테니 테스트·스타일 참조가 함께 갱신돼야 한다.
         self.save_button = QPushButton("저장")
-        self.save_button.setObjectName("imageCardSave")
+        self.save_button.setObjectName("primaryAction")
+        self.save_button.setProperty("role", "primaryAction")
         if on_save is not None:
             self.save_button.clicked.connect(
                 lambda _checked=False: on_save(self.image_path))
         self.copy_button = QPushButton("복사")
-        self.copy_button.setObjectName("imageCardCopy")
+        self.copy_button.setObjectName("subtleButton")
+        self.copy_button.setProperty("role", "subtleButton")
         if on_copy_image is not None:
             self.copy_button.clicked.connect(
                 lambda _checked=False: on_copy_image(self.image_path))
         # P6: 수정 요청 (프롬프트+옵션 전체 복원). 콜백 없으면 숨김.
         # clicked(bool) 의 bool 이 스냅샷 자리에 매핑되면 스냅샷이 False 로 덮이므로
-        # 시그널 인자를 버리고 무인자 호출로 감싼다.
+        # 시그널 인자를 버드로 무인자 호출로 감싼다.
         self.reuse_button = QPushButton("수정 요청")
-        self.reuse_button.setObjectName("imageCardReuse")
+        self.reuse_button.setObjectName("subtleButton")
+        self.reuse_button.setProperty("role", "subtleButton")
         if on_reuse is not None:
             self.reuse_button.clicked.connect(
                 lambda _checked=False: on_reuse())
@@ -471,8 +495,10 @@ class GenerationCard(QFrame):
         self.progress_bar.setTextVisible(False)
         layout.addWidget(self.progress_bar)
 
+        # 위험 동작(취소)은 danger 로 구분해 테마가 위험색을 입히게 한다.
         self.cancel_button = QPushButton("■ 취소")
-        self.cancel_button.setObjectName("generationCardCancel")
+        self.cancel_button.setObjectName("dangerButton")
+        self.cancel_button.setProperty("role", "dangerButton")
         self.cancel_button.setAccessibleName("생성 취소")
         if on_cancel is not None:
             self.cancel_button.clicked.connect(on_cancel)

@@ -250,6 +250,15 @@ QPlainTextEdit#enhancePromptEdit {
     padding: 8px 10px;
 }
 
+/* 채팅 입력창 (하단 1줄 입력줄)
+   공통 규칙(QLineEdit, QPlainTextEdit …)이 주는 세로 6px 패딩은 .ui 가
+   고정한 34px 높이 안에서 그릴 공간을 20px 로 줄여 한글 글자 아래를 잘라
+   놓는다. 1줄 입력줄이므로 세로 여백을 2px 로 줄이고, 남는 높이는
+   MainController._apply_chat_input_height() 가 폰트 기준으로 맞춘다. */
+QPlainTextEdit#chatInputEdit {
+    padding: 2px 10px;
+}
+
 /* ---------- 콤보박스 드롭다운 ---------- */
 QComboBox::drop-down {
     border: none;
@@ -943,3 +952,53 @@ QLabel[status="pending"] {
     height: 5px;
 }
 #imageCardProgress::chunk { background-color: #0067b8; border-radius: 3px; }
+
+/* ---------- 버튼 위계 (4cut primaryAction / subtleButton / dangerButton) ----------
+   카드의 세 버튼이 같은 무게로 경쟁하지 않도록 역할을 나눈다.
+   색은 이 테마 팔레트에서만 가져온다 (강조 #0067b8 / 위험 #C42B1C). */
+QPushButton#primaryAction {
+    background-color: #0067b8;
+    color: #ffffff;
+    border: 1px solid #0067b8;
+    border-radius: 6px;
+    font-weight: 600;
+}
+QPushButton#primaryAction:hover {
+    background-color: #0078D4;
+    border-color: #0078D4;
+}
+QPushButton#primaryAction:pressed {
+    background-color: #005494;
+    border-color: #005494;
+}
+
+QPushButton#subtleButton {
+    background-color: transparent;
+    color: #5c5c5c;
+    border: 1px solid #b8b8b8;
+    border-radius: 6px;
+}
+QPushButton#subtleButton:hover {
+    background-color: #f0f0f0;
+    color: #1a1a1a;
+    border-color: #9a9a9a;
+}
+QPushButton#subtleButton:pressed {
+    background-color: #e4e4e4;
+    color: #2a2a2a;
+}
+
+QPushButton#dangerButton {
+    background-color: transparent;
+    color: #C42B1C;
+    border: 1px solid #C42B1C;
+    border-radius: 6px;
+}
+QPushButton#dangerButton:hover {
+    background-color: #C42B1C;
+    color: #ffffff;
+}
+QPushButton#dangerButton:pressed {
+    background-color: #A62A22;
+    color: #ffffff;
+}
