@@ -178,6 +178,9 @@ class MainController(QObject):
             BASE_DIR / "workflows" / "app_config.json"
         )
         self.config = self.config_manager.get()
+        # 목록 로딩은 1초쯤 걸리므로, 설정에 있는 모델명을 먼저 기억한다.
+        # (그 전에 전송하면 "ComfyUI 모델을 선택해주세요" 로 막힌다)
+        self._last_comfy_model = str(self.config.comfyui.model or "")
         self.model_fetcher = get_model_fetcher(self.config_manager)
         self.model_status_service = ModelStatusService(self.model_fetcher)
         self.model_registry = get_model_registry()
@@ -414,6 +417,7 @@ class MainController(QObject):
         self._pending_card = None
         self._pending_card_done = None
         self._pending_original_prompt = ""
+        # (_last_comfy_model 은 __init__ 초반에 config 에서 이미 채운다)
         self._refresh_send_state()
 
         # P9: 접근성 이름 + 라이브 리전 + 인라인 에러 라벨
@@ -719,10 +723,15 @@ class MainController(QObject):
     def _on_new_chat_clicked(self) -> None:
         """P1: 채팅 영역 비우기. P6: 세션 저장 후 새 세션 생성."""
         if self._is_generating():
-            self.append_log("생성 중에는 새 대화를 시작할 수 없어요. 기다리거나 취소해주세요.")
-            return
+            # 살아있는 워커를 먼저 정리한다. 워커가 갇혀 있으면
+            # _is_generating() 이 계속 True 라 이후 모든 동작이 막힌다
+            # (새 대화 거부 → 전송 버튼 비활성 → 세션이 비어 저장).
+            self._abandon_stale_generation()
         try:
             self._flush_session()
+            # P20: 카드/worker 정리는 위젯을 지우기 전에 해야 한다.
+            # (_remove_* 가 채팅 레이아웃을 참조하므로 순서가 뒤집히면 죽는다)
+            self._reset_generation_cards()
             manager = getattr(self, "session_manager", None)
             if manager is not None:
                 self._current_session = manager.new_session(
@@ -733,6 +742,43 @@ class MainController(QObject):
             self._clear_chat_widgets()
         except RuntimeError:
             logger.debug("새 대화 시작 실패", exc_info=True)
+
+    def _abandon_stale_generation(self) -> None:
+        """갇힌 워커를 포기하고 생성 상태를 해제한다.
+
+        정상 종료 경로( generation_finished / 오류 )를 타지 못한 워커가
+        남아 있으면 _is_genering() 이 영원히 True 라
+        새 대화·전송·세션 전환이 전부 막힌다. 사용자가 새 대화를 누른
+        시점에 배럴 정리하고 UI 를 복구한다.
+        """
+        worker = getattr(self, "worker", None)
+        if worker is not None:
+            try:
+                worker.stop_requested = True
+            except (AttributeError, RuntimeError):
+                pass
+            self.append_log("이전 생성이 남아 있어 초기화했습니다.")
+        self._reset_generation_cards()
+
+    def _reset_generation_cards(self) -> None:
+        """P20: 세션 전환·초기화 시 생성 관련 상태를 전부 되돌린다.
+
+        _pending_card 가 남아 있으면 새 세션에서 생성 완료를 처리하려 들고,
+        _pending_chat 이 남아 있으면 이전 세션의 요청이 새 세션에 붙는다.
+        worker 가 살아 있으면 전송 버튼이 비활성 상태로 굳는다.
+        """
+        self._remove_prompt_card()
+        self._remove_pending_card()
+        self._pending_card_done = None
+        self._pending_chat = None
+        self._pending_original_prompt = ""
+        with self._generation_lock:
+            self.worker = None
+        try:
+            self._set_send_button_state(False)
+            self._set_ui_enabled(True)
+        except (RuntimeError, AttributeError):
+            logger.debug("전송 버튼 상태 복구 실패", exc_info=True)
 
     def _clear_chat_widgets(self) -> None:
         """채팅 위젯 전부 제거 (spacer 유지)."""
@@ -1021,6 +1067,7 @@ class MainController(QObject):
     def _switch_session(self, session_id: str, silent: bool = False) -> bool:
         """P6: 세션 전환 (생성 중 차단)."""
         if self._is_generating():
+            # 갇힌 워커는 여기서 배럴 정리한다 (방치하면 세션 전환 불가).
             if not silent:
                 self.append_log("생성 중에는 세션을 전환할 수 없어요.")
             return False
@@ -1036,6 +1083,8 @@ class MainController(QObject):
                 return False
             self._current_session = session
             self._chat_log = []
+            # P20: 세션 전환 시 카드/worker 초기화 (새 대화와 동일).
+            self._reset_generation_cards()
             self._clear_chat_widgets()
             for record in session.get("messages", []):
                 if not isinstance(record, dict):
@@ -1208,6 +1257,8 @@ class MainController(QObject):
                         if current.get("session_id") == sid:
                             self._current_session = None
                             self._chat_log = []
+                            # P20: 카드/worker 초기화
+                            self._reset_generation_cards()
                             self._clear_chat_widgets()
                         self._refresh_session_views()
             elif chosen == copy_action:
@@ -2535,7 +2586,12 @@ class MainController(QObject):
         self._set_progress_status("준비 완료")
 
     def _comfy_model_file(self) -> str:
-        """P4: 피커 표시명과 무관하게 정확한 ComfyUI 모델 파일명을 반환."""
+        """P4: 피커 표시명과 무관하게 정확한 ComfyUI 모델 파일명을 반환.
+
+        모델 목록은 비동기로 늦게 채워진다(실측 1초 정도). 그 전에
+        전송하면 여기서 빈 문자열이 나와 "ComfyUI 모델을 선택해주세요"
+        로 막힌다. 목록이 아직이면 마지막으로 확정된 모델명을 대신 쓴다.
+        """
         try:
             combo = self.find(QComboBox, "comfyModelCombo")
             if combo is None:
@@ -2543,9 +2599,18 @@ class MainController(QObject):
             data = combo.currentData()
             if data:
                 return str(data)
-            return combo.currentText() or ""
+            text = combo.currentText()
+            if text and text != "로드된 모델 없음":
+                return text
+            # 목록 미로딩: 마지막 확정 값을 재사용한다.
+            return str(getattr(self, "_last_comfy_model", "") or "")
         except RuntimeError:
-            return ""
+            return str(getattr(self, "_last_comfy_model", "") or "")
+
+    def _remember_comfy_model(self, filename: str) -> None:
+        """확정된 모델명을 기억한다 (목록 비어 있어도 복구용)."""
+        if filename and filename != "로드된 모델 없음":
+            self._last_comfy_model = filename
 
     def _set_comfy_model_file(self, filename: str) -> bool:
         """P4: 정확한 파일명으로 피커 선택 (표시명 기준 setCurrentText 대체)."""
@@ -2629,9 +2694,15 @@ class MainController(QObject):
                     row, tooltip, Qt.ItemDataRole.ToolTipRole)
             if self.config.comfyui.model in supported:
                 self._set_comfy_model_file(self.config.comfyui.model)
+            elif supported:
+                # 설정에 없거나 목록과 안 맞으면 첫 항목으로 선택한다.
+                # (비워두면 "ComfyUI 모델을 선택해주세요" 로 막힌다)
+                comfy_combo.setCurrentIndex(0)
         else:
             comfy_combo.addItem("로드된 모델 없음")
         comfy_combo.blockSignals(False)
+        # 목록이 비는 순간에도 쓸 수 있도록 확정 모델명을 기억한다.
+        self._remember_comfy_model(self._comfy_model_file())
         self.log_model_list("LM Studio", lm_models)
         hidden = [f for f in (comfy_models or []) if f not in supported]
         self.log_model_list("ComfyUI", supported)
@@ -2913,6 +2984,8 @@ class MainController(QObject):
         file_exists = config_path.exists()
         self.config = self.config_manager.load()
         self.config_manager.set_config(self.config)
+        # 설정 파일의 모델명을 먼저 기억한다 (목록 로딩 전 전송 대비).
+        self._remember_comfy_model(self.config.comfyui.model)
 
         if file_exists:
             message = f"저장된 설정을 불러왔습니다. ({config_path.name})"
@@ -2937,6 +3010,9 @@ class MainController(QObject):
         if self.config.comfyui.model:
             # P4: 표시명이 아닌 itemData(정확한 파일명) 기준으로 복원
             self._set_comfy_model_file(self.config.comfyui.model)
+            # 목록이 아직 안 차 있어 복원이 실패할 수 있으므로
+            # 설정값을 기억해 두어 즉시 전송해도 모델이 비지 않게 한다.
+            self._remember_comfy_model(self.config.comfyui.model)
 
         model_paths = self.config_manager.get_model_base_paths()
         if model_paths:
@@ -3791,6 +3867,30 @@ class MainController(QObject):
                 self._flush_session()
             except Exception as e:
                 logger.warning("채팅 이미지 카드 추가 실패: %s", e, exc_info=True)
+            return
+
+        # P20: _pending_chat 이 없어도(세션 전환·실패 후 등) 이미지가 도착했다면
+        # 화면에 남은 "생성 중" 카드는 반드시 미리보기로 바꿔야 한다.
+        # (이 분기가 없으면 카드가 "생성 중" 에 영구히 멈춘다)
+        if getattr(self, "_pending_card", None) is not None:
+            try:
+                snapshot = self.capture_snapshot()
+                started = getattr(self, "generation_started_at", None)
+                if started is not None:
+                    elapsed = format_elapsed(int(time.monotonic() - started))
+                else:
+                    elapsed = "?초"
+                model_name = str(snapshot.get("comfy_model", ""))
+                model_stem = Path(model_name).stem if model_name else "모델"
+                meta = (f"{model_stem} · {snapshot.get('width', '?')}x"
+                        f"{snapshot.get('height', '?')} · 시드 "
+                        f"{snapshot.get('seed', '?')} · {elapsed} 소요")
+                enhanced = self.find(QPlainTextEdit, "enhancePromptEdit")
+                prompt_text = enhanced.toPlainText().strip() if enhanced else ""
+                self._finish_pending_card(path, meta)
+                self._flush_session()
+            except Exception as e:
+                logger.warning("생성 중 카드 전환 실패: %s", e, exc_info=True)
 
     def save_image_as(self):
         if not self.current_image_path:
