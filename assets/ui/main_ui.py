@@ -91,26 +91,27 @@ class Ui_MainWindow(object):
         self.railLayout = QVBoxLayout(self.railFrame)
         self.railLayout.setSpacing(6)
         self.railLayout.setObjectName(u"railLayout")
+        self.railLayout.setContentsMargins(8, 8, 8, 8)
         self.railHomeBtn = QPushButton(self.railFrame)
         self.railHomeBtn.setObjectName(u"railHomeBtn")
-        self.railHomeBtn.setMinimumSize(QSize(55, 55))
-        self.railHomeBtn.setMaximumSize(QSize(55, 55))
+        self.railHomeBtn.setMinimumSize(QSize(60, 55))
+        self.railHomeBtn.setMaximumSize(QSize(60, 55))
         self.railHomeBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
         self.railLayout.addWidget(self.railHomeBtn)
 
         self.railOptionsBtn = QPushButton(self.railFrame)
         self.railOptionsBtn.setObjectName(u"railOptionsBtn")
-        self.railOptionsBtn.setMinimumSize(QSize(55, 55))
-        self.railOptionsBtn.setMaximumSize(QSize(55, 55))
+        self.railOptionsBtn.setMinimumSize(QSize(60, 55))
+        self.railOptionsBtn.setMaximumSize(QSize(60, 55))
         self.railOptionsBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
         self.railLayout.addWidget(self.railOptionsBtn)
 
         self.railHistoryBtn = QPushButton(self.railFrame)
         self.railHistoryBtn.setObjectName(u"railHistoryBtn")
-        self.railHistoryBtn.setMinimumSize(QSize(55, 55))
-        self.railHistoryBtn.setMaximumSize(QSize(55, 55))
+        self.railHistoryBtn.setMinimumSize(QSize(60, 55))
+        self.railHistoryBtn.setMaximumSize(QSize(60, 55))
         self.railHistoryBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
         self.railLayout.addWidget(self.railHistoryBtn)
@@ -121,16 +122,16 @@ class Ui_MainWindow(object):
 
         self.railHelpBtn = QPushButton(self.railFrame)
         self.railHelpBtn.setObjectName(u"railHelpBtn")
-        self.railHelpBtn.setMinimumSize(QSize(55, 55))
-        self.railHelpBtn.setMaximumSize(QSize(55, 55))
+        self.railHelpBtn.setMinimumSize(QSize(60, 55))
+        self.railHelpBtn.setMaximumSize(QSize(60, 55))
         self.railHelpBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
         self.railLayout.addWidget(self.railHelpBtn)
 
         self.railSettingsBtn = QPushButton(self.railFrame)
         self.railSettingsBtn.setObjectName(u"railSettingsBtn")
-        self.railSettingsBtn.setMinimumSize(QSize(55, 55))
-        self.railSettingsBtn.setMaximumSize(QSize(55, 55))
+        self.railSettingsBtn.setMinimumSize(QSize(60, 55))
+        self.railSettingsBtn.setMaximumSize(QSize(60, 55))
         self.railSettingsBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
         self.railLayout.addWidget(self.railSettingsBtn)

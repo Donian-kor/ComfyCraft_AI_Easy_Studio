@@ -38,6 +38,10 @@ QPushButton#railSettingsBtn {
     border-radius: 8px;
     color: #9a9a9a;
     font-size: 13px;
+    /* 레일 폭 76px - 좌우 margin 8px*2 = 60px 을 글자에 전부 준다.
+       Qt 기본 패딩(~4px)과 border(1px)가 겹치면 sizeHint(60px) 가
+       55px 로 잘려 "옵션/이력/설정" 의 좌우 글자가 짤린다. */
+    padding: 0px;
 }
 QPushButton#railHomeBtn:hover,
 QPushButton#railOptionsBtn:hover,
