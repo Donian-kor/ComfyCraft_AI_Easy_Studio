@@ -23,7 +23,27 @@ from app.paths import BASE_DIR, HELP_DIALOG_FILE
 
 
 def show_help_dialog(controller):
-    """도움말 다이얼로그(v2: 좌우 분할)를 표시한다. 비모달 방식으로 메인 화면과 병행 사용 가능."""
+    """도움말 다이얼로그(v2: 좌우 분할)를 표시한다. 비모달 방식으로 메인 화면과 병행 사용 가능.
+
+    회귀: 레일 도움말 버튼을 반복해서 누르면 창이 계속 새로 생겼다.
+    매 호출마다 load_dialog_ui() 로 새 QDialog 을 만들었기 때문이다.
+    이제 controller 에 인스턴스를 보관해 재사용하고(중복 창 방지),
+    이미 떠 있으면 그냥 앞으로 올린다(포커스 복귀).
+    """
+    # 1) 이미 열려 있으면 새로 만들지 않고 기존 창만 앞으로 올린다.
+    existing = getattr(controller, "_help_dialog", None)
+    if existing is not None:
+        try:
+            if existing.isVisible():
+                existing.raise_()
+                existing.activateWindow()
+                return
+            # 닫힌 상태면 아래에서 새로 만든다(구버전 인스턴스 폐기).
+        except RuntimeError:
+            # C++ 쪽이 이미 파괴된 경우 → 새로 만든다.
+            existing = None
+            controller._help_dialog = None
+
     try:
         dlg = load_dialog_ui(HELP_DIALOG_FILE, controller.window)
     except Exception as e:  # noqa: BLE001 (ui 로드 실패 시 알림)
@@ -34,6 +54,13 @@ def show_help_dialog(controller):
             f"도움말 화면 파일을 열 수 없습니다.\n({HELP_DIALOG_FILE.name}: {e})",
         )
         return
+
+    # 컨트롤러가 소유해 재사용/정리한다. dialog 를 지역변수로만 두면
+    # 다음 클릭 때 새 창이 또 만들어진다.
+    controller._help_dialog = dlg
+    # 창이 닫힐 때 컨트롤러의 참조를 정리해 좀비 인스턴스를 막는다.
+    dlg.finished.connect(lambda _=0, c=controller: setattr(c, "_help_dialog", None))
+    dlg.destroyed.connect(lambda _=None, c=controller: setattr(c, "_help_dialog", None))
 
     # UI 위젯 찾기
     section_list = dlg.findChild(QListWidget, "sectionListWidget")
@@ -259,8 +286,10 @@ def show_help_dialog(controller):
     # 필터 객체가 가비지 컬렉션되지 않도록 참조 유지
     setattr(dlg, "_help_mouse_filter", mouse_filter)
 
-    # ESC 키로 닫기
-    dlg.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+    # 창 표시 (비모달).
+    # WA_DeleteOnClose 를 켜 두면 닫는 순간 인스턴스가 파괴돼서
+    # 다음 클릭에 또 새 창이 만들어진다(무한 생성). 끄고 재사용한다.
+    dlg.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, False)
     dlg.setWindowModality(Qt.WindowModality.NonModal)  # 비모달
 
     # 창 표시 (비모달)
