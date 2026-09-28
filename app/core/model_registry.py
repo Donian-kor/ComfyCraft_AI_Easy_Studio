@@ -124,6 +124,11 @@ class ModelRegistry:
                 workflow_file=str(profile_data.get("workflow_file", "") or ""),
                 # 기준점(workflows/base/<base>.json). 없으면 workflow_type 으로 폴백.
                 base=str(profile_data.get("base", "") or ""),
+                # 기준점 자리표시자 확정값 (수동 등록에서 고른 값이 여기까지 실려온다).
+                clip_type=str(profile_data.get("clip_type", "") or "stable_diffusion"),
+                text_class=str(profile_data.get("text_class", "") or "CLIPTextEncode"),
+                text_field=str(profile_data.get("text_field", "") or "text"),
+                guidance=float(profile_data.get("guidance", 3.5)),
             )
             # JSON 출처 표시 — 같은 이름의 내장 프로필보다 우선한다.
             profile._from_json = True

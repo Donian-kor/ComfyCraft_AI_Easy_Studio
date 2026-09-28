@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QDoubleSpinBox,
     QFileDialog,
     QLabel,
+    QLayout,
     QLineEdit,
     QListWidget,
     QMessageBox,
@@ -22,7 +23,7 @@ from app.core import workflow_factory
 from app.gui.ui_loader import load_dialog_ui
 from app.paths import SETTINGS_DIALOG_FILE
 
-WORKFLOW_TYPES = ("checkpoint", "gguf", "flux_gguf", "zimage")
+BASE_NAMES = ("checkpoint_loadersimple", "unet_clploadergguf", "unet_dualclploadergguf")
 
 
 def apply_profile_status(label, message: str, ok: bool | None = None) -> None:
@@ -65,18 +66,18 @@ def validate_manual_profile(data: dict) -> list:
                 if p.strip()]
     if not patterns:
         errors.append("매칭 패턴을 1개 이상 입력하세요 (모델 파일명의 일부).")
-    if data.get("workflow_type") not in WORKFLOW_TYPES:
+    if data.get("workflow_type") not in BASE_NAMES:
         errors.append("워크플로우 종류를 선택하세요.")
     try:
         steps = int(data.get("steps", 0))
-        if not 1 <= steps <= 200:
-            errors.append("Steps는 1~200이어야 합니다.")
+        if not 1 <= steps <= 10000:
+            errors.append("Steps는 1~10000이어야 합니다.")
     except (TypeError, ValueError):
         errors.append("Steps는 숫자여야 합니다.")
     try:
         cfg = float(data.get("cfg", 0))
-        if not 0.1 <= cfg <= 30.0:
-            errors.append("CFG는 0.1~30.0이어야 합니다.")
+        if not 0.0 <= cfg <= 100.0:
+            errors.append("CFG는 0.0~100.0이어야 합니다.")
     except (TypeError, ValueError):
         errors.append("CFG는 숫자여야 합니다.")
     return errors
@@ -93,12 +94,17 @@ def profile_data_to_registry(data: dict) -> dict:
             "family": name,
             "aliases": patterns,
             "patterns": patterns,
-            "workflow_type": data.get("workflow_type", "checkpoint"),
+            "base": data.get("base", "checkpoint_loadersimple"),
+            "workflow_type": data.get("base", "checkpoint_loadersimple"),
+            "text_class": str(data.get("text_class", "") or ""),
+            "text_field": str(data.get("text_field", "") or ""),
+            "clip_type": str(data.get("clip_type", "stable_diffusion") or "stable_diffusion"),
+            "guidance": float(data.get("guidance", 3.5)),
             "default_clip1": str(data.get("clip1", "")).strip(),
             "default_clip2": str(data.get("clip2", "")).strip(),
             "default_vae": str(data.get("vae", "")).strip(),
-            "default_steps": int(data.get("steps", 20)),
-            "default_cfg": float(data.get("cfg", 7.0)),
+            "default_steps": int(data.get("steps", 25)),
+            "default_cfg": float(data.get("cfg", 4.5)),
             "sampler_name": str(data.get("sampler", "euler")),
             "scheduler": str(data.get("scheduler", "normal")),
             "priority": 50,
@@ -354,12 +360,108 @@ def _setup_model_tab(dlg, controller) -> None:
             pass
 
     def _current_wf_type() -> str:
-        combo = _child(QComboBox, "profileWorkflowCombo")
+        combo = _child(QComboBox, "profileBaseCombo")
         try:
-            value = combo.currentText().strip() if combo is not None else "checkpoint"
+            value = combo.currentText().strip() if combo is not None else ""
         except RuntimeError:
-            value = "checkpoint"
-        return value if value in WORKFLOW_TYPES else "checkpoint"
+            value = ""
+        return value if value in BASE_NAMES else "checkpoint_loadersimple"
+
+    # --- 텍스트 인코더 콤보(표시명 ↔ 내부 클래스명) ------------------------
+    _TEXT_CLASS_CHOICES = (
+        ("일반 (CLIPTextEncode)", "CLIPTextEncode", "text"),
+        ("ZImage 전용 (Omni)", "TextEncodeZImageOmni", "prompt"),
+    )
+
+    def _text_class_value() -> str:
+        combo = _child(QComboBox, "profileTextClassCombo")
+        try:
+            label = combo.currentText().strip() if combo is not None else ""
+        except RuntimeError:
+            return "CLIPTextEncode"
+        for display, cls, _field in _TEXT_CLASS_CHOICES:
+            if display == label:
+                return cls
+        return "CLIPTextEncode"
+
+    def _text_field_value() -> str:
+        for display, cls, field in _TEXT_CLASS_CHOICES:
+            if cls == _text_class_value():
+                return field
+        return "text"
+
+    def _set_text_class_value(cls: str) -> None:
+        combo = _child(QComboBox, "profileTextClassCombo")
+        if combo is None:
+            return
+        try:
+            for display, value, _field in _TEXT_CLASS_CHOICES:
+                if value == cls:
+                    idx = combo.findText(display)
+                    if idx >= 0:
+                        combo.setCurrentIndex(idx)
+                    return
+        except RuntimeError:
+            return
+
+    # --- 기준점별 필드 표시/숨김 -----------------------------------------
+    # A형: CLIP/VAE/종류/인코더/지시강도 전부 불필요
+    # B형: CLIP1 + VAE + CLIP 종류 + 텍스트 인코더
+    # C형: CLIP1 + CLIP2 + VAE + CLIP 종류 + 지시 강도
+    _BASE_FIELDS = {
+        "checkpoint_loadersimple": (),
+        "unet_clploadergguf": ("clip", "vae", "clip_type", "text_class"),
+        "unet_dualclploadergguf": ("clip", "clip2", "vae", "clip_type", "guidance"),
+    }
+    _ROW_FOR = {
+        "clip": "p8RowLayout_8",
+        "clip2": "p8RowLayout_9",
+        "vae": "p8RowLayout_10",
+        "clip_type": "p8RowLayout_clipType",
+        "text_class": "p8RowLayout_textClass",
+        "guidance": "p8RowLayout_guidance",
+    }
+
+    def _set_row_visible(row, visible: bool) -> None:
+        """QLayout 자체는 숨길 수 없으므로 그 안의 위젯들을 토글한다."""
+        try:
+            count = row.count()
+        except RuntimeError:
+            return
+        for i in range(count):
+            try:
+                item = row.itemAt(i)
+            except RuntimeError:
+                continue
+            if item is None:
+                continue
+            widget = item.widget()
+            if widget is not None:
+                try:
+                    widget.setVisible(visible)
+                except RuntimeError:
+                    pass
+
+    def _sync_base_fields() -> None:
+        base = _current_wf_type()
+        visible = set(_BASE_FIELDS.get(base, ()))
+        for key, layout_name in _ROW_FOR.items():
+            row = dlg.findChild(QLayout, layout_name)
+            if row is None:
+                continue
+            _set_row_visible(row, key in visible)
+
+    def _on_base_changed(*_args) -> None:
+        """기준점이 바뀌면 관련 행만 다시 표시한다."""
+        _sync_base_fields()
+        model_file = _text("profileModelFileEdit")
+        if model_file:
+            autocreate_workflow(model_file)
+
+    base_combo = _child(QComboBox, "profileBaseCombo")
+    if base_combo is not None:
+        base_combo.currentIndexChanged.connect(_on_base_changed)
+    _sync_base_fields()
 
     def _check_workflow(model_file: str) -> list:
         """지정된(또는 자동 생성된) 워크플로우를 검사한다. 오류 목록 반환."""
@@ -481,16 +583,20 @@ def _setup_model_tab(dlg, controller) -> None:
         return {
             "name": _text("profileNameEdit"),
             "patterns": _text("profilePatternsEdit"),
-            "workflow_type": combo_text("profileWorkflowCombo", "checkpoint"),
+            "base": combo_text("profileBaseCombo", "checkpoint_loadersimple"),
             "model_file": _text("profileModelFileEdit"),
             "workflow_file": _text("profileWorkflowFileEdit"),
             "steps": spin_value("profileStepsSpin", 0),
             "cfg": double_value("profileCfgSpin", 0.0),
             "sampler": combo_text("profileSamplerCombo", "euler"),
             "scheduler": combo_text("profileSchedulerCombo", "normal"),
-            "clip1": _text("profileClip1Edit"),
+            "clip1": _text("profileClipEdit"),
             "clip2": _text("profileClip2Edit"),
             "vae": _text("profileVaeEdit"),
+            "clip_type": combo_text("profileClipTypeCombo", "stable_diffusion"),
+            "text_class": _text_class_value(),
+            "text_field": _text_field_value(),
+            "guidance": double_value("profileGuidanceSpin", 3.5),
         }
 
     def refresh_file_combo() -> None:

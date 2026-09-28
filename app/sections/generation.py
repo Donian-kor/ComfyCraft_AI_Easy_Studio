@@ -533,6 +533,17 @@ class GenerationWorker:
             except Exception:
                 base_name = str(getattr(profile, "workflow_type", "") or "")
 
+        # 기준점 자리표시자 확정값 — 수동 등록에서 고른 값을 그대로 사용한다.
+        # 프로필에 없으면 getattr 기본값(deriver 와 동일한 기본값)을 쓴다.
+        profile_clip_type = str(getattr(profile, "clip_type", "") or "stable_diffusion")
+        profile_guidance = getattr(profile, "guidance", None)
+        if profile_guidance is None:
+            profile_guidance = 3.5
+        try:
+            profile_guidance = float(profile_guidance)
+        except (TypeError, ValueError):
+            profile_guidance = 3.5
+
         # 기준점 2: Unet + 단일 CLIP (ZImage 등)
         if base_wf is None and base_name == "unet_clploadergguf":
             required_nodes = ["UnetLoaderGGUF", "CLIPLoaderGGUF", "VAELoader", "KSampler"]
@@ -585,10 +596,10 @@ class GenerationWorker:
                 height=s["height"],
                 seed=seed,
                 steps=s["steps"],
-                guidance=max(1.0, s["cfg"]),
+                guidance=max(1.0, profile_guidance),
                 clip_name1=clip1,
                 clip_name2=clip2,
-                clip_type="flux",
+                clip_type=profile_clip_type,
                 vae_name=profile.select_vae(vaes),
                 sampler_name=s["sampler"],
                 scheduler=s["scheduler"],

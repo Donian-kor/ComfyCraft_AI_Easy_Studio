@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>500</width>
+    <width>593</width>
     <height>822</height>
    </rect>
   </property>
@@ -203,440 +203,584 @@
       </attribute>
       <layout class="QVBoxLayout" name="tabModelLayout">
        <item>
-        <widget class="QLabel" name="profileAutoLabel">
-         <property name="text">
-          <string>자동 판별 모델 (읽기 전용)</string>
+        <widget class="QTabWidget" name="modelSubTabs">
+         <property name="currentIndex">
+          <number>0</number>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QListWidget" name="profileAutoList">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>90</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>140</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="profileManualLabel">
-         <property name="text">
-          <string>수동 프로필 (고급 · 신규/예외 모델용)</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="p8RowLayout_modelFile">
-         <property name="spacing">
-          <number>8</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="label">
+         <widget class="QWidget" name="modelAutoTab">
+          <attribute name="title">
+           <string>자동 판별</string>
+          </attribute>
+          <widget class="QListWidget" name="profileAutoList">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>20</y>
+             <width>529</width>
+             <height>451</height>
+            </rect>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>90</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>11111111</height>
+            </size>
+           </property>
+           <property name="resizeMode">
+            <enum>QListView::ResizeMode::Fixed</enum>
+           </property>
+          </widget>
+          <widget class="QLabel" name="modelAutoHintLabel">
+           <property name="geometry">
+            <rect>
+             <x>30</x>
+             <y>520</y>
+             <width>491</width>
+             <height>40</height>
+            </rect>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>275</width>
+             <height>40</height>
+            </size>
+           </property>
            <property name="text">
-            <string>모델 파일</string>
+            <string>인식되지 않는 모델이 있으면 [수동 등록] 탭에서 직접 등록하세요.</string>
            </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="profileModelFileEdit">
-           <property name="placeholderText">
-            <string>예: my-model.safetensors</string>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignCenter</set>
            </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="profileModelFileBrowseBtn">
-           <property name="cursor">
-            <cursorShape>PointingHandCursor</cursorShape>
-           </property>
-           <property name="text">
-            <string>찾아보기</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="p8RowLayout_workflow">
-         <property name="spacing">
-          <number>8</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>워크플로우</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="profileWorkflowFileEdit">
-           <property name="placeholderText">
-            <string>모델 파일을 고르면 자동으로 만들어집니다</string>
-           </property>
-           <property name="readOnly">
+           <property name="wordWrap">
             <bool>true</bool>
            </property>
           </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="profileWorkflowBrowseBtn">
-           <property name="cursor">
-            <cursorShape>PointingHandCursor</cursorShape>
-           </property>
-           <property name="text">
-            <string>찾아보기</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="profileAiWorkflowBtn">
-           <property name="cursor">
-            <cursorShape>PointingHandCursor</cursorShape>
-           </property>
-           <property name="text">
-            <string>AI로 만들기 (실험적)</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="p8RowLayout_1">
-         <property name="spacing">
-          <number>8</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>프로필명</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="profileNameEdit">
-           <property name="placeholderText">
-            <string>예: my-model</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="p8RowLayout_2">
-         <property name="spacing">
-          <number>8</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>매칭 패턴</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="profilePatternsEdit">
-           <property name="placeholderText">
-            <string>파일명 일부, 쉼표 구분</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="p8RowLayout_3">
-         <property name="spacing">
-          <number>8</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>워크플로우 종류</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="profileWorkflowCombo">
+         </widget>
+         <widget class="QWidget" name="modelManualTab">
+          <attribute name="title">
+           <string>수동 등록</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="modelManualTabLayout">
            <item>
-            <property name="text">
-             <string>checkpoint</string>
-            </property>
+            <widget class="QLabel" name="profileManualLabel">
+             <property name="text">
+              <string>수동 프로필 (고급 · 신규/예외 모델용)</string>
+             </property>
+            </widget>
            </item>
            <item>
-            <property name="text">
-             <string>gguf</string>
-            </property>
+            <layout class="QHBoxLayout" name="p8RowLayout_modelFile">
+             <property name="spacing">
+              <number>8</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>모델 파일</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="profileModelFileEdit">
+               <property name="placeholderText">
+                <string>예: my-model.safetensors</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="profileModelFileBrowseBtn">
+               <property name="cursor">
+                <cursorShape>PointingHandCursor</cursorShape>
+               </property>
+               <property name="text">
+                <string>찾아보기</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
-            <property name="text">
-             <string>flux_gguf</string>
-            </property>
+            <layout class="QHBoxLayout" name="p8RowLayout_workflow">
+             <property name="spacing">
+              <number>8</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>워크플로우</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="profileWorkflowFileEdit">
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+               <property name="placeholderText">
+                <string>모델 파일을 고르면 자동으로 만들어집니다</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="profileWorkflowBrowseBtn">
+               <property name="cursor">
+                <cursorShape>PointingHandCursor</cursorShape>
+               </property>
+               <property name="text">
+                <string>찾아보기</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="profileAiWorkflowBtn">
+               <property name="cursor">
+                <cursorShape>PointingHandCursor</cursorShape>
+               </property>
+               <property name="text">
+                <string>AI로 만들기 (실험적)</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
-            <property name="text">
-             <string>zimage</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="p8RowLayout_4">
-         <property name="spacing">
-          <number>8</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>Steps</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QSpinBox" name="profileStepsSpin">
-           <property name="minimum">
-            <number>1</number>
-           </property>
-           <property name="maximum">
-            <number>200</number>
-           </property>
-           <property name="singleStep">
-            <number>1</number>
-           </property>
-           <property name="value">
-            <number>20</number>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="p8RowLayout_5">
-         <property name="spacing">
-          <number>8</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>CFG</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QDoubleSpinBox" name="profileCfgSpin">
-           <property name="minimum">
-            <double>0.100000000000000</double>
-           </property>
-           <property name="maximum">
-            <double>30.000000000000000</double>
-           </property>
-           <property name="singleStep">
-            <double>0.100000000000000</double>
-           </property>
-           <property name="value">
-            <double>7.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="p8RowLayout_6">
-         <property name="spacing">
-          <number>8</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>샘플러</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="profileSamplerCombo">
-           <item>
-            <property name="text">
-             <string>euler</string>
-            </property>
+            <layout class="QHBoxLayout" name="p8RowLayout_1">
+             <property name="spacing">
+              <number>8</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>프로필명</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="profileNameEdit">
+               <property name="placeholderText">
+                <string>예: my-model</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
-            <property name="text">
-             <string>dpmpp_2m</string>
-            </property>
+            <layout class="QHBoxLayout" name="p8RowLayout_2">
+             <property name="spacing">
+              <number>8</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>매칭 패턴</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="profilePatternsEdit">
+               <property name="placeholderText">
+                <string>파일명 일부, 쉼표 구분</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
-            <property name="text">
-             <string>dpmpp_2m_sde</string>
-            </property>
+            <layout class="QHBoxLayout" name="p8RowLayout_3">
+             <property name="spacing">
+              <number>8</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>워크플로우 종류</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="profileBaseCombo">
+               <item>
+                <property name="text">
+                 <string>checkpoint_loadersimple</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>unet_clploadergguf</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>unet_dualclploadergguf</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
-            <property name="text">
-             <string>euler_ancestral</string>
-            </property>
+            <layout class="QHBoxLayout" name="p8RowLayout_clipType">
+             <property name="spacing">
+              <number>8</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>CLIP 종류</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="profileClipTypeCombo">
+               <item>
+                <property name="text">
+                 <string>stable_diffusion</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>flux</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>sd3</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
-            <property name="text">
-             <string>lcm</string>
-            </property>
+            <layout class="QHBoxLayout" name="p8RowLayout_textClass">
+             <property name="spacing">
+              <number>8</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>문장 변환 방식</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="profileTextClassCombo">
+               <item>
+                <property name="text">
+                 <string>일반 (CLIPTextEncode)</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>ZImage 전용 (Omni)</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
-            <property name="text">
-             <string>ddim</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="p8RowLayout_7">
-         <property name="spacing">
-          <number>8</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>스케줄러</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="profileSchedulerCombo">
-           <item>
-            <property name="text">
-             <string>normal</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>karras</string>
-            </property>
+            <layout class="QHBoxLayout" name="p8RowLayout_guidance">
+             <property name="spacing">
+              <number>8</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>지시 강도</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDoubleSpinBox" name="profileGuidanceSpin">
+               <property name="minimum">
+                <double>0.000000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>10.000000000000000</double>
+               </property>
+               <property name="singleStep">
+                <double>0.100000000000000</double>
+               </property>
+               <property name="value">
+                <double>3.500000000000000</double>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
-            <property name="text">
-             <string>exponential</string>
-            </property>
+            <layout class="QHBoxLayout" name="p8RowLayout_4">
+             <property name="spacing">
+              <number>8</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>Steps</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="profileStepsSpin">
+               <property name="minimum">
+                <number>1</number>
+               </property>
+               <property name="maximum">
+                <number>10000</number>
+               </property>
+               <property name="singleStep">
+                <number>1</number>
+               </property>
+               <property name="value">
+                <number>25</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
-            <property name="text">
-             <string>simple</string>
-            </property>
+            <layout class="QHBoxLayout" name="p8RowLayout_5">
+             <property name="spacing">
+              <number>8</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>CFG</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDoubleSpinBox" name="profileCfgSpin">
+               <property name="minimum">
+                <double>0.000000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>100.000000000000000</double>
+               </property>
+               <property name="singleStep">
+                <double>0.100000000000000</double>
+               </property>
+               <property name="value">
+                <double>4.500000000000000</double>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="p8RowLayout_8">
-         <property name="spacing">
-          <number>8</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>CLIP 1</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="profileClip1Edit">
-           <property name="placeholderText">
-            <string>선택 사항</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="p8RowLayout_9">
-         <property name="spacing">
-          <number>8</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>CLIP 2</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="profileClip2Edit">
-           <property name="placeholderText">
-            <string>선택 사항</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="p8RowLayout_10">
-         <property name="spacing">
-          <number>8</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>VAE</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="profileVaeEdit">
-           <property name="placeholderText">
-            <string>선택 사항</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="p8RowLayout_11">
-         <property name="spacing">
-          <number>8</number>
-         </property>
-         <item>
-          <widget class="QPushButton" name="profileDeleteBtn">
-           <property name="cursor">
-            <cursorShape>PointingHandCursor</cursorShape>
-           </property>
-           <property name="text">
-            <string>프로필 삭제</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="profileFileCombo"/>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <widget class="QLabel" name="profileValidateLabel">
-         <property name="accessibleName">
-          <string>수동 프로필 검증 결과</string>
-         </property>
-         <property name="text">
-          <string>신규 프로필 정보를 입력하고 [모델 정보 저장]을 누르세요.</string>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="profileSaveBtn">
-         <property name="cursor">
-          <cursorShape>PointingHandCursor</cursorShape>
-         </property>
-         <property name="text">
-          <string>모델 정보 저장</string>
-         </property>
+           <item>
+            <layout class="QHBoxLayout" name="p8RowLayout_6">
+             <property name="spacing">
+              <number>8</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>샘플러</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="profileSamplerCombo">
+               <item>
+                <property name="text">
+                 <string>euler</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>dpmpp_2m</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>dpmpp_2m_sde</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>euler_ancestral</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>lcm</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>ddim</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="p8RowLayout_7">
+             <property name="spacing">
+              <number>8</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>스케줄러</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="profileSchedulerCombo">
+               <item>
+                <property name="text">
+                 <string>normal</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>karras</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>exponential</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>simple</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="p8RowLayout_8">
+             <property name="spacing">
+              <number>8</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>CLIP 1</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="profileClipEdit">
+               <property name="placeholderText">
+                <string>선택 사항</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="p8RowLayout_9">
+             <property name="spacing">
+              <number>8</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>CLIP 2</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="profileClip2Edit">
+               <property name="placeholderText">
+                <string>선택 사항</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="p8RowLayout_10">
+             <property name="spacing">
+              <number>8</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>VAE</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="profileVaeEdit">
+               <property name="placeholderText">
+                <string>선택 사항</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="p8RowLayout_11">
+             <property name="spacing">
+              <number>8</number>
+             </property>
+             <item>
+              <widget class="QPushButton" name="profileDeleteBtn">
+               <property name="cursor">
+                <cursorShape>PointingHandCursor</cursorShape>
+               </property>
+               <property name="text">
+                <string>프로필 삭제</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="profileFileCombo"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QLabel" name="profileValidateLabel">
+             <property name="accessibleName">
+              <string>수동 프로필 검증 결과</string>
+             </property>
+             <property name="text">
+              <string>신규 프로필 정보를 입력하고 [모델 정보 저장]을 누르세요.</string>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="profileSaveBtn">
+             <property name="cursor">
+              <cursorShape>PointingHandCursor</cursorShape>
+             </property>
+             <property name="text">
+              <string>모델 정보 저장</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
         </widget>
        </item>
       </layout>

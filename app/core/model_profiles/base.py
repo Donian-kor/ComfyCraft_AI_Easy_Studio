@@ -24,6 +24,22 @@ class ModelProfile:
     # 기준점(base) 이름 — workflows/base/<base>.json 과 1:1 대응.
     # 빈 값이면 workflow_type 으로 폴백한다.
     base: str = ""
+    # 기준점 워크플로우의 자리표시자를 확정하는 값 (workflow_deriver 와 동일 키).
+    # 수동 등록 다이얼로그에서 고른 값이 여기까지 실려와야 파생에 반영된다.
+    clip_type: str = "stable_diffusion"
+    text_class: str = "CLIPTextEncode"
+    text_field: str = "text"
+    guidance: float = 3.5
+
+    def deriver_fields(self) -> dict:
+        """workflow_deriver.build_derived() 가 쓰는 자리표시자 값."""
+        return {
+            "base": self.resolved_base(),
+            "clip_type": self.clip_type,
+            "text_class": self.text_class,
+            "text_field": self.text_field,
+            "guidance": self.guidance,
+        }
 
     def matches(self, model_name: str) -> bool:
         if not model_name:
