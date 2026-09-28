@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
-"""P2: 채팅 메시지 + 이미지 카드 위젯 (껍데기, 로직 없음).
+"""P2: 채팅 말풍선 + 카드 위젯 (껍데기, 로직 없음).
 
 - ChatMessage: role(user/ai/system)별 말풍선. action_row는 P4/P6 버튼이 얹히는 자리.
-- ImageCard: 이미지 + 메타 + 프롬프트 접기/복사 + 저장/복사 버튼.
-  [수정 요청] 버튼은 P6에서 추가된다.
+- PromptCard: AI 가 다듬은 프롬프트 확인 카드 (편집 가능).
+- GenerationCard: 생성 중 카드 (상태 + 진행률 + 취소).
+- ImageCard: 완성 이미지 + 메타 + 프롬프트 접기/복사 + 저장/복사/수정 요청.
+
+위젯은 상태를 갖지 않는다. 어떤 카드를 그릴지는 ChatViewManager 가
+세션 메시지(kind/metadata)로부터 결정한다.
 """
 from __future__ import annotations
 
@@ -211,11 +215,11 @@ class PromptCard(QFrame):
 
 
 class ImageCard(QFrame):
-    """생성 이미지 1장 + 메타 + 프롬프트 접기 + 저장/복사.
+    """완성 이미지 1장 + 메타 + 프롬프트 접기 + 저장/복사.
 
-    P20: 생성 중 상태를 이 위젯 하나로 표현한다.
-      - set_state_pending() : 빈 이미지 영역 + "생성 중" 표시
-      - set_state_ready()   : 실제 이미지로 전환 (같은 카드 재사용)
+    생성 중 상태는 이 카드가 아니라 GenerationCard 가 담당한다.
+    (생성 중 → 완료 전환은 메시지 kind 변경으로 표현되므로 카드를
+     상태 머신으로 두지 않는다)
     """
 
     IMAGE_WIDTH = 480
@@ -329,154 +333,48 @@ class ImageCard(QFrame):
         actions.addStretch(1)
         layout.addLayout(actions)
 
-    # -- P20 상태 전환 (생성 중 → 완료, 같은 카드 재사용) -------------------
-    def set_state_pending(self, status_text: str = "이미지 생성 중...") -> None:
-        """생성 중 상태로 전환 (이미지 영역 자리에 진행 표시)."""
-        self.pending_label.setText(status_text)
-        self.pending_label.setVisible(True)
-        self.progress_bar.setVisible(True)
-        self.progress_bar.setValue(0)
-        self.image_label.setVisible(False)
-        # 아직 결과물이 없으므로 결과 전용 UI 는 숨긴다.
-        self.save_button.setVisible(False)
-        self.copy_button.setVisible(False)
-        self.reuse_button.setVisible(False)
-        self.prompt_toggle.setVisible(False)
-        self.prompt_label.setVisible(False)
-        self.prompt_copy_button.setVisible(False)
-        self.meta_label.setVisible(False)
 
-    def set_progress(self, percent: int, status_text: str = "") -> None:
-        """진행률/상태 텍스트 갱신 (생성 중에만 의미 한다).
+class GenerationCard(QFrame):
+    """P20: 생성 중 카드 (프로그레스 + 상태 텍스트 + 취소).
 
-        percent 가 None 이거나 숫자가 아니면 진행률은 그대로 두고
-        텍스트만 바꾼다. (worker 의 status 신호는 값 없이 텍스트만 보낸다)
-        """
-        if status_text:
-            self.pending_label.setText(status_text)
-        if percent is None:
-            return
-        try:
-            value = int(percent)
-        except (TypeError, ValueError):
-            return
-        self.progress_bar.setValue(max(0, min(100, value)))
-
-    def set_state_ready(self, image_path: str, meta_text: str = "") -> None:
-        """완료 상태로 전환 — 생성 중이었던 이 카드가 미리보기가 된다."""
-        self.pending_label.setVisible(False)
-        self.progress_bar.setVisible(False)
-        self.image_label.setVisible(True)
-        self.image_label.setText("")
-        pixmap = QPixmap(image_path) if image_path else QPixmap()
-        if pixmap.isNull():
-            self.image_label.setText("이미지를 불러올 수 없습니다.")
-        else:
-            scaled = pixmap.scaledToWidth(
-                self.IMAGE_WIDTH, Qt.TransformationMode.SmoothTransformation
-            )
-            self.image_label.setPixmap(scaled)
-        if meta_text:
-            self.meta_label.setText(meta_text)
-        self.meta_label.setVisible(True)
-        self.save_button.setVisible(True)
-        self.copy_button.setVisible(True)
-        self.prompt_toggle.setVisible(True)
-        self.prompt_copy_button.setVisible(True)
-
-
-class GenerationStatusBubble(QFrame):
-    """P3: 생성 중 상태 말풍선 (상태 텍스트 + 진행률 + 경과 + 취소).
-
-    테두리 펄스는 QTimer 기반 QSS 전환. pulse_enabled=False면 정적
-    테두리만 표시한다 (P9에서 모션 감소 설정과 연결 예정).
+    4cut 의 GenerationCard 를 단일 이미지 생성에 맞게 줄인 버전이다.
+    상태를 갖지 않으며 set_status/set_progress 로만 갱신된다.
     """
-
-    PULSE_MS = 600
-    BORDER_A = "#0078D4"
-    BORDER_B = "#4AA3F0"
 
     def __init__(self, on_cancel: Optional[Callable[[], None]] = None,
                  parent=None):
         super().__init__(parent)
-        self.setObjectName("statusBubble")
-        self.pulse_enabled = True
-        self._pulse_phase = False
-        self._started_at: Optional[float] = None
+        self.setObjectName("generationCard")
+        self.setFrameShape(QFrame.Shape.StyledPanel)
 
         layout = QVBoxLayout(self)
-        layout.setSpacing(6)
+        layout.setSpacing(8)
 
         self.status_label = QLabel("이미지 생성 중...")
-        self.status_label.setObjectName("statusBubbleText")
+        self.status_label.setObjectName("generationCardStatus")
         self.status_label.setWordWrap(True)
         layout.addWidget(self.status_label)
 
-        self.bar = QProgressBar()
-        self.bar.setObjectName("statusBubbleBar")
-        self.bar.setRange(0, 100)
-        self.bar.setValue(0)
-        self.bar.setTextVisible(False)
-        layout.addWidget(self.bar)
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setObjectName("generationCardBar")
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+        self.progress_bar.setTextVisible(False)
+        layout.addWidget(self.progress_bar)
 
-        bottom = QHBoxLayout()
-        bottom.setSpacing(8)
-        self.elapsed_label = QLabel("")
-        self.elapsed_label.setObjectName("statusBubbleElapsed")
-        bottom.addWidget(self.elapsed_label)
-        bottom.addStretch(1)
         self.cancel_button = QPushButton("■ 취소")
-        self.cancel_button.setObjectName("statusBubbleCancel")
+        self.cancel_button.setObjectName("generationCardCancel")
+        self.cancel_button.setAccessibleName("생성 취소")
         if on_cancel is not None:
             self.cancel_button.clicked.connect(on_cancel)
-        bottom.addWidget(self.cancel_button)
-        layout.addLayout(bottom)
-
-        self._pulse_timer = QTimer(self)
-        self._pulse_timer.setInterval(self.PULSE_MS)
-        self._pulse_timer.timeout.connect(self._toggle_pulse)
-        self._clock_timer = QTimer(self)
-        self._clock_timer.setInterval(1000)
-        self._clock_timer.timeout.connect(self._tick_clock)
-
-        self._apply_border(self.BORDER_A)
-
-    def _apply_border(self, color: str) -> None:
-        self.setStyleSheet(
-            f"#statusBubble {{ border: 2px solid {color}; border-radius: 8px; }}")
-
-    def _toggle_pulse(self) -> None:
-        self._pulse_phase = not self._pulse_phase
-        self._apply_border(
-            self.BORDER_B if self._pulse_phase else self.BORDER_A)
-
-    def start(self, started_at_monotonic: Optional[float] = None) -> None:
-        """펄스 + 경과 타이머 시작."""
-        self._started_at = started_at_monotonic
-        if self.pulse_enabled and not self._pulse_timer.isActive():
-            self._pulse_timer.start()
-        if self._started_at is not None and not self._clock_timer.isActive():
-            self._clock_timer.start()
-            self._tick_clock()
-
-    def stop(self) -> None:
-        """타이머 정지 + 테두리 원복."""
-        self._pulse_timer.stop()
-        self._clock_timer.stop()
-        self._apply_border(self.BORDER_A)
+        layout.addWidget(self.cancel_button)
 
     def set_status(self, text: str) -> None:
         self.status_label.setText(str(text))
 
-    def set_progress(self, value: int) -> None:
+    def set_progress(self, percent: int) -> None:
         try:
-            self.bar.setValue(max(0, min(100, int(value))))
+            self.progress_bar.setValue(max(0, min(100, int(percent))))
         except (TypeError, ValueError):
             pass
 
-    def _tick_clock(self) -> None:
-        if self._started_at is None:
-            return
-        import time
-        elapsed = int(time.monotonic() - self._started_at)
-        self.elapsed_label.setText(f"경과 {elapsed}초")

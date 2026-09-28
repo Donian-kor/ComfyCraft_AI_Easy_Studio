@@ -16,6 +16,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 from PySide6.QtCore import (
     QEasingCurve,
@@ -50,6 +51,7 @@ from PySide6.QtWidgets import (
     QPlainTextEdit,
     QProgressBar,
     QPushButton,
+    QScrollArea,
     QSizePolicy,
     QSpacerItem,
     QSlider,
@@ -104,6 +106,7 @@ from app import (
     check_connection_status,
     create_execution_status,
     ensure_output_directory,
+    format_elapsed,
     get_config_manager,
     get_model_fetcher,
     get_model_registry,
@@ -135,12 +138,17 @@ from app.gui.dialogs.settings_dialog import show_settings_dialog
 from app.gui.dialogs.help_dialog import show_help_dialog
 from app.gui.image_preview import ImagePreviewModal
 from app.gui.dialogs.facedetailer_guide_dialog import show_facedetailer_guide
-from app.gui.chat_widgets import (
-    ChatMessage,
-    GenerationStatusBubble,
-    ImageCard,
-    PromptCard,
-    describe_model,
+from app.gui.chat_view_manager import ChatViewManager
+from app.gui.chat_widgets import describe_model
+from app.models.chat import (
+    KIND_IMAGE,
+    KIND_TEXT,
+    PHASE_GENERATING,
+    PHASE_PROMPT,
+    ChatMessageData,
+    GenerationState,
+    messages_from_raw,
+    messages_to_raw,
 )
 
 # P9: 상태 템플릿 11종 (기획서 §8). 고정 문장 + 빈칸 채움.
@@ -408,15 +416,13 @@ class MainController(QObject):
         send_button = self.find(QPushButton, "sendBtn")
         if send_button is not None:
             send_button.clicked.connect(self._on_chat_send_or_stop)
-        self._pending_chat = None
-        self._status_bubble = None
         self._pending_zanime_style = False
         self._enhance_prefilled = False
-        # P20: 프롬프트 카드 / 생성 중 카드 (생성 중 카드가 미리보기로 전환)
-        self._prompt_card = None
-        self._pending_card = None
-        self._pending_card_done = None
-        self._pending_original_prompt = ""
+        # P20: 대화 상태는 위젯이 아니라 세션 메시지가 갖는다.
+        # 컨트롤러는 현재 생성 컨텍스트(GenerationState)만 따로 들고,
+        # 화면은 언제든 chat_view.render(메시지) 로 다시 그린다.
+        self.chat_view = self._build_chat_view()
+        self._gen_state = None
         # (_last_comfy_model 은 __init__ 초반에 config 에서 이미 채운다)
         self._refresh_send_state()
 
@@ -729,9 +735,8 @@ class MainController(QObject):
             self._abandon_stale_generation()
         try:
             self._flush_session()
-            # P20: 카드/worker 정리는 위젯을 지우기 전에 해야 한다.
-            # (_remove_* 가 채팅 레이아웃을 참조하므로 순서가 뒤집히면 죽는다)
-            self._reset_generation_cards()
+            # P20: 런타임 생성 상태만 비운다 (카드 위젯은 세션 데이터로 복원)
+            self._reset_generation_state()
             manager = getattr(self, "session_manager", None)
             if manager is not None:
                 self._current_session = manager.new_session(
@@ -743,13 +748,95 @@ class MainController(QObject):
         except RuntimeError:
             logger.debug("새 대화 시작 실패", exc_info=True)
 
+    # ──────────────────────────────────────────────────────────────────────
+    # P20: 채팅 데이터/뷰 계층 (4cut LocalComic_Studio 벤치마크)
+    #
+    # 규칙: 세션 메시지(messages)가 유일한 진실이다. 위젯을 직접 들고
+    # 다니다 상태를 추적하지 않는다. 카드 전환은 메시지의 kind/phase 변경
+    # 으로 표현하고, 화면은 _render_chat() 로 언제든 데이터로부터 되살린다.
+    # ──────────────────────────────────────────────────────────────────────
+
+    def _build_chat_view(self) -> ChatViewManager:
+        """ChatViewManager 생성. 컨트롤러의 동작을 콜백으로 주입한다."""
+        scroll = self.find(QScrollArea, "chatScrollArea")
+        content = self.find(QWidget, "chatContentWidget")
+        if scroll is None or content is None:
+            logger.warning("채팅 컨테이너를 찾지 못해 화면 렌더러를 비활성화합니다.")
+            return None
+        return ChatViewManager(
+            scroll, content,
+            on_save=self.save_image_as,
+            on_copy_prompt=self._copy_enhanced_prompt,
+            on_copy_image=self._copy_image_to_clipboard,
+            on_reuse=self._on_reuse_request,
+            on_open_preview=self._open_preview,
+            on_edit_prompt=self._on_prompt_card_edited,
+            on_revert_prompt=self._on_prompt_card_revert,
+            on_cancel=self.stop_generation,
+        )
+
+    @property
+    def _messages(self) -> list:
+        """현재 세션의 메시지 리스트 (dataclass). 없으면 빈 리스트."""
+        return getattr(self, "_chat_log", None) or []
+
+    def _message_by_id(self, message_id: str):
+        for message in self._messages:
+            if message.id == message_id:
+                return message
+        return None
+
+    def _active_generation_message(self):
+        """현재 생성에 대응하는 generation 메시지 (없으면 None)."""
+        state = getattr(self, "_gen_state", None)
+        if state is None:
+            return None
+        return self._message_by_id(state.message_id)
+
+    def _last_generation_message(self):
+        """마지막 generation(미완료) 메시지 — 상태 유실 시 복구용."""
+        for message in reversed(self._messages):
+            if message.kind == "generation" and not message.metadata.get("failed"):
+                return message
+        return None
+
+    def _append_message(self, message: ChatMessageData) -> ChatMessageData:
+        """메시지를 세션에 추가하고 화면을 갱신한다."""
+        try:
+            self._chat_log.append(message)
+        except AttributeError:
+            self._chat_log = [message]
+        self._render_chat()
+        return message
+
+    def _render_chat(self) -> None:
+        """세션 메시지로부터 채팅 화면 전체를 다시 그린다 (유일한 렌더 진입점)."""
+        view = getattr(self, "chat_view", None)
+        if view is None:
+            return
+        try:
+            view.render(self._messages)
+        except RuntimeError:
+            logger.debug("채팅 렌더 실패", exc_info=True)
+
+    def _refresh_chat_progress(self, status: str = "",
+                               progress: Optional[int] = None) -> None:
+        """진행 중 카드의 상태만 갱신 (전체 재렌더 없음 → 스크롤 점프 없음)."""
+        view = getattr(self, "chat_view", None)
+        state = getattr(self, "_gen_state", None)
+        if view is None or state is None:
+            return
+        try:
+            view.update_generation(state.message_id, status=status,
+                                   progress=progress)
+        except RuntimeError:
+            logger.debug("생성 카드 갱신 실패", exc_info=True)
+
     def _abandon_stale_generation(self) -> None:
         """갇힌 워커를 포기하고 생성 상태를 해제한다.
 
-        정상 종료 경로( generation_finished / 오류 )를 타지 못한 워커가
-        남아 있으면 _is_genering() 이 영원히 True 라
-        새 대화·전송·세션 전환이 전부 막힌다. 사용자가 새 대화를 누른
-        시점에 배럴 정리하고 UI 를 복구한다.
+        정상 종료 경로를 타지 못한 워커가 남아 있으면 _is_generating() 이
+        영원히 True 라 새 대화·전송·세션 전환이 전부 막힌다.
         """
         worker = getattr(self, "worker", None)
         if worker is not None:
@@ -758,20 +845,14 @@ class MainController(QObject):
             except (AttributeError, RuntimeError):
                 pass
             self.append_log("이전 생성이 남아 있어 초기화했습니다.")
-        self._reset_generation_cards()
+        self._reset_generation_state()
 
-    def _reset_generation_cards(self) -> None:
-        """P20: 세션 전환·초기화 시 생성 관련 상태를 전부 되돌린다.
+    def _reset_generation_state(self) -> None:
+        """세션 전환·초기화 시 런타임 생성 상태만 비운다.
 
-        _pending_card 가 남아 있으면 새 세션에서 생성 완료를 처리하려 들고,
-        _pending_chat 이 남아 있으면 이전 세션의 요청이 새 세션에 붙는다.
-        worker 가 살아 있으면 전송 버튼이 비활성 상태로 굳는다.
+        카드 위젯은 없다. 화면은 세션 데이터로 다시 그린다.
         """
-        self._remove_prompt_card()
-        self._remove_pending_card()
-        self._pending_card_done = None
-        self._pending_chat = None
-        self._pending_original_prompt = ""
+        self._gen_state = None
         with self._generation_lock:
             self.worker = None
         try:
@@ -782,29 +863,10 @@ class MainController(QObject):
 
     def _clear_chat_widgets(self) -> None:
         """채팅 위젯 전부 제거 (spacer 유지)."""
-        try:
-            container = self.find(QWidget, "chatContentWidget")
-            layout = container.layout() if container is not None else None
-            if layout is None:
-                return
-            spacer = None
-            leftovers = []
-            for i in range(layout.count()):
-                widget = layout.itemAt(i).widget()
-                if widget is None:
-                    continue
-                if widget.objectName() == "chatSpacer":
-                    spacer = widget
-                else:
-                    leftovers.append(widget)
-            for widget in leftovers:
-                layout.removeWidget(widget)
-                widget.setParent(None)
-                widget.deleteLater()
-            if spacer is not None and layout.indexOf(spacer) < 0:
-                layout.addWidget(spacer)
-        except RuntimeError:
-            logger.debug("채팅 비우기 실패", exc_info=True)
+        view = getattr(self, "chat_view", None)
+        if view is None:
+            return
+        view.clear()
 
     # ──────────────────────────────────────────────────────────────────────
     # P6: 세션·이력 (session.json + ◷ 패널 + ▾ 메뉴 + 수정 요청)
@@ -1048,12 +1110,14 @@ class MainController(QObject):
             session = getattr(self, "_current_session", None)
             if manager is None or session is None:
                 return False
-            session["messages"] = list(getattr(self, "_chat_log", []))
+            session["messages"] = messages_to_raw(self._messages)
             session["model"] = self._comfy_model_file()
             last_snapshot: dict = {}
-            for record in reversed(session["messages"]):
-                if record.get("kind") == "image" and record.get("snapshot"):
-                    last_snapshot = record["snapshot"]
+            for message in reversed(self._messages):
+                if message.kind == KIND_IMAGE:
+                    snapshot = message.metadata.get("snapshot")
+                    if snapshot:
+                        last_snapshot = dict(snapshot)
                     break
             session["last_snapshot"] = last_snapshot
             ok = manager.save_session(session)
@@ -1082,20 +1146,11 @@ class MainController(QObject):
                     self.append_log("세션을 불러올 수 없어요.")
                 return False
             self._current_session = session
-            self._chat_log = []
-            # P20: 세션 전환 시 카드/worker 초기화 (새 대화와 동일).
-            self._reset_generation_cards()
-            self._clear_chat_widgets()
-            for record in session.get("messages", []):
-                if not isinstance(record, dict):
-                    continue
-                kind = record.get("kind", "ai")
-                if kind == "image":
-                    self._chat_log.append(record)
-                    self._render_card(record)
-                else:
-                    self._chat_log.append(record)
-                    self._render_message(record)
+            # P20: 세션 메시지 전체를 읽고 화면은 한 번에 다시 그린다.
+            # (레거시 세션 형식도 messages_from_raw 가 변환한다)
+            self._chat_log = messages_from_raw(session.get("messages", []))
+            self._reset_generation_state()
+            self._render_chat()
             self._refresh_session_views()
             return True
         except Exception:
@@ -1257,8 +1312,8 @@ class MainController(QObject):
                         if current.get("session_id") == sid:
                             self._current_session = None
                             self._chat_log = []
-                            # P20: 카드/worker 초기화
-                            self._reset_generation_cards()
+                            # P20: 런타임 생성 상태만 비운다
+                            self._reset_generation_state()
                             self._clear_chat_widgets()
                         self._refresh_session_views()
             elif chosen == copy_action:
@@ -1431,6 +1486,10 @@ class MainController(QObject):
             return None
 
     def _scroll_chat_to_bottom(self) -> None:
+        view = getattr(self, "chat_view", None)
+        if view is not None:
+            view.scroll_to_bottom()
+            return
         try:
             scroll = self.find(object, "chatScrollArea")
             if scroll is None:
@@ -1441,174 +1500,45 @@ class MainController(QObject):
             logger.debug("채팅 스크롤 실패", exc_info=True)
 
     def _append_chat_message(self, role: str, text: str):
-        """채팅에 메시지 1개 추가하고 위젯 반환 (실패 시 None)."""
-        from datetime import datetime
-        record = {"kind": role, "text": text,
-                  "timestamp": datetime.now().isoformat(timespec="seconds")}
-        try:
-            self._chat_log.append(record)
-        except AttributeError:
-            self._chat_log = [record]
-        return self._render_message(record)
+        """일반 텍스트 메시지 추가 (시스템/사용자/AI 안내)."""
+        return self._append_message(
+            ChatMessageData(role=role, kind=KIND_TEXT, text=text))
 
-    def _render_message(self, record: dict):
-        """P6: 기록 dict에서 위젯만 생성 (불러오기 경로, 기록 없음)."""
-        layout = self._chat_layout()
-        if layout is None:
-            return None
-        try:
-            message = ChatMessage(record.get("kind", "ai"),
-                                  record.get("text", ""), self.window)
-            # 하단 spacer 앞으로 삽입 (spacer가 있으면 그 앞, 없으면 맨 뒤)
-            insert_at = layout.count()
-            for i in range(layout.count()):
-                widget = layout.itemAt(i).widget()
-                if widget is not None and widget.objectName() == "chatSpacer":
-                    insert_at = i
-                    break
-            layout.insertWidget(insert_at, message)
-            self._scroll_chat_to_bottom()
-            return message
-        except RuntimeError:
-            logger.debug("채팅 메시지 추가 실패", exc_info=True)
-            return None
+    def _begin_generation_message(self, original_prompt: str) -> ChatMessageData:
+        """generation 메시지를 만들고 컨트롤러에 그 id 를 기억한다.
 
-    def _append_image_card(self, image_path: str, snapshot: dict,
-                           elapsed_text: str, prompt_text: str):
-        """AI 응답 + 이미지 카드 추가."""
-        from datetime import datetime
+        이 한 줄이 프롬프트 카드의 시작이다. 이후 phase/ kind 변경만으로
+        생성중 카드 → 이미지 카드로 전환된다.
+        """
+        message = self._append_message(ChatMessageData(
+            role="ai", kind="generation",
+            metadata={"phase": PHASE_PROMPT,
+                      "original": original_prompt,
+                      "enhanced": ""},
+        ))
+        self._gen_state = GenerationState(
+            message_id=message.id, original_prompt=original_prompt)
+        return message
+
+    def _image_meta_text(self, snapshot: dict, elapsed_text: str) -> str:
         model_name = str(snapshot.get("comfy_model", ""))
         model_stem = Path(model_name).stem if model_name else "모델"
-        meta = (f"{model_stem} · {snapshot.get('width', '?')}x{snapshot.get('height', '?')} "
-                f"· 시드 {snapshot.get('seed', '?')} · {elapsed_text} 소요")
-        record = {"kind": "image", "text": "이미지를 생성했어요!",
-                  "timestamp": datetime.now().isoformat(timespec="seconds"),
-                  "image_path": image_path, "meta": meta,
-                  "prompt": prompt_text or "(프롬프트 없음)",
-                  "snapshot": dict(snapshot)}
-        try:
-            self._chat_log.append(record)
-        except AttributeError:
-            self._chat_log = [record]
-        # P20: 생성 중 카드가 있으면 새 카드를 만들지 않고 그 카드를 완성한다.
-        # (스크롤이 튀지 않고 "생성 중 → 미리보기" 로 자연스럽게 전환된다)
-        if self._finish_pending_card(image_path, meta):
-            finished = getattr(self, "_pending_card_done", None)
-            return finished
-        self._append_chat_message("ai", "이미지를 생성했어요!")
-        return self._render_card(record)
+        return (f"{model_stem} · {snapshot.get('width', '?')}x"
+                f"{snapshot.get('height', '?')} · 시드 "
+                f"{snapshot.get('seed', '?')} · {elapsed_text} 소요")
 
-    def _render_card(self, record: dict):
-        """P6: 기록 dict에서 이미지 카드 위젯만 생성 (불러오기 경로)."""
-        # P20: 결과 카드가 프롬프트를 보여주므로 확인용 프롬프트 카드는 걷어낸다.
-        self._remove_prompt_card()
-        layout = self._chat_layout()
-        if layout is None:
-            return None
-        try:
-            snapshot = record.get("snapshot", {})
-            card = ImageCard(
-                record.get("image_path", ""), record.get("meta", ""),
-                record.get("prompt", ""),
-                on_save=self.save_image_as,
-                on_copy_prompt=self._copy_enhanced_prompt,
-                on_copy_image=self._copy_image_to_clipboard,
-                on_reuse=lambda: self._on_reuse_request(snapshot),
-                parent=self.window,
-            )
-            try:
-                card.image_label.clicked.connect(
-                    lambda _c=False, path=record.get("image_path", ""),
-                    focus=card.image_label:
-                    self._open_preview(path, focus))
-            except RuntimeError:
-                pass
-            # P9: 카드 접근성 이름
-            try:
-                prompt_preview = str(record.get("prompt", ""))[:100]
-                card.image_label.setAccessibleName("생성된 이미지")
-                card.image_label.setAccessibleDescription(prompt_preview)
-                card.save_button.setAccessibleName("이미지 저장")
-                card.copy_button.setAccessibleName("이미지 복사")
-                card.reuse_button.setAccessibleName("프롬프트 불러와 수정")
-                card.prompt_toggle.setAccessibleName("사용된 프롬프트 보기")
-                card.prompt_copy_button.setAccessibleName("프롬프트 복사")
-            except RuntimeError:
-                pass
-            insert_at = layout.count()
-            for i in range(layout.count()):
-                widget = layout.itemAt(i).widget()
-                if widget is not None and widget.objectName() == "chatSpacer":
-                    insert_at = i
-                    break
-            layout.insertWidget(insert_at, card)
-            self._scroll_chat_to_bottom()
-            return card
-        except RuntimeError:
-            logger.debug("이미지 카드 추가 실패", exc_info=True)
-            return None
+    def _on_prompt_card_edited(self, message_id: str, text: str) -> None:
+        """카드에서 고친 내용을 enhancePromptEdit(생성 스냅샷 저장소)로 전달.
 
-    # -- P20: 프롬프트 카드 + 생성중 카드(같은 카드가 미리보기로 전환) -----
-    def _show_prompt_card(self, enhanced_text: str, original_text: str = ""):
-        """AI 가 다듬은 프롬프트를 확인 카드로 띄운다 (편집 가능).
-
-        enhancePromptEdit(숨김 데이터 저장소)에는 원본을, 카드 편집기에는
-        향상문을 둔다. 카드의 편집 내용은 enhancePromptEdit 로 흘러가므로
-        generation.run() 이 읽는 값과 항상 일치한다.
+        generation.run() 이 읽는 값과 사용자가 카드에서 본 값이 항상 일치해야
+        하므로, 카드의 편집 내용을 실제 생성 입력과 같은 곳에 흘려보낸다.
         """
-        layout = self._chat_layout()
-        if layout is None:
-            return None
-        try:
-            # 이전 카드 정리 (새 전송 시 1개만 유지)
-            self._remove_prompt_card()
-            enhance = self.find(QPlainTextEdit, "enhancePromptEdit")
-            if enhance is not None:
-                enhance.setPlainText(enhanced_text or "")
-            card = PromptCard(
-                enhanced_text or "",
-                on_edit=self._on_prompt_card_edited,
-                on_revert=lambda: self._on_prompt_card_revert(original_text),
-                parent=self.window,
-            )
-            layout.insertWidget(self._chat_insert_index(), card)
-            self._prompt_card = card
-            self._prompt_card_original = original_text or ""
-            self._scroll_chat_to_bottom()
-            return card
-        except RuntimeError:
-            logger.debug("프롬프트 카드 표시 실패", exc_info=True)
-            return None
-
-    def _chat_insert_index(self) -> int:
-        """chatSpacer 바로 위 인덱스 (카드가 항상 스택 끝에 붙는다)."""
-        layout = self._chat_layout()
-        if layout is None:
-            return 0
-        for i in range(layout.count()):
-            item = layout.itemAt(i)
-            widget = item.widget() if item is not None else None
-            if widget is not None and widget.objectName() == "chatSpacer":
-                return i
-        return layout.count()
-
-    def _remove_prompt_card(self) -> None:
-        """프롬프트 카드를 채팅에서 제거한다."""
-        card = getattr(self, "_prompt_card", None)
-        self._prompt_card = None
-        if card is None:
-            return
-        try:
-            layout = self._chat_layout()
-            if layout is not None:
-                layout.removeWidget(card)
-            card.setParent(None)
-            card.deleteLater()
-        except RuntimeError:
-            logger.debug("프롬프트 카드 제거 실패", exc_info=True)
-
-    def _on_prompt_card_edited(self, text: str) -> None:
-        """카드에서 고친 내용을 enhancePromptEdit(스냅샷 저장소)로 전달."""
+        message = self._message_by_id(message_id)
+        if message is not None:
+            message.metadata["enhanced"] = text
+            state = getattr(self, "_gen_state", None)
+            if state is not None and state.message_id == message_id:
+                state.enhanced_prompt = text
         enhance = self.find(QPlainTextEdit, "enhancePromptEdit")
         if enhance is None:
             return
@@ -1618,129 +1548,49 @@ class MainController(QObject):
         except RuntimeError:
             logger.debug("프롬프트 카드 편집 반영 실패", exc_info=True)
 
-    def _on_prompt_card_revert(self, original_text: str) -> None:
+    def _on_prompt_card_revert(self, message_id: str, original_text: str) -> None:
         """'원문으로 되돌리기' — 원본 프롬프트로 복원한다."""
-        card = getattr(self, "_prompt_card", None)
+        message = self._message_by_id(message_id)
+        if message is not None:
+            message.metadata["enhanced"] = original_text
+            message.metadata.pop("enhanced_done", None)
         enhance = self.find(QPlainTextEdit, "enhancePromptEdit")
         try:
             if enhance is not None:
                 enhance.setPlainText(original_text)
-            if card is not None:
-                card.set_prompt(original_text, revert_visible=False)
         except RuntimeError:
             logger.debug("프롬프트 되돌리기 실패", exc_info=True)
+        self._render_chat()
 
-    def _show_pending_card(self):
-        """생성 중 카드 (완료되면 이 카드가 그대로 미리보기가 된다)."""
-        layout = self._chat_layout()
-        if layout is None:
-            return None
-        try:
-            self._remove_prompt_card()
-            self._remove_pending_card()
-            card = ImageCard("", "", "", parent=self.window)
-            card.set_state_pending()
-            layout.insertWidget(self._chat_insert_index(), card)
-            self._pending_card = card
-            self._scroll_chat_to_bottom()
-            return card
-        except RuntimeError:
-            logger.debug("생성 중 카드 표시 실패", exc_info=True)
-            return None
+    def _apply_enhanced_to_message(self, enhanced_prompt: str) -> None:
+        """프롬프트 향상 완료 — generation 메시지의 metadata 만 갱신한다.
 
-    def _remove_pending_card(self) -> None:
-        card = getattr(self, "_pending_card", None)
-        self._pending_card = None
-        if card is None:
-            return
-        try:
-            layout = self._chat_layout()
-            if layout is not None:
-                layout.removeWidget(card)
-            card.setParent(None)
-            card.deleteLater()
-        except RuntimeError:
-            logger.debug("생성 중 카드 제거 실패", exc_info=True)
-
-    def _finish_pending_card(self, image_path: str, meta_text: str) -> bool:
-        """생성 중 카드를 완성 카드로 전환한다 (같은 인스턴스 재사용).
-
-        새 카드를 만들지 않으므로 스크롤 위치가 튀지 않고,
-        '생성 중 → 미리보기' 전환이 자연스럽다.
+        새 카드를 만들지 않는다. 같은 메시지가 프롬프트 확인 상태를 유지한다.
         """
-        card = getattr(self, "_pending_card", None)
-        if card is None:
-            return False
-        # _pending_card 는 유지한다 — 카드가 채팅에 남아야 하므로
-        # 참조만 해제하고, 다음 생성 때 교체/정리한다.
-        try:
-            card.set_state_ready(image_path, meta_text)
-            self._bind_pending_card_actions(card, image_path)
-            self._pending_card_done = card
-            return True
-        except RuntimeError:
-            logger.debug("생성 중 카드 전환 실패", exc_info=True)
-            return False
-
-    def _bind_pending_card_actions(self, card, image_path: str) -> None:
-        """완성된 카드에 미리보기 클릭과 접근성 이름을 건다."""
-        try:
-            card.image_label.clicked.connect(
-                lambda _c=False, path=image_path, focus=card.image_label:
-                self._open_preview(path, focus))
-        except RuntimeError:
-            pass
-        try:
-            card.image_label.setAccessibleName("생성된 이미지")
-            card.image_label.setAccessibleDescription("생성된 이미지")
-            card.save_button.setAccessibleName("이미지 저장")
-            card.copy_button.setAccessibleName("이미지 복사")
-            card.reuse_button.setAccessibleName("프롬프트 불러와 수정")
-            card.prompt_toggle.setAccessibleName("사용된 프롬프트 보기")
-            card.prompt_copy_button.setAccessibleName("프롬프트 복사")
-        except RuntimeError:
-            pass
-
-    def _show_status_bubble(self):
-        """P3: 생성 중 상태 버블을 채팅에 추가하고 반환."""
-        layout = self._chat_layout()
-        if layout is None:
-            return None
-        try:
-            self._hide_status_bubble()
-            bubble = GenerationStatusBubble(
-                on_cancel=self.stop_generation, parent=self.window)
-            bubble.pulse_enabled = not self._reduced_motion()
-            insert_at = layout.count()
-            for i in range(layout.count()):
-                widget = layout.itemAt(i).widget()
-                if widget is not None and widget.objectName() == "chatSpacer":
-                    insert_at = i
-                    break
-            layout.insertWidget(insert_at, bubble)
-            bubble.start(time.monotonic())
-            self._status_bubble = bubble
-            self._scroll_chat_to_bottom()
-            return bubble
-        except RuntimeError:
-            logger.debug("상태 버블 표시 실패", exc_info=True)
-            return None
-
-    def _hide_status_bubble(self) -> None:
-        """P3: 상태 버블 제거 (완료·실패·취소 시)."""
-        bubble = getattr(self, "_status_bubble", None)
-        self._status_bubble = None
-        if bubble is None:
+        message = self._active_generation_message()
+        if message is None:
             return
+        message.metadata["enhanced"] = enhanced_prompt
+        message.metadata["enhanced_done"] = True
+        state = getattr(self, "_gen_state", None)
+        if state is not None:
+            state.enhanced_prompt = enhanced_prompt
+        enhance = self.find(QPlainTextEdit, "enhancePromptEdit")
         try:
-            bubble.stop()
-            layout = self._chat_layout()
-            if layout is not None:
-                layout.removeWidget(bubble)
-            bubble.setParent(None)
-            bubble.deleteLater()
+            if enhance is not None and enhance.toPlainText() != enhanced_prompt:
+                enhance.setPlainText(enhanced_prompt)
         except RuntimeError:
-            logger.debug("상태 버블 제거 실패", exc_info=True)
+            logger.debug("향상 프롬프트 반영 실패", exc_info=True)
+        self._render_chat()
+
+    def _mark_generating(self) -> None:
+        """생성 시작 — phase 만 generating 으로 바꾼다 (새 메시지 아님)."""
+        message = self._active_generation_message()
+        if message is None:
+            return
+        message.phase = PHASE_GENERATING
+        message.metadata.setdefault("status", "이미지 생성 중...")
+        self._render_chat()
 
     def _setup_chat_accessibility(self) -> None:
         """P9: 접근성 이름, 스크린 리더 알림용 라이브 라벨, 인라인 에러 라벨."""
@@ -1942,7 +1792,7 @@ class MainController(QObject):
 
     def _request_zanime_style(self, pending_text: str) -> None:
         """P4: 스타일 선택 요청 메시지 + 인라인 버튼 3개. 선택 시 자동 생성."""
-        self._pending_chat = {"text": pending_text}
+        self._pending_style_text = pending_text
         self._pending_zanime_style = True
         try:
             message = self._append_chat_message(
@@ -1967,9 +1817,10 @@ class MainController(QObject):
             self.append_log(f"스타일 저장 실패: {exc}")
             return
         self._pending_zanime_style = False
-        pending = getattr(self, "_pending_chat", None)
-        if pending and pending.get("text"):
-            self._begin_send(pending["text"], append_user=False)
+        pending_text = str(getattr(self, "_pending_style_text", "") or "")
+        self._pending_style_text = ""
+        if pending_text:
+            self._begin_send(pending_text, append_user=False)
 
     def _send_chat_text(self) -> None:
         try:
@@ -2017,9 +1868,9 @@ class MainController(QObject):
             enhanced = self.find(QPlainTextEdit, "enhancePromptEdit")
             if enhanced is not None and not self._enhance_prefilled:
                 enhanced.clear()
-            self._pending_chat = {"text": text}
-            # P20: 프롬프트 카드에서 '원문으로 되돌리기' 에 쓸 원본 보관
-            self._pending_original_prompt = text
+            # P20: 프롬프트 카드는 generation 메시지 하나로 표현한다.
+            # (카드 상태를 컨트롤러가 들고 있지 않는다)
+            self._begin_generation_message(text)
             edit = self.find(QPlainTextEdit, "chatInputEdit")
             if edit is not None:
                 edit.clear()
@@ -2027,19 +1878,9 @@ class MainController(QObject):
             if not self.is_lm_connected():
                 self._append_chat_message("ai", TEMPLATES["lm_off"])
             self.start_generation()
-            # P20: 상태 버블 대신 "생성 중 카드"를 띄운다.
-            # 완료되면 이 카드가 그대로 이미지 미리보기로 전환된다.
+            # P20: 실제 워커가 돌기 시작하면 같은 메시지를 "생성 중" 으로 전환.
             if self._is_generating():
-                card = self._show_pending_card()
-                if card is not None and self.worker is not None:
-                    try:
-                        self.worker.signals.progress.connect(card.set_progress)
-                        self.worker.signals.status.connect(
-                            lambda text: card.set_progress(None, text))
-                        self.worker.signals.finished.connect(
-                            lambda _ok: self._on_generation_finished())
-                    except RuntimeError:
-                        logger.debug("생성 중 카드 신호 연결 실패", exc_info=True)
+                self._mark_generating()
         except RuntimeError:
             logger.debug("채팅 전송 실패", exc_info=True)
 
@@ -2471,13 +2312,18 @@ class MainController(QObject):
         return
 
     def _set_progress_status(self, text: str) -> None:
-        """P11: 진행 상태 텍스트 (위젯이 없으면 무시)."""
+        """진행 상태 텍스트 (헤더 라벨 + 생성 중 카드)."""
         try:
             label = self.find(QLabel, "progressStatusLabel")
             if label is not None:
                 label.setText(text)
         except RuntimeError:
             pass
+        # P20: 생성 중 카드의 상태 문구도 함께 갱신
+        message = self._active_generation_message()
+        if message is not None and message.metadata.get("status") != text:
+            message.metadata["status"] = text
+        self._refresh_chat_progress(status=text)
 
     def _set_progress_percent(self, text: str) -> None:
         """P11: 진행률 텍스트 (위젯이 없으면 무시)."""
@@ -3442,12 +3288,12 @@ class MainController(QObject):
         self._set_progress_status("준비 완료")
 
     def _apply_enhanced_prompt(self, enhanced_prompt):
-        """향상된 프롬프트를 확인 카드로 표시 (P20: enhance 편집기 대신 카드).
+        """향상된 프롬프트를 generation 메시지에 반영 (프롬프트 확인 카드).
 
         카드가 enhancePromptEdit 로 편집 내용을 흘려보내므로,
         generation.run() 이 읽는 값과 사용자가 본 값이 항상 일치한다.
         """
-        self._show_prompt_card(enhanced_prompt, self._pending_original_prompt)
+        self._apply_enhanced_to_message(enhanced_prompt)
         self.append_log(f"프롬프트 향상 완료: {enhanced_prompt[:100]}...")
         self._set_progress_status("준비 완료")
 
@@ -3637,8 +3483,6 @@ class MainController(QObject):
         self._set_ui_enabled(True)
         # P2: 채팅 전송 버튼을 전송 상태로 복원
         self._set_send_button_state(False)
-        # P3: 상태 버블 제거 (finished 신호에서도 제거되므로 중복 안전)
-        self._hide_status_bubble()
         # P9: 완료 알림
         self._announce("이미지 생성이 완료되었습니다." if success else
                        "이미지 생성이 실패 또는 중단되었습니다.")
@@ -3654,8 +3498,9 @@ class MainController(QObject):
             self.loading_animation.stop()
 
         self.loading_animation.set_real_progress(value)
-        # P11: 진행 위젯 삭제됨 — 상태 버블이 대신 표시
         self._set_progress_percent(f"{value}%")
+        # P20: 생성 중 카드의 진행률도 함께 갱신 (카드만, 전체 재렌더 없음)
+        self._refresh_chat_progress(progress=value)
 
     def update_counter(self, edit_name, label_name=None):
         """P11: 카운터 라벨 삭제됨 — 길이 제한 강제만 수행한다."""
@@ -3824,13 +3669,15 @@ class MainController(QObject):
         self.append_log("로그를 초기화했습니다.")
 
     def _on_generation_finished(self, ok: bool = True) -> None:
-        """P20: 생성 종료 — 실패/취소면 생성 중 카드를 정리한다.
+        """P20: 생성 종료 — 실패/취소면 generation 메시지에 실패를 기록한다.
 
-        성공이면 show_image() 가 카드를 미리보기로 전환한다.
+        성공이면 show_image() 가 같은 메시지를 이미지 카드로 전환한다.
         """
-        self._hide_status_bubble()
-        if not ok:
-            self._remove_pending_card()
+        message = self._active_generation_message()
+        if message is not None and not ok:
+            message.metadata["failed"] = True
+            message.metadata["status"] = "생성이 중단되었어요."
+            self._render_chat()
 
     def show_image(self, path, add_history=False):
         self.current_image_path = path
@@ -3845,52 +3692,48 @@ class MainController(QObject):
                 self.add_to_history(path, snapshot)
             except Exception as e:
                 logger.warning("히스토리 추가 실패: %s", e, exc_info=True)
-        # P2: 채팅 전송 대기 건이 있으면 AI 응답 + 이미지 카드 추가
-        pending = getattr(self, "_pending_chat", None)
-        if pending:
-            self._pending_chat = None
-            try:
-                snapshot = self.capture_snapshot()
-                started = getattr(self, "generation_started_at", None)
-                if started is not None:
-                    elapsed = format_elapsed(int(time.monotonic() - started))
-                else:
-                    elapsed = "?초"
-                enhanced = self.find(QPlainTextEdit, "enhancePromptEdit")
-                prompt_text = ""
-                if enhanced is not None:
-                    prompt_text = enhanced.toPlainText().strip()
-                if not prompt_text:
-                    prompt_text = pending.get("text", "")
-                self._append_image_card(path, snapshot, elapsed, prompt_text)
-                # P6: 생성 완료 시점 저장 (트리거 ②)
-                self._flush_session()
-            except Exception as e:
-                logger.warning("채팅 이미지 카드 추가 실패: %s", e, exc_info=True)
-            return
+        # P20: 이미지가 도착했다면 생성 중이던 카드를 반드시 완성한다.
+        # 조건 분기가 없다 — 세션 전환이나 신호 순서와 무관하게,
+        # "생성 중" 에 멈춘 카드가 남지 않게 하는 것이 유일한 목표다.
+        self._complete_generation_with_image(path)
 
-        # P20: _pending_chat 이 없어도(세션 전환·실패 후 등) 이미지가 도착했다면
-        # 화면에 남은 "생성 중" 카드는 반드시 미리보기로 바꿔야 한다.
-        # (이 분기가 없으면 카드가 "생성 중" 에 영구히 멈춘다)
-        if getattr(self, "_pending_card", None) is not None:
-            try:
-                snapshot = self.capture_snapshot()
-                started = getattr(self, "generation_started_at", None)
-                if started is not None:
-                    elapsed = format_elapsed(int(time.monotonic() - started))
-                else:
-                    elapsed = "?초"
-                model_name = str(snapshot.get("comfy_model", ""))
-                model_stem = Path(model_name).stem if model_name else "모델"
-                meta = (f"{model_stem} · {snapshot.get('width', '?')}x"
-                        f"{snapshot.get('height', '?')} · 시드 "
-                        f"{snapshot.get('seed', '?')} · {elapsed} 소요")
-                enhanced = self.find(QPlainTextEdit, "enhancePromptEdit")
-                prompt_text = enhanced.toPlainText().strip() if enhanced else ""
-                self._finish_pending_card(path, meta)
-                self._flush_session()
-            except Exception as e:
-                logger.warning("생성 중 카드 전환 실패: %s", e, exc_info=True)
+    def _complete_generation_with_image(self, path: str) -> None:
+        """generation 메시지(kind) 를 image 로 바꿔 카드를 완성한다.
+
+        _gen_state 가 이미 비어 있어도(세션 전환·실패 후 등) 화면에 남아
+        있는 마지막 generation 메시지를 찾아 전환한다. 이 fallback 이
+        없으면 카드가 "생성 중" 에 영구히 멈춘다.
+        """
+        message = self._active_generation_message()
+        if message is None:
+            message = self._last_generation_message()
+        if message is None:
+            logger.debug("완성할 generation 메시지가 없어 이미지를 추가하지 않음")
+            return
+        try:
+            snapshot = self.capture_snapshot()
+            started = getattr(self, "generation_started_at", None)
+            if started is not None:
+                elapsed = format_elapsed(int(time.monotonic() - started))
+            else:
+                elapsed = "?초"
+            enhanced = self.find(QPlainTextEdit, "enhancePromptEdit")
+            prompt_text = enhanced.toPlainText().strip() if enhanced else ""
+            if not prompt_text:
+                prompt_text = str(message.metadata.get("enhanced", ""))
+            if not prompt_text:
+                prompt_text = str(message.metadata.get("original", ""))
+            meta = self._image_meta_text(snapshot, elapsed)
+            # ★ 카드 전환 = kind 변경. 새 메시지를 만들지 않는다.
+            message.become_image(path, meta=meta,
+                                 prompt=prompt_text or "(프롬프트 없음)",
+                                 snapshot=snapshot)
+            self._gen_state = None
+            self._render_chat()
+            # 생성 완료 시점에 저장 (트리거 ②)
+            self._flush_session()
+        except Exception as e:  # noqa: BLE001 - 카드 실패가 생성 결과를 버리면 안 됨
+            logger.warning("생성 카드 전환 실패: %s", e, exc_info=True)
 
     def save_image_as(self):
         if not self.current_image_path:
