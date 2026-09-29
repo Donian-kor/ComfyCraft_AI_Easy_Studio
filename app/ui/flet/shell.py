@@ -75,8 +75,10 @@ class AppShell:
         self._title = ft.Text("ComfyCraft", size=TOKENS.size_title,
                               weight=ft.FontWeight.W_600)
         self._rail = self._build_rail()
-        self._comfy_indicator = self._build_service_indicator("ComfyUI")
-        self._lm_indicator = self._build_service_indicator("LM Studio")
+        self._comfy_indicator, self._comfy_dot = self._build_service_indicator(
+            "ComfyUI")
+        self._lm_indicator, self._lm_dot = self._build_service_indicator(
+            "LM Studio")
 
     # --- 구성 -------------------------------------------------------------
     def _build_rail(self) -> ft.NavigationRail:
@@ -97,25 +99,33 @@ class AppShell:
             on_change=self._handle_rail_change,
         )
 
-    def _build_service_indicator(self, name: str) -> ft.Container:
-        """연결 상태 표시등. dot 은 나중에 색만 바꾸므로 data 로 들고 있다."""
+    def _build_service_indicator(self, name: str):
+        """연결 상태 표시등. (컨테이너, 색칠할 dot) 을 돌려준다.
+
+        회귀 근거: 예전엔 dot 을 data 에 숨겼다. 그랬더니 색을 바꿀 때
+        바깥 컨테이너만 갱신해야 했고, Flet 은 자손의 속성 변경을
+        자동으로 감지하지 않아 화면에 반영되지 않았다. dot 을 직접 들고
+        갱신하도록 바꿨다.
+        """
         dot = ft.Container(
             width=8, height=8,
             border_radius=ft.BorderRadius(4, 4, 4, 4),
             bgcolor=TOKENS.on_surface_variant,
         )
-        return ft.Container(
-            content=ft.Row(
-                controls=[
-                    dot,
-                    ft.Text(name, size=TOKENS.size_caption,
-                            color=TOKENS.on_surface_variant),
-                ],
-                spacing=TOKENS.space_sm,
-                tight=True,
+        return (
+            ft.Container(
+                content=ft.Row(
+                    controls=[
+                        dot,
+                        ft.Text(name, size=TOKENS.size_caption,
+                                color=TOKENS.on_surface_variant),
+                    ],
+                    spacing=TOKENS.space_sm,
+                    tight=True,
+                ),
+                tooltip=name,
             ),
-            tooltip=name,
-            data=dot,
+            dot,
         )
 
     def _handle_rail_change(self, event: ft.Event) -> None:
@@ -193,17 +203,15 @@ class AppShell:
         return ft.Container(height=1, bgcolor=TOKENS.outline)
 
     # --- 상태 갱신 --------------------------------------------------------
-    # 컨트롤.update() 는 화면에 붙어 있어야 동작한다. 앱 시작 직후나
-    # 헤드리스 테스트에서는 아직 붙지 않았으므로, 값만 설정하고 조용히 넘긴다.
+    # 공용 safe_update 를 재사용한다. 여기서 따로 update() 를 부르면
+    # (1) 아직 page 에 안 붙어 있을 때 조용히 실패하고,
+    # (2) 백그라운드 스레드(연결 확인)에서 부르면 갱신이 사라진다.
 
     @staticmethod
     def _safe_update(*controls: ft.Control) -> None:
-        for control in controls:
-            try:
-                control.update()
-            except RuntimeError:
-                # 아직 page 에 붙지 않은 상태 — 값만 바꾼 채 다음 렌더를 기다린다.
-                pass
+        from app.ui.flet.components.common import safe_update
+
+        safe_update(*controls)
 
     def set_content(self, control: ft.Control) -> None:
         self._content_area.content = control
@@ -215,12 +223,20 @@ class AppShell:
         self._safe_update(self._rail)
 
     def set_service_status(self, service: str, ok: Optional[bool]) -> None:
-        """ComfyUI / LM Studio 연결 표시등을 갱신한다."""
-        target = self._comfy_indicator if service == "comfy" else self._lm_indicator
-        dot = target.data
+        """ComfyUI / LM Studio 연결 표시등을 갱신한다.
+
+        색칠할 대상은 'dot' 컨트롤이다. 바깥 컨테이너를 갱신하면 Flet 이
+        자손의 bgcolor 변경을 감지하지 못해 화면에 반영되지 않는다.
+        """
+        dot = self._comfy_dot if service == "comfy" else self._lm_dot
         dot.bgcolor = (TOKENS.on_surface_variant if ok is None
                        else status_color("connected" if ok else "disconnected"))
-        self._safe_update(target)
+        # 안전한 갱신이 아니라 '갱신 실패를 알 수 없는' 로직이라 가린다.
+        # 대신 아래 공용 safe_update 를 쓴다(스레드 밖이면 UI 스레드로
+        # 넘겨 준다). 연결 확인은 백그라운드 스레드에서 도기 때문이다.
+        from app.ui.flet.components.common import safe_update
+
+        safe_update(dot)
 
     def set_status(self, message: str, kind: str = "idle") -> None:
         """하단 상태줄을 갱신한다."""

@@ -40,23 +40,24 @@ def _coerce_path_string(value: object) -> str:
     return str(value).strip().replace("\\", "/").rstrip("/")
 
 
-def _probe_endpoint(url: str, endpoint: str, timeout: tuple[float, float] = (0.1, 0.15), max_retries: int = 1) -> bool:
-    """프로브 엔드포인트 체크 (초고속 응답 확인)"""
+def _probe_endpoint(url: str, endpoint: str, timeout: tuple[float, float] = (0.2, 0.3), max_retries: int = 1) -> bool:
+    """프로브 엔드포인트 체크 (응답이 오면 연결된 것으로 본다)
+
+    회귀 근거: 예전에는 HEAD 로 확인했다. ComfyUI 의 /system_stats 는
+    HEAD 를 처리하지 않아 405(Method Not Allowed) 를 돌려주고, 그걸
+    '연결 실패'로 오판했다(GET 재시도는 타임아웃/연결 거부일 때만
+    돌아갔고, 405 응답일 때는 시도조차 하지 않았다). 서버가 켜져 있어도
+    표시등이 빨강으로 나오는 원인.
+
+    원본 Qt 도 get_system_stats()(GET) 로 판정했다. 여기서도 GET 으로
+    확인하고, 상태 코드가 400 미만이면 연결된 것으로 본다.
+    """
     normalized = _normalize_url(url)
     if not normalized:
         return False
-    
     try:
-        # HEAD 요청으로 초고속 확인 (응답 헤더만 받음)
-        response = requests.head(f"{normalized}{endpoint}", timeout=(0.1, 0.1), allow_redirects=False)
+        response = requests.get(f"{normalized}{endpoint}", timeout=timeout)
         return response.status_code < 400
-    except (requests.Timeout, requests.ConnectionError):
-        try:
-            # HEAD 실패 시 GET으로 재시도 (매우 짧은 타임아웃)
-            response = requests.get(f"{normalized}{endpoint}", timeout=(0.1, 0.1))
-            return response.status_code < 400
-        except Exception:
-            return False
     except Exception:
         return False
 
@@ -74,21 +75,46 @@ def resolve_live_url(service: str, preferred_url: Optional[str] = None, candidat
     if normalized and _probe_endpoint(normalized, endpoint):
         return normalized
 
-    # URL이 없거나 연결 실패 시 빈 문자열 반환
+    # 연결에 실패한 것이지 'URL 이 없다' 것이 아닐 수 있다.
+    # 호출부가 resolve_live_url() 결과를 보고 'URL 이 비었다' 고 말하면
+    # 사용자는 설정 화면을 아무리 찾아도 원인을 알 수 없다.
+    if normalized:
+        raise ConnectionProbeError(normalized, endpoint)
     return ""
 
 
+class ConnectionProbeError(RuntimeError):
+    """주소에는 응답이 있었지만 연결 판정을 통과하지 못했을 때.
+
+    호출부는 이 예외를 받아 '연결 안 됨' 으로 표시한다. 주소가 비어
+    있는 경우('')와 구분되게 하려고 따로 뺀다.
+    """
+
+    def __init__(self, url: str, endpoint: str) -> None:
+        super().__init__(f"{url}{endpoint} 에서 응답을 받지 못했습니다")
+        self.url = url
+        self.endpoint = endpoint
+
+
 def check_connection_status(service: str, url: str, candidates: Optional[Iterable[str]] = None) -> ConnectionStatus:
-    """Validate a remote service connection using a live server probe."""
-    resolved_url = resolve_live_url(service, url, candidates)
-    status = ConnectionStatus(service=service, url=resolved_url, ok=False, message="未確認")
+    """원격 서비스 연결을 실제로 응답해 확인한다."""
+    label = "LM Studio" if "lm" in (service or "").lower() else "ComfyUI"
+    try:
+        resolved_url = resolve_live_url(service, url, candidates)
+    except ConnectionProbeError:
+        # 주소는 있는데 응답이 없었다. 'URL 이 없다' 고 말하면 오도이다.
+        return ConnectionStatus(service=service, url=url, ok=False,
+                                message=f"{label} 연결 안 됨 (응답 없음)")
+    status = ConnectionStatus(service=service, url=resolved_url, ok=False,
+                              message="미확인")
     if not resolved_url:
-        status.message = "URL이 비어 있습니다."
+        status.message = "서버 주소가 비어 있습니다."
         return status
 
     endpoint = "/v1/models" if "lm" in (service or "").lower() else "/system_stats"
     status.ok = _probe_endpoint(resolved_url, endpoint)
-    status.message = f"{service} 연결됨" if status.ok else f"{service} 연결 안 됨"
+    status.message = (f"{label} 연결됨" if status.ok
+                      else f"{label} 연결 안 됨")
     return status
 
 

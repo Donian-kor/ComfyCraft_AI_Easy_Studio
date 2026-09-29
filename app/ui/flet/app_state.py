@@ -136,6 +136,43 @@ class AppState:
         if not self._restore_latest_session():
             self.maybe_greet()
         threading.Thread(target=self.refresh_models, daemon=True).start()
+        # 우측 위 연결 표시등은 예전처럼 주기적으로 확인해야 한다.
+        threading.Thread(target=self._poll_connections, daemon=True).start()
+
+    def _poll_connections(self, interval: float = 10.0) -> None:
+        """ComfyUI / LM Studio 연결을 주기적으로 확인해 표시등을 바꾼다.
+
+        회귀 근거: AppShell.set_service_status() 가 존재만 하고 *아무도
+        호출하지 않았다*. 그래서 표시등은 처음 회색(on_surface_variant)인
+        채로였고, 서버가 켜져 있든 꺼져 있든 아무 반응이 없었다.
+        원본은 check_connection() -> apply_connection_result() ->
+        update_connection_label() 로 표시등을 갱신했다.
+        """
+        import time
+
+        while True:
+            for which in ("comfy", "lm"):
+                try:
+                    checker = (self.services.check_comfy if which == "comfy"
+                               else self.services.check_lm)
+                    ok = bool(checker().ok)
+                except Exception:
+                    ok = False
+                if self.shell is not None:
+                    self.shell.set_service_status(which, ok)
+            time.sleep(interval)
+
+    def check_connections_now(self) -> None:
+        """연결 상태를 지금 한 번 확인한다(설정 저장 후 등)."""
+        for which in ("comfy", "lm"):
+            try:
+                checker = (self.services.check_comfy if which == "comfy"
+                           else self.services.check_lm)
+                ok = bool(checker().ok)
+            except Exception:
+                ok = False
+            if self.shell is not None:
+                self.shell.set_service_status(which, ok)
 
     def _restore_latest_session(self) -> bool:
         """가장 최근 저장 세션을 채팅으로 복원한다. 복원했으면 True.
