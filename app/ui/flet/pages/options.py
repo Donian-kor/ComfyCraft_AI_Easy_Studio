@@ -494,6 +494,11 @@ class OptionsPanel:
 
         회귀 근거: 예전엔 on_change 가 아예 없어 모델을 바꿔도 아무
         반응이 없었다(최적값 자동 적용 + 채팅 안내가 통째로 빠진 상태).
+
+        또 한 번 더: Flet 의 Dropdown 에는 on_change 가 *없다*
+        (on_select / on_text_change 만 있다). on_change 로 주면 파이썬이
+        새 속성을 만들어 넣어 버릴 뿐 Flet 은 이벤트를 아예 안 보내서
+        클릭해도 아무 일도 일어나지 않는다. 반드시 on_select 를 쓴다.
         """
         self._model_names = list(model_names or [])
         # DropdownOption 에 문자열을 직접 주면 key/text 가 빈칸이 되어
@@ -502,7 +507,7 @@ class OptionsPanel:
             ft.DropdownOption(key=name, text=name) for name in self._model_names]
         if self._model_names:
             self._model_dropdown.value = self._model_names[0]
-        self._model_dropdown.on_change = on_change
+        self._model_dropdown.on_select = on_change
         safe_update(self._model_dropdown)
 
     def set_lm_model_options(self, model_names: List[str]) -> None:
