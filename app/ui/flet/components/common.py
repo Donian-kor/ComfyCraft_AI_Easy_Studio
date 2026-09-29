@@ -157,14 +157,25 @@ def safe_update(*controls: Optional[ft.Control]) -> None:
 
     헤드리스 테스트와 앱 시작 직후(첫 렌더 전) 모두에서 상태를
     설정할 수 있어야 하므로 UI 계층 전부 이 함수를 쓴다.
+
+    회귀 근거: 예전에는 update() 의 RuntimeError 를 그냥 삼켰다. 그래서
+    백그라운드 스레드(모델 목록 조회)에서 갱신하면 *조용히 실패*했고,
+    '모델을 바꿔도 아무 반응이 없다'는 증상이 났다. 이제 UI 스레드가
+    아니면 갱신을 UI 스레드로 넘긴다.
     """
+    from app.ui.flet.ui_loop import is_ui_thread, run_on_ui
+
     for control in controls:
         if control is None:
             continue
-        try:
-            control.update()
-        except RuntimeError:
-            pass
+        if is_ui_thread():
+            try:
+                control.update()
+            except RuntimeError:
+                # 아직 page 에 붙지 않았다(헤드리스 테스트/초기 렌더 전)
+                pass
+            continue
+        run_on_ui(lambda c=control: c.update())
 
 
 def padded_column(controls: List[ft.Control], padding: int, *,

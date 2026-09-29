@@ -50,44 +50,12 @@ WELCOME_TEXT = "안녕하세요? 무엇을 그려드릴까요?"
 
 # 모델 변경 안내. 원본 Qt 의 TEMPLATES["model_changed"] 와 같은 문장.
 SAY_MODEL_CHANGED = "{model}에 맞춰 이미지 그릴 준비를 마쳤어요. ({feature})"
-
-
-def set_ui_loop(loop: Optional[asyncio.AbstractEventLoop]) -> None:
-    """Flet 이 만든 이벤트 루프를 기억한다 (앱 시작 시 1회 호출).
-
-    JobManager 는 threading.Thread 에서 돌기 때문에 그 스레드 안에는
-    asyncio 루프가 돌고 있지 않다. 그래서 asyncio.get_running_loop() 로는
-    UI 스레드를 찾을 수 없고, 진행률이 화면에 반영되지 않는다.
-    Flet 의 page.run_task 도 내부적으로 run_coroutine_threadsafe 로
-    이 루프에 작업을 넘기므로, 같은 방식으로 안전하게 넘긴다.
-    """
-    global _ui_loop
-    _ui_loop = loop
-
-
-def _run_on_ui(fn) -> None:
-    """백그라운드 스레드의 갱신을 UI 스레드로 넘긴다.
-
-    이벤트 루프가 아직 없으면(테스트/초기화) 조용히 건너뛴다.
-    """
-    loop = _ui_loop
-    if loop is None or loop.is_closed():
-        return
-    try:
-        asyncio.run_coroutine_threadsafe(_call(fn), loop)
-    except RuntimeError:
-        # 루프가 종료되는 타이밍에 겹친 경우. 앱 종료를 막지 않는다.
-        pass
-
-
-async def _call(fn) -> None:
-    try:
-        result = fn()
-        if asyncio.iscoroutine(result):
-            await result
-    except Exception:
-        # UI 갱신 실패가 Job 이나 앱 전체를 죽이면 안 된다
-        pass
+# UI 스레드 통로는 ui_loop 모듈이 소유한다(순환 참조 방지).
+# 여기서 이름만 다시 노출해 기존 호출(app.set_ui_loop 등)을 유지한다.
+from app.ui.flet.ui_loop import (  # noqa: E402  (파일 끝자리 재수출)
+    run_on_ui as _run_on_ui,
+    set_ui_loop,
+)
 
 
 class AppState:
@@ -153,21 +121,46 @@ class AppState:
             self.refresh_models()
 
     def start(self) -> None:
-        """앱이 뜨자마자 환영 인사를 말하고, 서버 모델을 한 번 읽어 둔다.
+        """앱이 뜨자마자 지난 대화를 이어 주고(없으면 환영 인사), 모델을 읽는다.
 
-        원본(Qt) 동작: 세션이 하나도 없고 채팅이 비었을 때만 AI 가
-        환영 인사를 *채팅 말풍선*으로 남긴다 (main_controller._maybe_greet).
-        Flet 초안은 이걸 상태 표시줄(set_status) 로 옮겨 버려
-        '무엇을 그려드릴까요?' 가 오른쪽 아래 작은 글씨로만 나왔다.
-        사용자는 AI 와 대화하는 프로그램이지 상태 표시창이 아니다.
+        원본(Qt) 동작: 저장된 세션이 있으면 가장 최근 대화를 복원하고,
+        하나도 없으면 AI 환영 인사를 채팅 말풍선으로 남긴다.
+        (main_controller._maybe_greet / _switch_session)
 
-        비동기로 모델을 읽어 서버가 꺼져 있어도 창이 늦게 뜨지 않게 한다.
+        회귀 근거: Flet 초안은 세션을 복원하지 않았다. 그래서 대화가 있는
+        상태로 실행하면 인사도 안 나고(세션이 있다고 보고) 화면은 비어
+        있어 아무 말도 없는 상태가 됐다.
         """
         import threading
 
-        self.maybe_greet()
+        if not self._restore_latest_session():
+            self.maybe_greet()
         threading.Thread(target=self.refresh_models, daemon=True).start()
 
+    def _restore_latest_session(self) -> bool:
+        """가장 최근 저장 세션을 채팅으로 복원한다. 복원했으면 True.
+
+        원본과 같은 정책: 저장된 세션이 있으면 인사를 붙이지 않는다.
+        """
+        if self.studio is None:
+            return False
+        try:
+            recent = self.services.session_manager.list_sessions(limit=1)
+        except Exception:
+            return False
+        if not recent:
+            return False
+        session_id = str(recent[0].get("id", "") or "")
+        if not session_id:
+            return False
+        session = self.services.session_manager.load_session(session_id)
+        if not session or not session.get("messages"):
+            return False
+        from app.models.chat import messages_from_raw
+
+        self.studio.chat.set_messages(
+            messages_from_raw(session.get("messages", [])))
+        return True
     def maybe_greet(self) -> None:
         """저장된 대화가 없을 때만 AI 환영 인사를 채팅에 남긴다.
 
@@ -177,17 +170,10 @@ class AppState:
         """
         if self.studio is None:
             return
-        try:
-            if self.services.session_manager.list_sessions(limit=1):
-                return
-        except Exception:
-            # 세션 목록을 못 읽어도 인사는 보여야 한다(기능 부재로 보이면 안 된다)
-            pass
         if self.studio.chat.messages:
             return
         self.studio.chat.append_message(
             ChatMessageData(role="ai", kind="text", text=WELCOME_TEXT))
-
     # --- 챗봇 흐름 -------------------------------------------------------
     def handle_prompt(self, text: str) -> None:
         """입력창에서 프롬프트를 받았다.
