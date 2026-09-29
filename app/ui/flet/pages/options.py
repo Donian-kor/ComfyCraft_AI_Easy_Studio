@@ -30,19 +30,25 @@ RESOLUTION_PRESETS = ["1152x896", "1024x1024", "896x1152",
 
 # --- 좌측 옵션 패널 폭 ------------------------------------------------------
 # 패널 폭은 '화면에서 얼마나 자주 보이는가' 로 정한다.
-# 원본 Qt 는 420 이었지만, 지금은 2열 그리드로 정보를 압축하므로
-# 그보다 좁게 380 을 쓰면 챗봇 화면이 그만큼 더 넓어진다.
-# 여기선 패널 안에서 '몇 열로 나눌지' 만 결정하고, 각 컨트롤의 폭은
-# build() 에서 열 수에 맞춰 계산한다(하드코딩 폭을 두지 않는다).
-PANEL_WIDTH = 380          # 패널 전체 폭
+# 2열로 압축했으므로 항목 수는 줄지만, 슬라이더는 값 조절하는 컨트롤이라
+# 좁으면 조작하기 힘들다. 그래서 원본(420)과 비슷한 420 을 쓴다.
+#   420 - 여백 48 = 372, 들여쓰기 16 차감 = 356, 2열 한 칸 = 172
+PANEL_WIDTH = 420          # 패널 전체 폭
 PANEL_PADDING = 24         # 패널 안쪽 여백 (TOKENS.space_lg)
-CONTENT_WIDTH = PANEL_WIDTH - PANEL_PADDING * 2   # 실제 본문 폭(332)
+CONTENT_WIDTH = PANEL_WIDTH - PANEL_PADDING * 2   # 실제 본문 폭(372)
 FIELD_WIDTH = CONTENT_WIDTH            # 1열로 쓸 때 (드롭다운/텍스트 필드)
-# 2열 그리드: 본문을 2등분하고 사이 간격만큼 뺀다.
-GUTTER = TOKENS.space_md
-# 2열 × GRID_COLUMN_WIDTH + GUTTER 가 CONTENT_WIDTH 를 넘지 않아야 한다.
-# // 로 나눈 나머지를 한쪽에 몰아주지 않으면 1~3px 넘친다.
-GRID_COLUMN_WIDTH = (CONTENT_WIDTH - GUTTER) // 2   # 2열 한 칸 폭
+GUTTER = TOKENS.space_md               # 2열 사이 간격
+# 2열 그리드. 두 곳에서 쓰이는데, 들어갈 공간이 서로 다르다.
+#   * 패널 본문 직속(_grid)          : CONTENT_WIDTH (372)
+#   * collapsible 안쪽(들여쓰기 16) : 372 - 16 = 356
+# 두 곳 중 좁은 쪽에 맞춰야, 안쪽에서 2열이 조용히 1줄로 접히지 않는다.
+# (Row(wrap=True) 는 자리가 모자르면 자동으로 다음 줄로 내린다)
+_COLLAPSE_INDENT = TOKENS.space_lg
+GRID_AVAILABLE = CONTENT_WIDTH - _COLLAPSE_INDENT        # 356
+# 2열 × GRID_COLUMN_WIDTH + GUTTER 가 GRID_AVAILABLE 를 넘지 않아야 한다.
+GRID_COLUMN_WIDTH = (GRID_AVAILABLE - GUTTER) // 2      # 172
+# 2열로 배치한 입력 필드도 한 칸 폭에 맞춘다.
+GRID_FIELD_WIDTH = GRID_COLUMN_WIDTH
 # option_row 는 [라벨][컨트롤] 2조각이라 컨트롤 폭을 줄여야 라벨까지 들어간다.
 ROW_CONTROL_WIDTH = CONTENT_WIDTH - 88   # 라벨(최장 "Scheduler") + 여백
 # FaceDetailer 행은 [라벨][값][슬라이더] 3조각이라 한 줄에 두면 너무 좁아진다.
@@ -348,13 +354,15 @@ class OptionsPanel:
     def _grid(cells: List[ft.Control]) -> ft.Control:
         """제목+컨트롤 묶음을 2열로 배치한다.
 
-        해상도/Seed 처럼 짝이 자연스러운 항목은 한 줄에 두 개씩 올린다.
-        셀 개수가 홀수면 마지막 칸은 비워 두고, 셀 폭은 2열 폭을 넘지
-        않게 build() 에서 이미 맞춰둔다.
+        wrap=True 라 자리가 모자르면 자동으로 다음 줄로 넘어간다.
+        그래서 각 셀 폭은 '들어갈 수 있는 공간' 기준으로 미리 계산돼 있다
+        (GRID_COLUMN_WIDTH). tight 를 False 로 두는 게 중요하다 —
+        tight=True 면 Row 가 자식 크기만큼만 줄어들어 2열이 1열처럼
+        늘어진 1열로 보인다.
         """
         return ft.Row(
             controls=list(cells),
-            spacing=GUTTER, wrap=True, run_spacing=GUTTER, tight=True)
+            spacing=GUTTER, wrap=True, run_spacing=GUTTER)
 
     def _section(self, title: str, controls: List[ft.Control]) -> ft.Control:
         return ft.Container(
@@ -411,10 +419,9 @@ class OptionsPanel:
         (모델 / LM 모델), 해상도·Seed처럼 짧은 짝은 한 줄에 두 개씩
         배치해 세로 길이를 줄인다.
         """
-        # 2열 셀 폭: 한 칸이 CONTENT_WIDTH 를 넘지 않게 컨트롤까지 맞춘다.
-        half = GRID_COLUMN_WIDTH
+        # 2열 셀 폭: 한 칸이 사용 가능 폭을 넘지 않게 컨트롤까지 맞춘다.
         for control in (self._resolution_dropdown, self._seed_field):
-            control.width = half
+            control.width = GRID_COLUMN_WIDTH
 
         return ft.Container(
             content=ft.Column(
@@ -424,8 +431,9 @@ class OptionsPanel:
                         self._label("LM Studio 모델", self._lm_model_dropdown),
                         self._grid([
                             self._label("해상도", self._resolution_dropdown,
-                                        width=half),
-                            self._label("Seed", self._seed_field, width=half),
+                                        width=GRID_COLUMN_WIDTH),
+                            self._label("Seed", self._seed_field,
+                                        width=GRID_COLUMN_WIDTH),
                         ]),
                     ]),
                     self._section("네거티브", [self._negative_field]),
