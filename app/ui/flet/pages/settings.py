@@ -260,28 +260,35 @@ class SettingsPage:
     def build(self) -> ft.Control:
         """원본 설정창 구조: 상단 탭(서버/모델/로그) + 하단 버튼줄.
 
-        Flet 1.x 의 탭은 TabBar(목록) 와 Tabs(본문) 가 따로다.
-            TabBar: Tab(label="AI 서버") 들
-            Tabs  : content=<한 Column>, length=<탭 개수>
+        Flet 1.x 에서 TabBar 는 반드시 Tabs 안에 있어야 한다
+        (형제 노드로 두면 'TabBar must be used within a Tabs control').
+        그래서 TabBar 를 Tabs.content Column 의 첫 자식으로 넣고,
+        본문(3개 탭)을 그 아래에 이어 붙인다. 두 컨트롤이 selected_index 를
+        공유하므로 탭을 누르면 본문도 같이 바뀐다.
         """
         tab_bar = ft.TabBar(
             expand=False,
+            divider_color=TOKENS.outline,
+            indicator_color=TOKENS.primary,
+            label_color=TOKENS.primary,
             tabs=[
                 ft.Tab(label="AI 서버"),
                 ft.Tab(label="모델"),
                 ft.Tab(label="로그"),
             ])
         tab_body = ft.Tabs(
-            content=ft.Column(controls=[
-                self._build_servers_tab(),
-                self._build_models_tab(),
-                self._build_logs_tab(),
-            ], spacing=0, tight=True, expand=True),
+            content=ft.Column(
+                controls=[
+                    tab_bar,
+                    self._build_servers_tab(),
+                    self._build_models_tab(),
+                    self._build_logs_tab(),
+                ],
+                spacing=0, tight=True, expand=True),
             length=3, selected_index=0, animation_duration=200, expand=True)
 
         return ft.Column(
             controls=[
-                tab_bar,
                 tab_body,
                 ft.Container(
                     content=ft.Row(
