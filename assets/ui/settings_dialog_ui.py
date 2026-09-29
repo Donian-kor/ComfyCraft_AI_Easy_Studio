@@ -25,7 +25,7 @@ class Ui_SettingsDialog(object):
     def setupUi(self, SettingsDialog):
         if not SettingsDialog.objectName():
             SettingsDialog.setObjectName(u"SettingsDialog")
-        SettingsDialog.resize(593, 822)
+        SettingsDialog.resize(593, 864)
         SettingsDialog.setMinimumSize(QSize(500, 820))
         self.dialogLayout = QVBoxLayout(SettingsDialog)
         self.dialogLayout.setSpacing(10)
@@ -244,12 +244,6 @@ class Ui_SettingsDialog(object):
         self.profileWorkflowBrowseBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
         self.p8RowLayout_workflow.addWidget(self.profileWorkflowBrowseBtn)
-
-        self.profileAiWorkflowBtn = QPushButton(self.modelManualTab)
-        self.profileAiWorkflowBtn.setObjectName(u"profileAiWorkflowBtn")
-        self.profileAiWorkflowBtn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-
-        self.p8RowLayout_workflow.addWidget(self.profileAiWorkflowBtn)
 
 
         self.modelManualTabLayout.addLayout(self.p8RowLayout_workflow)
@@ -511,6 +505,7 @@ class Ui_SettingsDialog(object):
 
         self.profileValidateLabel = QLabel(self.modelManualTab)
         self.profileValidateLabel.setObjectName(u"profileValidateLabel")
+        self.profileValidateLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.profileValidateLabel.setWordWrap(True)
 
         self.modelManualTabLayout.addWidget(self.profileValidateLabel)
@@ -599,7 +594,7 @@ class Ui_SettingsDialog(object):
         self.retranslateUi(SettingsDialog)
 
         self.settingsTabWidget.setCurrentIndex(1)
-        self.modelSubTabs.setCurrentIndex(0)
+        self.modelSubTabs.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(SettingsDialog)
@@ -622,37 +617,36 @@ class Ui_SettingsDialog(object):
         self.dlgLmCheckBtn.setText(QCoreApplication.translate("SettingsDialog", u"\uc5f0\uacb0 \ud655\uc778", None))
         self.settingsTabWidget.setTabText(self.settingsTabWidget.indexOf(self.tabAiServer), QCoreApplication.translate("SettingsDialog", u"AI \uc11c\ubc84", None))
         self.modelAutoHintLabel.setText(QCoreApplication.translate("SettingsDialog", u"\uc778\uc2dd\ub418\uc9c0 \uc54a\ub294 \ubaa8\ub378\uc774 \uc788\uc73c\uba74 [\uc218\ub3d9 \ub4f1\ub85d] \ud0ed\uc5d0\uc11c \uc9c1\uc811 \ub4f1\ub85d\ud558\uc138\uc694.", None))
-        self.modelSubTabs.setTabText(self.modelSubTabs.indexOf(self.modelAutoTab), QCoreApplication.translate("SettingsDialog", u"\uc790\ub3d9 \ud310\ubcc4", None))
+        self.modelSubTabs.setTabText(self.modelSubTabs.indexOf(self.modelAutoTab), QCoreApplication.translate("SettingsDialog", u"Workflow List", None))
         self.profileManualLabel.setText(QCoreApplication.translate("SettingsDialog", u"\uc218\ub3d9 \ud504\ub85c\ud544 (\uace0\uae09 \u00b7 \uc2e0\uaddc/\uc608\uc678 \ubaa8\ub378\uc6a9)", None))
-        self.label.setText(QCoreApplication.translate("SettingsDialog", u"\ubaa8\ub378 \ud30c\uc77c", None))
+        self.label.setText(QCoreApplication.translate("SettingsDialog", u"Model File (\ubaa8\ub378 \ud30c\uc77c)", None))
         self.profileModelFileEdit.setPlaceholderText(QCoreApplication.translate("SettingsDialog", u"\uc608: my-model.safetensors", None))
         self.profileModelFileBrowseBtn.setText(QCoreApplication.translate("SettingsDialog", u"\ucc3e\uc544\ubcf4\uae30", None))
-        self.label1.setText(QCoreApplication.translate("SettingsDialog", u"\uc6cc\ud06c\ud50c\ub85c\uc6b0", None))
+        self.label1.setText(QCoreApplication.translate("SettingsDialog", u"Workflow (\uc6cc\ud06c\ud50c\ub85c\uc6b0)", None))
         self.profileWorkflowFileEdit.setPlaceholderText(QCoreApplication.translate("SettingsDialog", u"\ubaa8\ub378 \ud30c\uc77c\uc744 \uace0\ub974\uba74 \uc790\ub3d9\uc73c\ub85c \ub9cc\ub4e4\uc5b4\uc9d1\ub2c8\ub2e4", None))
         self.profileWorkflowBrowseBtn.setText(QCoreApplication.translate("SettingsDialog", u"\ucc3e\uc544\ubcf4\uae30", None))
-        self.profileAiWorkflowBtn.setText(QCoreApplication.translate("SettingsDialog", u"AI\ub85c \ub9cc\ub4e4\uae30 (\uc2e4\ud5d8\uc801)", None))
-        self.label2.setText(QCoreApplication.translate("SettingsDialog", u"\ud504\ub85c\ud544\uba85", None))
+        self.label2.setText(QCoreApplication.translate("SettingsDialog", u"Name (\ud504\ub85c\ud544\uba85)", None))
         self.profileNameEdit.setPlaceholderText(QCoreApplication.translate("SettingsDialog", u"\uc608: my-model", None))
-        self.label3.setText(QCoreApplication.translate("SettingsDialog", u"\ub9e4\uce6d \ud328\ud134", None))
+        self.label3.setText(QCoreApplication.translate("SettingsDialog", u"Pattern (\ub9e4\uce6d \ud328\ud134)", None))
         self.profilePatternsEdit.setPlaceholderText(QCoreApplication.translate("SettingsDialog", u"\ud30c\uc77c\uba85 \uc77c\ubd80, \uc27c\ud45c \uad6c\ubd84", None))
-        self.label4.setText(QCoreApplication.translate("SettingsDialog", u"\uc6cc\ud06c\ud50c\ub85c\uc6b0 \uc885\ub958", None))
+        self.label4.setText(QCoreApplication.translate("SettingsDialog", u"Workflow Type (\uc6cc\ud06c\ud50c\ub85c\uc6b0 \uc885\ub958)", None))
         self.profileBaseCombo.setItemText(0, QCoreApplication.translate("SettingsDialog", u"checkpoint_loadersimple", None))
         self.profileBaseCombo.setItemText(1, QCoreApplication.translate("SettingsDialog", u"unet_clploadergguf", None))
         self.profileBaseCombo.setItemText(2, QCoreApplication.translate("SettingsDialog", u"unet_dualclploadergguf", None))
 
-        self.label5.setText(QCoreApplication.translate("SettingsDialog", u"CLIP \uc885\ub958", None))
+        self.label5.setText(QCoreApplication.translate("SettingsDialog", u"CLIP Type (CLIP \uc885\ub958)", None))
         self.profileClipTypeCombo.setItemText(0, QCoreApplication.translate("SettingsDialog", u"stable_diffusion", None))
         self.profileClipTypeCombo.setItemText(1, QCoreApplication.translate("SettingsDialog", u"flux", None))
         self.profileClipTypeCombo.setItemText(2, QCoreApplication.translate("SettingsDialog", u"sd3", None))
 
-        self.label6.setText(QCoreApplication.translate("SettingsDialog", u"\ubb38\uc7a5 \ubcc0\ud658 \ubc29\uc2dd", None))
+        self.label6.setText(QCoreApplication.translate("SettingsDialog", u"Text Encoder (\ubb38\uc7a5 \ubcc0\ud658 \ubc29\uc2dd)", None))
         self.profileTextClassCombo.setItemText(0, QCoreApplication.translate("SettingsDialog", u"\uc77c\ubc18 (CLIPTextEncode)", None))
         self.profileTextClassCombo.setItemText(1, QCoreApplication.translate("SettingsDialog", u"ZImage \uc804\uc6a9 (Omni)", None))
 
-        self.label7.setText(QCoreApplication.translate("SettingsDialog", u"\uc9c0\uc2dc \uac15\ub3c4", None))
-        self.label8.setText(QCoreApplication.translate("SettingsDialog", u"Steps", None))
-        self.label9.setText(QCoreApplication.translate("SettingsDialog", u"CFG", None))
-        self.label10.setText(QCoreApplication.translate("SettingsDialog", u"\uc0d8\ud50c\ub7ec", None))
+        self.label7.setText(QCoreApplication.translate("SettingsDialog", u"Guidance (\uc9c0\uc2dc \uac15\ub3c4)", None))
+        self.label8.setText(QCoreApplication.translate("SettingsDialog", u"Steps (\ubc18\ubcf5 \ud69f\uc218)", None))
+        self.label9.setText(QCoreApplication.translate("SettingsDialog", u"CFG (\ud504\ub86c\ud504\ud2b8 \uac15\ub3c4)", None))
+        self.label10.setText(QCoreApplication.translate("SettingsDialog", u"Sampler (\uc0d8\ud50c\ub7ec)", None))
         self.profileSamplerCombo.setItemText(0, QCoreApplication.translate("SettingsDialog", u"euler", None))
         self.profileSamplerCombo.setItemText(1, QCoreApplication.translate("SettingsDialog", u"dpmpp_2m", None))
         self.profileSamplerCombo.setItemText(2, QCoreApplication.translate("SettingsDialog", u"dpmpp_2m_sde", None))
@@ -660,17 +654,17 @@ class Ui_SettingsDialog(object):
         self.profileSamplerCombo.setItemText(4, QCoreApplication.translate("SettingsDialog", u"lcm", None))
         self.profileSamplerCombo.setItemText(5, QCoreApplication.translate("SettingsDialog", u"ddim", None))
 
-        self.label11.setText(QCoreApplication.translate("SettingsDialog", u"\uc2a4\ucf00\uc904\ub7ec", None))
+        self.label11.setText(QCoreApplication.translate("SettingsDialog", u"Scheduler (\uc2a4\ucf00\uc904\ub7ec)", None))
         self.profileSchedulerCombo.setItemText(0, QCoreApplication.translate("SettingsDialog", u"normal", None))
         self.profileSchedulerCombo.setItemText(1, QCoreApplication.translate("SettingsDialog", u"karras", None))
         self.profileSchedulerCombo.setItemText(2, QCoreApplication.translate("SettingsDialog", u"exponential", None))
         self.profileSchedulerCombo.setItemText(3, QCoreApplication.translate("SettingsDialog", u"simple", None))
 
-        self.label12.setText(QCoreApplication.translate("SettingsDialog", u"CLIP 1", None))
+        self.label12.setText(QCoreApplication.translate("SettingsDialog", u"CLIP 1 (\uccab \ubc88\uc9f8 CLIP)", None))
         self.profileClipEdit.setPlaceholderText(QCoreApplication.translate("SettingsDialog", u"\uc120\ud0dd \uc0ac\ud56d", None))
-        self.label13.setText(QCoreApplication.translate("SettingsDialog", u"CLIP 2", None))
+        self.label13.setText(QCoreApplication.translate("SettingsDialog", u"CLIP 2 (\ub450 \ubc88\uc9f8 CLIP)", None))
         self.profileClip2Edit.setPlaceholderText(QCoreApplication.translate("SettingsDialog", u"\uc120\ud0dd \uc0ac\ud56d", None))
-        self.label14.setText(QCoreApplication.translate("SettingsDialog", u"VAE", None))
+        self.label14.setText(QCoreApplication.translate("SettingsDialog", u"VAE (\ubcc0\ud658\uae30)", None))
         self.profileVaeEdit.setPlaceholderText(QCoreApplication.translate("SettingsDialog", u"\uc120\ud0dd \uc0ac\ud56d", None))
         self.profileDeleteBtn.setText(QCoreApplication.translate("SettingsDialog", u"\ud504\ub85c\ud544 \uc0ad\uc81c", None))
 #if QT_CONFIG(accessibility)

@@ -14,6 +14,7 @@ import json
 import logging
 import re
 from pathlib import Path
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -52,12 +53,6 @@ REQUIRED_BY_WF_TYPE = {
 }
 # 모델 파일명이 주입되는 입력 필드 (로더마다 이름이 다르다)
 MODEL_INPUT_NAMES = ("ckpt_name", "unet_name", "model_name", "name")
-
-SYSTEM_PROMPT = (
-    "당신은 ComfyUI API 워크플로우(노드 ID → {class_type, inputs} 사전)를 작성하는 도우미입니다. "
-    "반드시 JSON 객체 하나만 반환하고, 노드 ID는 문자열, 각 노드는 class_type과 inputs를 가진 객체여야 합니다. "
-    "존재하지 않는 노드 이름을 새로 만들지 말고, 참조 워크플로우에 있는 노드 구성만 사용하세요."
-)
 
 
 def slugify(value) -> str:
@@ -190,11 +185,15 @@ def template_path(workflows_dir, wf_type: str = "checkpoint") -> Path:
 
 
 def build_from_template(model_file, model_id, workflows_dir,
-                        wf_type: str = "checkpoint") -> Path:
+                        wf_type: str = "checkpoint", save: bool = True) -> Path | None:
     """기본 템플릿을 복사해 모델 파일명만 새 모델로 바꾼 워크플로우를 만든다.
 
     원본 템플릿은 절대 수정하지 않는다(복사본을 새 파일로 저장).
     남은 __PLACEHOLDER__는 그대로 두며, 생성 시점에 WorkflowManager가 채운다.
+
+    save=False 면 디스크에 쓰지 않고 None 을 돌려준다. 호출부는 만들어진 dict 를
+    validate_workflow_data() 로 검사하면 되므로, 설정 창에서 사용자가 [저장]을
+    누르기 전까지 파일이 생기지 않게 할 수 있다.
     """
     model_file = str(model_file or "").strip()
     if not model_file:
@@ -204,66 +203,39 @@ def build_from_template(model_file, model_id, workflows_dir,
     if not _set_checkpoint(data, model_file):
         raise ValueError(
             f"템플릿({src.name})에 모델 로더 노드가 없어 자동 생성할 수 없습니다.")
-    target = Path(workflows_dir) / f"{workflow_stem(model_file, model_id)}.json"
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-    return target
+    if not save:
+        return None
+    return save_workflow(data, workflow_stem(model_file, model_id), workflows_dir)
 
 
-def build_llm_prompt(model_file, base_template=None, previous_errors=None) -> str:
-    """LM Studio에 보낼 워크플로우 생성 프롬프트를 만든다."""
-    lines = [
-        f"이미지 생성 모델 파일: {model_file}",
-        "아래 참조 워크플로우와 같은 노드 구성/연결을 유지하면서, 이 모델로 이미지를 생성하는 "
-        "ComfyUI API 워크플로우 JSON을 만들어 주세요.",
-        f"- {CHECKPOINT_NODE_TYPE}의 inputs.{CHECKPOINT_INPUT_NAME} 값은 정확히 '{model_file}' 로 지정합니다.",
-        "- 긍정/부정 CLIPTextEncode 2개, KSampler(seed/steps/cfg/sampler_name/scheduler), "
-        "EmptyLatentImage(width/height), VAEDecode, SaveImage를 포함합니다.",
-        "참조 워크플로우 JSON:",
-        json.dumps(base_template, ensure_ascii=False, indent=2)
-        if base_template
-        else "(참조 없음 — 표준 ComfyUI 이미지 생성 구성을 사용하세요.)",
-    ]
-    if previous_errors:
-        lines.append("이전 시도의 문제점(반드시 고칠 것):")
-        lines.extend(f"- {error}" for error in previous_errors)
-    return "\n".join(lines)
+def build_from_template_data(model_file, model_id, workflows_dir,
+                             wf_type: str = "checkpoint") -> Dict[str, Any]:
+    """build_from_template(save=False) 와 같지만 만들어진 dict 를 그대로 돌려준다.
 
-
-def generate_with_llm(lm_client, model_file, workflows_dir, model_id,
-                      wf_type: str = "checkpoint", retries: int = 3,
-                      output_suffix: str = "_ai") -> Path:
-    """LM Studio에 워크플로우 생성을 요청하고, 검증을 통과한 결과만 파일로 저장한다.
-
-    lm_client는 chat_json(system_prompt, user_prompt) → dict 를 제공하는 객체.
-    템플릿을 그대로 돌려주는(체크포인트 미지정) 응답은 채택하지 않는다.
-    실패하면 RuntimeError를 던지고 기존 워크플로우는 그대로 둔다.
+    디스크를 건드리지 않으므로 설정 창의 "아직 저장하지 않은 워크플로우" 를
+    메모리에서 검사/렌더링할 때 쓴다.
     """
     model_file = str(model_file or "").strip()
     if not model_file:
         raise ValueError("모델 파일명이 비어 있습니다.")
-    try:
-        base_template = load_workflow(template_path(workflows_dir, wf_type))
-    except (OSError, ValueError):
-        base_template = None
+    src = template_path(workflows_dir, wf_type)
+    data = load_workflow(src)
+    if not _set_checkpoint(data, model_file):
+        raise ValueError(
+            f"템플릿({src.name})에 모델 로더 노드가 없어 자동 생성할 수 없습니다.")
+    return data
 
-    errors: list = []
-    for attempt in range(1, max(1, int(retries)) + 1):
-        data = lm_client.chat_json(
-            SYSTEM_PROMPT,
-            build_llm_prompt(model_file, base_template, errors or None),
-        )
-        errors = validate_workflow_data(data, model_file, wf_type)
-        if not errors:
-            target = (Path(workflows_dir)
-                      / f"{workflow_stem(model_file, model_id)}{output_suffix}.json")
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(json.dumps(data, ensure_ascii=False, indent=2),
-                              encoding="utf-8")
-            return target
-        logger.warning("AI 워크플로우 %s차 시도 실패: %s", attempt, errors)
-    raise RuntimeError("AI가 만든 워크플로우가 검증을 통과하지 못했습니다 — "
-                       + " / ".join(errors))
+
+def save_workflow(data: dict, stem: str, workflows_dir) -> Path:
+    """만들어진 워크플로우 dict 를 <workflows_dir>/<stem>.json 으로 저장한다.
+
+    파일명 충돌 시 기존 내용을 지우지 않고 덮어쓴다(같은 모델을 다시 등록하는
+    경우가 흔하). 호출부가 저장 여부를 결정한다.
+    """
+    target = Path(workflows_dir) / f"{stem}.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    return target
 
 
 def check_model_file(client, model_file, timeout: int = 5):

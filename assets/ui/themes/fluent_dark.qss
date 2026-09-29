@@ -413,6 +413,11 @@ QLabel {
     color: #f5f5f5;
 }
 
+/* 비활성 라벨 — 현재 워크플로우 종류에 필요 없는 옵션 행의 이름 */
+QLabel:disabled {
+    color: #6c6c70;
+}
+
 /* 상태 라벨 */
 QLabel#lmStatusLabel, QLabel#comfyStatusLabel, QLabel#modelPathStatusLabel,
 QLabel#connectionStatus, QLabel#gpuStatus, QLabel#lmStatus, QLabel#comfyStatus {

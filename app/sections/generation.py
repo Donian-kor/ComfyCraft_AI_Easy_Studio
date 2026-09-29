@@ -333,6 +333,21 @@ class GenerationWorker:
                         except Exception as e:
                             self.emit_log(f"[⚠️ 경고] 큐 정리 실패: {e}")
                         return True
+
+                    # 회귀: ComfyUI 가 "다 끝났다"고 답했는데 이미지가 없는
+                    # 경우다. 예전에는 if result_path: 가 거짓이라 그냥 다음
+                    # 폴링으로 넘어가서 max_wait_seconds(기본 10분)까지
+                    # "생성 중" 으로 멈춰 있었다. 이미 종료된 작업이므로
+                    # 여기서 즉시 실패로 처리한다.
+                    if self._is_execution_finished(item):
+                        outputs = item.get("outputs", {})
+                        detail = (f"{len(outputs)}개 노드 결과가 있습니다"
+                                  if outputs else "결과물이 비어 있습니다")
+                        raise RuntimeError(
+                            "ComfyUI 작업이 끝났지만 저장된 이미지가 없습니다 "
+                            f"({detail}). 워크플로우의 SaveImage 노드를 확인해 "
+                            "주세요."
+                        )
             
             # 🌟 WebSocket에서 실제 진행률이 오면 last_progress 업데이트됨
             # (ComfyUIWebSocketClient에서 on_progress 콜백으로 progress 시그널 발생 시 자동 반영)
@@ -353,6 +368,77 @@ class GenerationWorker:
         raise RuntimeError(f"이미지 생성 시간이 초과되었습니다. (최대 {max_wait}초 대기)")
 
     @staticmethod
+    def _is_execution_finished(item: Dict[str, Any]) -> bool:
+        """ComfyUI 가 이 작업을 '종료'했다고 명시했는지 판단한다.
+
+        history 에 항목이 생겼다는 사실만으로는 끝난 게 아니다(큐에
+        돌고 있는 동안에도 항목이 보일 수 있다). status.completed 나
+        status_str 로 서버가 종료했음을 알려 준 경우만 참으로 본다.
+        """
+        if not isinstance(item, dict):
+            return False
+        status = item.get("status", {})
+        if not isinstance(status, dict):
+            return False
+        if status.get("completed") is True:
+            return True
+        return str(status.get("status_str") or "").lower() in (
+            "success", "error", "interrupted",
+        )
+
+    @staticmethod
+    def _format_status_message(msg: Any) -> Optional[str]:
+        """status.messages 원소 하나를 사람이 읽을 문장으로 바꾼다.
+
+        ComfyUI 는 실행 로그를 2원소 리스트로 보낸다:
+            ["execution_start", {...}]
+            ["execution_error", {"exception_message": ..., "node_id": "3",
+                                  "exception_type": ..., "traceback": [...]}]
+        예전 코드 는 dict 와 str 만 보고 리스트 원본을 통째로 건너뛰고,
+        키 이름도 error/message 만 찾았다. 그래서 진짜 OOM 같은
+        execution_error 가 조용히 통과했다(검증: tests/test_generation_errors.py).
+        """
+        # ["execution_error", {...}] / ("execution_error", {...})
+        if isinstance(msg, (list, tuple)):
+            if not msg:
+                return None
+            head = str(msg[0])
+            body = msg[1] if len(msg) > 1 else None
+            detail = GenerationWorker._format_status_message(body)
+            if head in ("execution_error", "execution_interrupted"):
+                where = ""
+                if isinstance(body, dict):
+                    node_id = body.get("node_id")
+                    node_type = body.get("node_type")
+                    if node_id is not None:
+                        where = f" (노드 {node_id}"
+                        if node_type:
+                            where += f"/{node_type}"
+                        where += ")"
+                suffix = f": {detail}" if detail else ""
+                if head == "execution_interrupted":
+                    return f"생성이 중단되었습니다{where}{suffix}"
+                return f"ComfyUI 노드 실행 오류{where}{suffix}"
+            return detail
+
+        if isinstance(msg, str):
+            return msg or None
+
+        if isinstance(msg, dict):
+            # 1) 명시적 오류 키가 있으면 그 값을 쓴다.
+            for key in ("exception_message", "error", "message"):
+                value = msg.get(key)
+                if value:
+                    return str(value)
+            # 2) 예외 유형만 있으면 그것도 알린다.
+            exc_type = msg.get("exception_type")
+            if exc_type:
+                return str(exc_type)
+            return None
+
+        return None
+
+    @staticmethod
     def _extract_comfyui_error(item: Dict[str, Any]) -> Optional[str]:
         if not isinstance(item, dict):
             return None
@@ -366,15 +452,30 @@ class GenerationWorker:
             error = status.get("error")
             if error:
                 return str(error)
+
+            # messages 를 먼저 훑는다. ComfyUI 는 status_str 로 요약만
+            # 보내고 진짜 원인은 messages 안의
+            # ["execution_error", {"exception_message": ...}] 에 넣는다.
             messages = status.get("messages")
+            saw_failure = False
             if isinstance(messages, list):
                 for msg in messages:
-                    if isinstance(msg, dict):
-                        candidate = msg.get("error") or msg.get("message")
-                        if candidate:
-                            return str(candidate)
-                    elif isinstance(msg, str) and msg:
-                        return msg
+                    if (isinstance(msg, (list, tuple)) and msg
+                            and str(msg[0]) in ("execution_error",
+                                                "execution_interrupted")):
+                        saw_failure = True
+                    text = GenerationWorker._format_status_message(msg)
+                    if text and saw_failure:
+                        return text
+
+            # messages 가 실패 신호를 안 준 경우에만 상태 문자열로 대체한다.
+            # "running" 처럼 status_str 이 정상인데 messages 가 비어 있는
+            # 정상 진행 중 케이스를 오탐하면 안 된다.
+            status_str = str(status.get("status_str") or "")
+            if status_str in ("error", "interrupted") and not saw_failure:
+                return ("생성이 중단되었습니다"
+                        if status_str == "interrupted"
+                        else "ComfyUI 가 오류로 종료했습니다 (상세 내용 없음)")
 
         for node_output in item.get("outputs", {}).values():
             if not isinstance(node_output, dict):
@@ -387,12 +488,9 @@ class GenerationWorker:
                 messages = status.get("messages")
                 if isinstance(messages, list):
                     for msg in messages:
-                        if isinstance(msg, dict):
-                            candidate = msg.get("error") or msg.get("message")
-                            if candidate:
-                                return str(candidate)
-                        elif isinstance(msg, str) and msg:
-                            return msg
+                        text = GenerationWorker._format_status_message(msg)
+                        if text:
+                            return text
 
         return None
 

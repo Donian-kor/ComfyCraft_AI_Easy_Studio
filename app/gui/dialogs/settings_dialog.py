@@ -104,7 +104,11 @@ def validate_manual_profile(data: dict) -> list:
     if not patterns:
         errors.append("매칭 패턴을 1개 이상 입력하세요 (모델 파일명의 일부).")
     if data.get("workflow_type") not in BASE_NAMES:
-        errors.append("워크플로우 종류를 선택하세요.")
+        # collect_data() 는 워크플로우 종류를 "base" 키로 준다(레지스트리 스키마와
+        # 같은 이름). 옛 키만 보면 종류가 항상 비어 있어 저장이 막혔다.
+        base = str(data.get("base", "") or "").strip()
+        if base not in BASE_NAMES:
+            errors.append("워크플로우 종류를 선택하세요.")
     try:
         steps = int(data.get("steps", 0))
         if not 1 <= steps <= 10000:
@@ -456,8 +460,13 @@ def _setup_model_tab(dlg, controller) -> None:
         "guidance": "p8RowLayout_guidance",
     }
 
-    def _set_row_visible(row, visible: bool) -> None:
-        """QLayout 자체는 숨길 수 없으므로 그 안의 위젯들을 토글한다."""
+    def _set_row_enabled(row, enabled: bool) -> None:
+        """QLayout 자체는 숨길 수 없으므로 그 안의 위젯들을 비활성화한다.
+
+        비활성(회색)만 하고 감추지 않는다. 숨기면 워크플로우 종류를 바꿀 때마다
+        탭 안의 줄 수가 달라져 아래 여백이 출렁거리고, 사용자가 어떤 옵션이
+        있는지도 한눈에 알 수 없기 때문.
+        """
         try:
             count = row.count()
         except RuntimeError:
@@ -472,18 +481,23 @@ def _setup_model_tab(dlg, controller) -> None:
             widget = item.widget()
             if widget is not None:
                 try:
-                    widget.setVisible(visible)
+                    widget.setEnabled(enabled)
                 except RuntimeError:
                     pass
 
     def _sync_base_fields() -> None:
+        """워크플로우 종류에 맞지 않는 필드는 감추지 않고 비활성화만 한다.
+
+        모든 옵션 행은 항상 같은 자리·같은 개수로 보이므로, 종류를 바꿔도
+        아래 여백이 변하지 않는다.
+        """
         base = _current_wf_type()
-        visible = set(_BASE_FIELDS.get(base, ()))
+        enabled = set(_BASE_FIELDS.get(base, ()))
         for key, layout_name in _ROW_FOR.items():
             row = dlg.findChild(QLayout, layout_name)
             if row is None:
                 continue
-            _set_row_visible(row, key in visible)
+            _set_row_enabled(row, key in enabled)
 
     def _on_base_changed(*_args) -> None:
         """기준점이 바뀌면 관련 행만 다시 표시한다."""
@@ -497,38 +511,87 @@ def _setup_model_tab(dlg, controller) -> None:
         base_combo.currentIndexChanged.connect(_on_base_changed)
     _sync_base_fields()
 
+    # 아직 저장되지 않은 워크플로우 — dict 로만 들고 있다가 [모델 정보 저장]을
+    # 누르는 순간 파일로 만든다. 그 전에는 workflows/ 에 아무 파일도 생기지 않는다.
+    _pending_workflow: dict | None = None
+    _pending_stem: str = ""
+
     def _check_workflow(model_file: str) -> list:
-        """지정된(또는 자동 생성된) 워크플로우를 검사한다. 오류 목록 반환."""
+        """지정된(또는 아직 저장되지 않은) 워크플로우를 검사한다. 오류 목록 반환.
+
+        메모리에 있는 사본(_pending_workflow)이 디스크 파일보다 우선한다.
+        아직 저장 전이라면 파일은 없지만 내용은 이미 완성돼 있으므로
+        그 dict 를 직접 검사해 같은 판정을 받는다.
+        """
         wf_path = _text("profileWorkflowFileEdit")
         if not wf_path:
             return ["워크플로우가 지정되지 않았습니다."]
+        wf_type = _current_wf_type()
+        # _pending_stem 은 확장자 없는 이름이다(wf_path 는 "이름.json" 형태).
+        if _pending_workflow is not None and Path(wf_path).stem == _pending_stem:
+            return workflow_factory.validate_workflow_data(
+                _pending_workflow, model_file=model_file, wf_type=wf_type)
         path = Path(wf_path)
         if not path.is_absolute():
             path = _workflows_dir() / wf_path
-        return workflow_factory.validate_workflow(path, model_file=model_file)
+        return workflow_factory.validate_workflow(
+            path, model_file=model_file, wf_type=wf_type)
 
     def autocreate_workflow(model_file: str) -> None:
-        """모델 파일만 고르면 워크플로우를 자동으로 만들어 준다 (4cut build_from_template)."""
+        """모델 파일만 고르면 워크플로우를 '미리' 만든다 (아직 파일로 쓰지 않음).
+
+        디스크에 바로 쓰면 사용자가 [저장]을 누르지 않고 창을 닫아도
+        workflows/ 에 파일이 남아 버린다. 여기서는 dict 만 만들어 검사하고,
+        실제 기록은 commit_pending_workflow() 가 맡는다.
+        """
+        nonlocal _pending_workflow, _pending_stem
         if not model_file:
+            _pending_workflow = None
+            _pending_stem = ""
             _set_workflow_file("")
             return
         try:
-            path = workflow_factory.build_from_template(
+            data = workflow_factory.build_from_template_data(
                 model_file, _text("profileNameEdit") or "custom",
                 _workflows_dir(), _current_wf_type())
         except (OSError, ValueError) as exc:
             show_status(f"워크플로우 자동 생성 실패: {exc}", False)
             return
-        # 설정에는 파일명만 저장한다(프로젝트 기준 상대 경로).
-        rel = path.name
-        _set_workflow_file(rel)
-        errors = workflow_factory.validate_workflow(
-            _workflows_dir() / rel, model_file=model_file)
+        stem = workflow_factory.workflow_stem(
+            model_file, _text("profileNameEdit") or "custom")
+        errors = workflow_factory.validate_workflow_data(
+            data, model_file=model_file, wf_type=_current_wf_type())
         if errors:
             show_status("자동 생성한 워크플로우가 검사를 통과하지 못했습니다 — "
                         + " / ".join(errors), False)
-        else:
-            show_status(f"워크플로우가 자동으로 만들어졌습니다: {rel}", True)
+            return
+        # 파일명만 표시한다(프로젝트 기준 상대 경로). 저장 전이므로 아직 파일은 없다.
+        _pending_workflow = data
+        _pending_stem = stem
+        _set_workflow_file(stem + ".json")
+        show_status(f"워크플로우가 준비되었습니다 — [모델 정보 저장]을 누르면 "
+                    f"{stem}.json 이(가) 만들어집니다.", True)
+
+    def commit_pending_workflow() -> bool:
+        """미리 만들어 둔 워크플로우를 실제 파일로 쓴다. 성공 여부 반환."""
+        nonlocal _pending_workflow
+        if _pending_workflow is None:
+            return True
+        try:
+            path = workflow_factory.save_workflow(
+                _pending_workflow, _pending_stem, _workflows_dir())
+        except (OSError, ValueError) as exc:
+            show_status(f"워크플로우 저장 실패: {exc}", False)
+            return False
+        _pending_workflow = None
+        _set_workflow_file(path.name)
+        return True
+
+    def clear_pending_workflow() -> None:
+        """직접 지정한 워크플로우로 바꾸면 미리 만들어 둔 사본은 버린다."""
+        nonlocal _pending_workflow, _pending_stem
+        _pending_workflow = None
+        _pending_stem = ""
 
     # 모델 파일 찾아보기
     model_browse_btn = _child(QPushButton, "profileModelFileBrowseBtn")
@@ -560,6 +623,8 @@ def _setup_model_tab(dlg, controller) -> None:
                 "JSON (*.json);;All Files (*)")
             if not path:
                 return
+            # 사용자가 직접 고른 파일이 우선이다 — 미리 만들어 둔 사본은 버린다.
+            clear_pending_workflow()
             _set_workflow_file(path)
             errors = _check_workflow(_text("profileModelFileEdit"))
             if errors:
@@ -568,29 +633,6 @@ def _setup_model_tab(dlg, controller) -> None:
             else:
                 show_status("워크플로우를 지정했습니다.", True)
         wf_browse_btn.clicked.connect(on_workflow_browse)
-
-    # AI로 워크플로우 만들기 (실험적 폴백)
-    ai_wf_btn = _child(QPushButton, "profileAiWorkflowBtn")
-    if ai_wf_btn is not None:
-        def on_ai_workflow():
-            model_file = _text("profileModelFileEdit")
-            if not model_file:
-                show_status("먼저 모델 파일을 지정하세요.", False)
-                return
-            lm_client = getattr(controller, "lm_client", None)
-            if lm_client is None or not hasattr(lm_client, "chat_json"):
-                show_status("LM Studio가 연결되어 있지 않아 AI로 만들 수 없습니다.", False)
-                return
-            try:
-                path = workflow_factory.generate_with_llm(
-                    lm_client, model_file, _workflows_dir(),
-                    _text("profileNameEdit") or "custom", _current_wf_type())
-            except (OSError, ValueError, RuntimeError) as exc:
-                show_status(f"AI 워크플로우 생성 실패: {exc}", False)
-                return
-            _set_workflow_file(path.name)
-            show_status(f"AI가 워크플로우를 만들었습니다: {path.name}", True)
-        ai_wf_btn.clicked.connect(on_ai_workflow)
 
     def collect_data() -> dict:
         def combo_text(name: str, default: str = "") -> str:
@@ -661,6 +703,11 @@ def _setup_model_tab(dlg, controller) -> None:
                     show_status("모델 정보를 저장할 수 없습니다. 워크플로우 확인이 필요합니다 — "
                                 + " / ".join(errors), False)
                     return
+                # 미리 만들어 둔 워크플로우가 있으면 여기서야 실제 파일을 쓴다.
+                # 프로필 JSON 보다 먼저 저장해야, 프로필이 참조할 파일이 존재한다.
+                if not commit_pending_workflow():
+                    return
+                data = collect_data()
             ok, message = save_manual_profile(
                 data, model_profiles_json_dir())
             show_status(message, ok)
