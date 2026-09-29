@@ -29,20 +29,25 @@ RESOLUTION_PRESETS = ["1152x896", "1024x1024", "896x1152",
                       "832x1216", "768x1344", "512x512"]
 
 # --- 좌측 옵션 패널 폭 ------------------------------------------------------
-# 패널 폭을 늘려야 하는 이유:
-#   * FaceDetailer 행은 [라벨][값 라벨][슬라이더] 3조각이 나란히 있다.
-#   * 값 라벨(64) + 슬라이더만으로도 190 을 넘고, 라벨까지 더하면
-#     패널 280 - 여백 32 = 248 을 초과해 우측이 잘렸다.
-# 그래서 패널/필드/슬라이더 폭을 여기 한곳에서 관리한다.
-PANEL_WIDTH = 430          # 패널 전체 폭
+# 패널 폭은 '화면에서 얼마나 자주 보이는가' 로 정한다.
+# 원본 Qt 는 420 이었지만, 지금은 2열 그리드로 정보를 압축하므로
+# 그보다 좁게 380 을 쓰면 챗봇 화면이 그만큼 더 넓어진다.
+# 여기선 패널 안에서 '몇 열로 나눌지' 만 결정하고, 각 컨트롤의 폭은
+# build() 에서 열 수에 맞춰 계산한다(하드코딩 폭을 두지 않는다).
+PANEL_WIDTH = 380          # 패널 전체 폭
 PANEL_PADDING = 24         # 패널 안쪽 여백 (TOKENS.space_lg)
-CONTENT_WIDTH = PANEL_WIDTH - PANEL_PADDING * 2   # 실제 본문 폭(382)
-FIELD_WIDTH = CONTENT_WIDTH            # 드롭다운/텍스트 필드 (혼자 쓰는 것)
+CONTENT_WIDTH = PANEL_WIDTH - PANEL_PADDING * 2   # 실제 본문 폭(332)
+FIELD_WIDTH = CONTENT_WIDTH            # 1열로 쓸 때 (드롭다운/텍스트 필드)
+# 2열 그리드: 본문을 2등분하고 사이 간격만큼 뺀다.
+GUTTER = TOKENS.space_md
+# 2열 × GRID_COLUMN_WIDTH + GUTTER 가 CONTENT_WIDTH 를 넘지 않아야 한다.
+# // 로 나눈 나머지를 한쪽에 몰아주지 않으면 1~3px 넘친다.
+GRID_COLUMN_WIDTH = (CONTENT_WIDTH - GUTTER) // 2   # 2열 한 칸 폭
 # option_row 는 [라벨][컨트롤] 2조각이라 컨트롤 폭을 줄여야 라벨까지 들어간다.
-ROW_CONTROL_WIDTH = CONTENT_WIDTH - 96   # 라벨 약 90 + 여백
+ROW_CONTROL_WIDTH = CONTENT_WIDTH - 88   # 라벨(최장 "Scheduler") + 여백
 # FaceDetailer 행은 [라벨][값][슬라이더] 3조각이라 한 줄에 두면 너무 좁아진다.
 # 라벨과 값을 한 줄 위쪽에 두고 슬라이더를 아래에 온전히 넓힌다.
-FD_SLIDER_WIDTH = CONTENT_WIDTH
+FD_SLIDER_WIDTH = GRID_COLUMN_WIDTH - 8             # 2열 칸 안에 맞추되 살짝 여유
 
 
 # --- FaceDetailer ----------------------------------------------------------
@@ -77,15 +82,17 @@ _FD_LABELS = {
 
 # 상세 패널을 3단으로 나눠 한 번에 15개를 다 보여주지 않는다.
 # 원본도 facedetailerPanel 안에 스크롤을 두었다.
+# 그룹 이름이 '탐지 · SAM' 이면 위쪽 'SAM 탐지' 드롭다운과 헷갈리므로
+# '얼굴 탐지' 라고 부른다(같은 대상, 다른 역할임을 구분).
 _FD_GROUPS = [
     ("기본 보정", ["facedetailer_denoise", "facedetailer_steps",
                    "facedetailer_cfg", "facedetailer_cycle"]),
     ("얼굴 영역", ["facedetailer_guide_size", "facedetailer_max_size",
                    "facedetailer_feather", "facedetailer_drop_size"]),
-    ("탐지 · SAM", ["facedetailer_bbox_threshold", "facedetailer_bbox_dilation",
-                    "facedetailer_bbox_crop_factor", "facedetailer_sam_dilation",
-                    "facedetailer_sam_threshold", "facedetailer_sam_bbox_expansion",
-                    "facedetailer_sam_mask_hint_threshold"]),
+    ("얼굴 탐지", ["facedetailer_bbox_threshold", "facedetailer_bbox_dilation",
+                   "facedetailer_bbox_crop_factor", "facedetailer_sam_dilation",
+                   "facedetailer_sam_threshold", "facedetailer_sam_bbox_expansion",
+                   "facedetailer_sam_mask_hint_threshold"]),
 ]
 
 # SAM 탐지 방식 (원본 facedetailerPanel 의 ComboBox)
@@ -200,35 +207,40 @@ class OptionsPanel:
         self._model_names = list(model_names or [])
         self._facedetailer = FaceDetailerSettings()
 
+        # Dropdown 의 label 속성에는 라벨을 두지 않는다.
+        # 바깥에서 _label() 로 제목 Text 를 붙이므로, 둘 다 넣으면
+        # 'ComfyUI 모델' 위에 '모델' 이 겹쳐 보이고, 남은 zh-hans 글자
+        # ('模型')까지 그대로 노출된다. 한 곳에서만 라벨을 만든다.
         self._model_dropdown = ft.Dropdown(
             options=[ft.DropdownOption(key=n, text=n) for n in self._model_names],
             value=self._model_names[0] if self._model_names else None,
-            label="모델", width=FIELD_WIDTH)
+            width=FIELD_WIDTH, dense=True)
         self._lm_model_dropdown = ft.Dropdown(
-            options=[], label="LM Studio 모델", width=FIELD_WIDTH)
+            options=[], width=FIELD_WIDTH, dense=True)
         self._resolution_dropdown = ft.Dropdown(
             options=[ft.DropdownOption(key=r, text=r) for r in RESOLUTION_PRESETS],
-            value=RESOLUTION_PRESETS[0], label="해상도", width=FIELD_WIDTH)
+            value=RESOLUTION_PRESETS[0], width=FIELD_WIDTH, dense=True)
         self._seed_field = ft.TextField(
-            label="Seed", hint_text="-1 = 랜덤", value="-1",
-            width=FIELD_WIDTH, dense=True)
+            hint_text="-1 = 랜덤", value="-1", width=FIELD_WIDTH, dense=True)
         self._negative_field = ft.TextField(
             label="네거티브 프롬프트", multiline=True, min_lines=2, max_lines=4)
 
         # --- 고급 옵션 (기본값은 접힘) ---
+        # 필드는 패널 본문(FIELD_WIDTH) 을 한 줄로 다 쓴다.
+        # option_row 안에서는 라벨이 왼쪽을 먹으므로 컨트롤만 줄인다.
         self._steps_slider = ft.Slider(min=1, max=60, value=20, divisions=59,
-                                       width=FIELD_WIDTH, label="{value}")
+                                       width=ROW_CONTROL_WIDTH, label="{value}")
         self._cfg_slider = ft.Slider(min=0, max=20, value=4.5, divisions=80,
-                                     width=FIELD_WIDTH, label="{value}")
+                                     width=ROW_CONTROL_WIDTH, label="{value}")
         self._sampler_dropdown = ft.Dropdown(
             options=[ft.DropdownOption(key=value, text=label)
                      for label, value in SAMPLER_OPTIONS],
-            value="euler", width=FIELD_WIDTH, dense=True)
+            value="euler", width=ROW_CONTROL_WIDTH, dense=True)
         self._scheduler_dropdown = ft.Dropdown(
             options=[ft.DropdownOption(key=name, text=name) for name in SCHEDULER_OPTIONS],
-            value="normal", width=FIELD_WIDTH, dense=True)
+            value="normal", width=ROW_CONTROL_WIDTH, dense=True)
         self._denoise_slider = ft.Slider(min=0.0, max=1.0, value=1.0,
-                                         divisions=20, width=FIELD_WIDTH,
+                                         divisions=20, width=ROW_CONTROL_WIDTH,
                                          label="{value}")
 
         # --- FaceDetailer ---
@@ -249,37 +261,44 @@ class OptionsPanel:
             self._fd_value_labels[key] = ft.Text(
                 _format_fd_value(key, _fd_to_real_value(key, slider.value)),
                 size=TOKENS.size_caption, color=TOKENS.on_surface_variant,
-                width=64, text_align=ft.TextAlign.RIGHT)
+                # 2열이라 값 라벨이 칸을 많이 먹는다. 가장 긴 값
+                # ('123.45' 같은 6자) 기준으로 42px 면 충분하다.
+                width=42, no_wrap=True, text_align=ft.TextAlign.RIGHT)
 
         # 원본의 SAM 탐지 방식 ComboBox + 네거티브 마스크 체크
         self._fd_sam_hint = ft.Dropdown(
             options=[ft.DropdownOption(key=value, text=label)
                      for label, value in SAM_HINT_OPTIONS],
-            value="bbox", label="SAM 탐지", width=FIELD_WIDTH, dense=True)
+            value="bbox", width=FIELD_WIDTH, dense=True)
         self._fd_sam_negative = ft.Switch(
             label="네거티브 마스크 사용", value=False)
 
 
+        # 15종을 2열로 올린다. 한 칸 폭이 좁으니 슬라이더 위에
+        # [라벨 ..... 값] 을 두고, 그 아래에 슬라이더를 온전히 놓는다.
         self._fd_groups: List[ft.Control] = [
             collapsible(
                 title,
                 ft.Column(
-                    # 라벨/값은 위 한 줄, 슬라이더는 아래 온전히 넓게 둔다.
-                    controls=[ft.Column(
-                        controls=[
-                            ft.Row(
-                                controls=[
-                                    ft.Text(_FD_LABELS.get(key, key),
-                                            size=TOKENS.size_caption,
-                                            color=TOKENS.on_surface_variant),
-                                    ft.Container(expand=True),
-                                    self._fd_value_labels[key],
-                                ],
-                                spacing=TOKENS.space_sm, tight=True),
-                            self._fd_sliders[key],
-                        ],
-                        spacing=2, tight=True)
-                              for key in keys if key in self._fd_sliders],
+                    controls=self._grid([
+                        ft.Column(
+                            controls=[
+                                ft.Row(
+                                    controls=[
+                                        ft.Text(_FD_LABELS.get(key, key),
+                                                size=TOKENS.size_caption,
+                                                color=TOKENS.on_surface_variant,
+                                                no_wrap=True,
+                                                overflow=ft.TextOverflow.ELLIPSIS),
+                                        ft.Container(expand=True),
+                                        self._fd_value_labels[key],
+                                    ],
+                                    spacing=TOKENS.space_xs, tight=True),
+                                self._fd_sliders[key],
+                            ],
+                            spacing=2, tight=True, width=GRID_COLUMN_WIDTH)
+                        for key in keys if key in self._fd_sliders
+                    ]),
                     spacing=TOKENS.space_md, tight=True),
                 subtitle=f"{len(keys)}項",
                 expanded=(index == 0))
@@ -288,11 +307,13 @@ class OptionsPanel:
 
         self._fd_options = ft.Column(
             controls=[
-                option_row("SAM 탐지", self._fd_sam_hint),
+                # 라벨은 _label() 로 통일한다. option_row 는 라벨을 왼쪽에
+                # 두고 컨트롤 폭을 줄이는 쪽이라, 2열 그리드와 어긋난다.
+                self._label("얼굴 탐지 방식", self._fd_sam_hint),
                 self._fd_sam_negative,
                 *self._fd_groups,
             ],
-            spacing=TOKENS.space_sm, tight=True, visible=False)
+            spacing=TOKENS.space_md, tight=True, visible=False)
 
     def _make_fd_label_updater(self, key: str):
         """슬라이더를 움직이면 옆 값 라벨을 실제 값으로 갱신하는 콜백."""
@@ -311,11 +332,29 @@ class OptionsPanel:
 
 
     # --- 레이아웃 ---------------------------------------------------------
-    def _label(self, text: str, control: ft.Control) -> ft.Control:
+    def _label(self, text: str, control: ft.Control,
+               *, width: int = FIELD_WIDTH) -> ft.Control:
+        """제목 + 컨트롤 세로 묶음 (라벨은 여기서만 만든다).
+
+        width 를 주면 그 폭으로 고정한다. 2열 그리드에서는 GRID_COLUMN_WIDTH
+        를 넘지 않도록 build() 에서 계산해 넘긴다.
+        """
         return ft.Column(
             controls=[ft.Text(text, size=TOKENS.size_caption,
                               color=TOKENS.on_surface_variant), control],
-            spacing=TOKENS.space_xs, tight=True)
+            spacing=TOKENS.space_xs, tight=True, width=width)
+
+    @staticmethod
+    def _grid(cells: List[ft.Control]) -> ft.Control:
+        """제목+컨트롤 묶음을 2열로 배치한다.
+
+        해상도/Seed 처럼 짝이 자연스러운 항목은 한 줄에 두 개씩 올린다.
+        셀 개수가 홀수면 마지막 칸은 비워 두고, 셀 폭은 2열 폭을 넘지
+        않게 build() 에서 이미 맞춰둔다.
+        """
+        return ft.Row(
+            controls=list(cells),
+            spacing=GUTTER, wrap=True, run_spacing=GUTTER, tight=True)
 
     def _section(self, title: str, controls: List[ft.Control]) -> ft.Control:
         return ft.Container(
@@ -343,26 +382,51 @@ class OptionsPanel:
                            subtitle="Steps · CFG · Sampler · Scheduler · Denoise")
 
     def _build_facedetailer(self) -> ft.Control:
+        """안면 보정 스위치 하나를 누르면 15종이 바로 펼쳐진다.
+
+        예전에는 'FaceDetailer 상세' 접기를 한 번 더 눌러야 해서
+        '켜놨는데 안 보이니 왜 안 되지?' 하는 혼란이 있었다.
+        접기 헤더를 두지 않고 스위치가 곧 펼치기 역할을 한다.
+        """
         count = len(FACEDETAILER_SLIDER_SPECS)
         return ft.Column(
             controls=[
-                self._fd_switch,
-                collapsible("FaceDetailer 상세", self._fd_options,
-                            subtitle=f"{count}개 항목"),
+                ft.Row(
+                    controls=[
+                        self._fd_switch,
+                        ft.Container(expand=True),
+                        ft.Text(f"{count}개 항목", size=TOKENS.size_caption,
+                                color=TOKENS.on_surface_variant),
+                    ],
+                    spacing=TOKENS.space_sm, tight=True),
+                self._fd_options,
             ],
             spacing=TOKENS.space_xs, tight=True)
 
 
     def build(self) -> ft.Control:
-        """좌측 옵션 패널 (세로 스크롤)."""
+        """좌측 옵션 패널 (세로 스크롤).
+
+        기본 항목은 2열로 올린다. 모델처럼 값이 긴 항목은 1줄을 다 쓰고
+        (모델 / LM 모델), 해상도·Seed처럼 짧은 짝은 한 줄에 두 개씩
+        배치해 세로 길이를 줄인다.
+        """
+        # 2열 셀 폭: 한 칸이 CONTENT_WIDTH 를 넘지 않게 컨트롤까지 맞춘다.
+        half = GRID_COLUMN_WIDTH
+        for control in (self._resolution_dropdown, self._seed_field):
+            control.width = half
+
         return ft.Container(
             content=ft.Column(
                 controls=[
                     self._section("기본", [
                         self._label("ComfyUI 모델", self._model_dropdown),
                         self._label("LM Studio 모델", self._lm_model_dropdown),
-                        self._label("해상도", self._resolution_dropdown),
-                        self._label("Seed", self._seed_field),
+                        self._grid([
+                            self._label("해상도", self._resolution_dropdown,
+                                        width=half),
+                            self._label("Seed", self._seed_field, width=half),
+                        ]),
                     ]),
                     self._section("네거티브", [self._negative_field]),
                     self._build_advanced(),
