@@ -41,8 +41,10 @@ def main(page: ft.Page) -> None:
 
     page.add(state.shell.build())
     state.navigate("/")
+    # start() 안에서 AI 환영 인사를 *채팅 말풍선*으로 남긴다.
+    # (예전처럼 set_status 로 상태 표시줄에만 보내면 사용자가 AI 대화인
+    #  줄 몰라 '무엇을 그려드릴까요?' 를 오른쪽 아래 작은 글씨로 본다)
     state.start()
-    state.shell.set_status("무엇을 그려드릴까요?", "idle")
 
     page.on_disconnect = state.jobs.cancel_active
     page.on_route_change = _make_route_handler(state)

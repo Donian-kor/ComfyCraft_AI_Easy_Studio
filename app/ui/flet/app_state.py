@@ -41,6 +41,10 @@ from app.ui.flet.pages.studio import StudioPage
 
 _ui_loop: Optional[asyncio.AbstractEventLoop] = None
 
+# AI 환영 인사. 원본 Qt 의 TEMPLATES["welcome"] 과 같은 문장을 쓴다.
+# 톤: "만들다"보다 "그리다" — 사용자가 아티스트와 대화하는 느낌.
+WELCOME_TEXT = "안녕하세요? 무엇을 그려드릴까요?"
+
 
 def set_ui_loop(loop: Optional[asyncio.AbstractEventLoop]) -> None:
     """Flet 이 만든 이벤트 루프를 기억한다 (앱 시작 시 1회 호출).
@@ -141,13 +145,40 @@ class AppState:
             self.refresh_models()
 
     def start(self) -> None:
-        """앱이 뜨자마자 서버 모델을 한 번 읽어 둔다.
+        """앱이 뜨자마자 환영 인사를 말하고, 서버 모델을 한 번 읽어 둔다.
 
-        비동기로 처리해 서버가 꺼져 있어도 창이 늦게 뜨지 않게 한다.
+        원본(Qt) 동작: 세션이 하나도 없고 채팅이 비었을 때만 AI 가
+        환영 인사를 *채팅 말풍선*으로 남긴다 (main_controller._maybe_greet).
+        Flet 초안은 이걸 상태 표시줄(set_status) 로 옮겨 버려
+        '무엇을 그려드릴까요?' 가 오른쪽 아래 작은 글씨로만 나왔다.
+        사용자는 AI 와 대화하는 프로그램이지 상태 표시창이 아니다.
+
+        비동기로 모델을 읽어 서버가 꺼져 있어도 창이 늦게 뜨지 않게 한다.
         """
         import threading
 
+        self.maybe_greet()
         threading.Thread(target=self.refresh_models, daemon=True).start()
+
+    def maybe_greet(self) -> None:
+        """저장된 대화가 없을 때만 AI 환영 인사를 채팅에 남긴다.
+
+        회귀 근거: 예전엔 이 인사가 상태 표시줄에만 있었다. 사용자가
+        'AI 가 말을 거는 프로그램'이라는 원본 UX 를 잃었다.
+        이미 대화가 있으면 붙이면 안 된다(첫 인사가 뒤에 섞여 보인다).
+        """
+        if self.studio is None:
+            return
+        try:
+            if self.services.session_manager.list_sessions(limit=1):
+                return
+        except Exception:
+            # 세션 목록을 못 읽어도 인사는 보여야 한다(기능 부재로 보이면 안 된다)
+            pass
+        if self.studio.chat.messages:
+            return
+        self.studio.chat.append_message(
+            ChatMessageData(role="ai", kind="text", text=WELCOME_TEXT))
 
     # --- 챗봇 흐름 -------------------------------------------------------
     def handle_prompt(self, text: str) -> None:
