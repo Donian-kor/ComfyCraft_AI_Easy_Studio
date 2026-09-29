@@ -1,5 +1,6 @@
-# Runtime dependencies for ComfyUI + LM Studio GUI
+# Runtime dependencies for ComfyCraft AI Easy Studio (Flet Edition)
+# REFACTOR_PLAN_FLET.md Phase 12: Qt 프레임워크 제거, Flet 도입
 requests>=2.31.0,<3.0
 websocket-client>=1.8.0,<2.0
-PySide6>=6.6.0,<7.0
+flet>=1.0.0,<2.0
 markdown>=3.5.0,<4.0

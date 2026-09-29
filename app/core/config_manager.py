@@ -11,7 +11,9 @@ from typing import Any, Dict, Optional, Union
 from dataclasses import dataclass, field
 
 # 프롬프트 로더 (prompt.json에서 시스템 프롬프트 등 로드)
-from app.sections.prompt import load_external_prompts
+# Feature 계층에서 가져온다. app.sections.prompt 를 거치면 이 파일이
+# PySide6 를 간접적으로 import 하게 되어 core 계층이 UI 에 묶인다.
+from app.features.prompt.prompts import load_external_prompts
 
 
 @dataclass
