@@ -34,10 +34,11 @@ def main(page: ft.Page) -> None:
 
     state = AppState()
     state.shell = AppShell(on_navigate=state.navigate)
+    state.shell.attach_page(page)
 
     page.add(state.shell.build())
     state.navigate("/")
-    state.shell.set_status("준비 완료", "idle")
+    state.shell.set_status("무엇을 그려드릴까요?", "idle")
 
     page.on_disconnect = state.jobs.cancel_active
     page.on_route_change = _make_route_handler(state)

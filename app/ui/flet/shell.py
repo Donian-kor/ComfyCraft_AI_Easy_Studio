@@ -30,13 +30,11 @@ class NavItem:
 
 
 NAV_ITEMS: List[NavItem] = [
-    NavItem("/", "홈", ft.Icons.HOME_OUTLINED, ft.Icons.HOME),
-    NavItem("/generate", "생성", ft.Icons.IMAGE_OUTLINED, ft.Icons.IMAGE),
+    NavItem("/", "챗봇", ft.Icons.CHAT_BUBBLE_OUTLINE, ft.Icons.CHAT_BUBBLE),
     NavItem("/models", "모델", ft.Icons.LAYERS_OUTLINED, ft.Icons.LAYERS),
-    NavItem("/chat", "대화", ft.Icons.CHAT_BUBBLE_OUTLINE, ft.Icons.CHAT_BUBBLE),
-    NavItem("/history", "기록", ft.Icons.HISTORY, ft.Icons.HISTORY),
-    NavItem("/settings", "설정", ft.Icons.SETTINGS_OUTLINED, ft.Icons.SETTINGS),
+    NavItem("/history", "이력", ft.Icons.HISTORY, ft.Icons.HISTORY),
     NavItem("/help", "도움말", ft.Icons.HELP_OUTLINE, ft.Icons.HELP),
+    NavItem("/settings", "설정", ft.Icons.SETTINGS_OUTLINED, ft.Icons.SETTINGS),
 ]
 
 
@@ -64,6 +62,7 @@ class AppShell:
 
     def __init__(self, on_navigate: Callable[[str], None]) -> None:
         self._on_navigate = on_navigate
+        self._page = None
         self._content_area = ft.Container(expand=True)
         self._status_text = ft.Text("", size=TOKENS.size_caption,
                                     color=TOKENS.on_surface_variant)
@@ -242,3 +241,27 @@ class AppShell:
             self._job_bar.value = max(0, min(progress, 100)) / 100.0
             self._job_label.value = label
         self._safe_update(self._job_bar, self._job_label)
+
+    def attach_page(self, page) -> None:
+        """Dialog 등 페이지 단위 기능을 쓰기 위해 page 참조를 보관한다."""
+        self._page = page
+
+    def show_image_dialog(self, image_path: str, meta: str = "") -> None:
+        """이미지 카드에서 '크게' 를 눌렀을 때 상세 Dialog 을 연다."""
+        page = self._page
+        if page is None or not image_path:
+            return
+        dialog = ft.AlertDialog(
+            title=ft.Text(meta or "이미지", size=TOKENS.size_body),
+            content=ft.Container(
+                content=ft.Image(src=image_path, fit=ft.BoxFit.CONTAIN),
+                width=900, height=640),
+            actions=[
+                ft.TextButton("닫기", on_click=lambda _e: page.pop_dialog()),
+            ],
+        )
+        try:
+            page.show_dialog(dialog)
+        except Exception:
+            # 헤드리스 환경에서는 열지 못해도 흐름을 막지 않는다
+            pass
