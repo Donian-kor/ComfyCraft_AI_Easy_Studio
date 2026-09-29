@@ -66,7 +66,7 @@ class SettingsPage:
                                        value=config.comfyui.url)
         self._comfy_status = ft.Text("", size=TOKENS.size_caption)
         self._model_base_paths = ft.TextField(
-            label="ComfyUI 몇에 경로", width=460,
+            label="ComfyUI 模型 경로", width=460,
             value=_join_paths(_model_base_paths(config)))
         self._model_path_status = ft.Text("", size=TOKENS.size_caption)
 
