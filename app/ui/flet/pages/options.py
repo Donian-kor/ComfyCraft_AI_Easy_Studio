@@ -19,6 +19,7 @@ from app.ui.flet.components.common import (
     option_row,
     safe_update,
 )
+from app.ui.flet.pages.fd_sliders import FD_SLIDER_RANGES, is_step_64
 from app.ui.flet.theme.tokens import TOKENS, radius
 
 SAMPLER_OPTIONS = [(label, value) for label, value in SAMPLER_NAMES.items()]
@@ -81,9 +82,9 @@ def _fd_attr_name(key: str) -> str:
     return key[len("facedetailer_"):]
 
 
-# 값 표시/역변환이 스펙 정보를 바로 참조하므로 키를 앞에 만든다.
-_FD_SPEC_BY_KEY = {key: (default, factor, is64)
-                   for key, _name, default, factor, is64
+# 값 표시/역변환이 범위 정보를 바로 참조하므로 키를 앞에 만든다.
+_FD_SPEC_BY_KEY = {key: (default, factor, is64, widget_name)
+                   for key, widget_name, default, factor, is64
                    in FACEDETAILER_SLIDER_SPECS}
 
 # 정수처럼 보여줄 항목 (소수점은 슬라이더 값만 보이면 되므로 생략)
@@ -97,32 +98,72 @@ _FD_INT_KEYS = {
 
 def _format_fd_value(key: str, value) -> str:
     """슬라이더 옆에 표시할 실제 값 (Qt 배율/64단위를 되돌린 값)."""
-    default, factor, is64 = _FD_SPEC_BY_KEY.get(key, (0, 1.0, False))
+    digits = 2
+    if key in _FD_SPEC_BY_KEY:
+        widget = _FD_SPEC_BY_KEY[key][3]
+        digits = FD_SLIDER_RANGES.get(widget, (0, 100, 0, 1.0, 2))[4]
     try:
-        if is64:
-            return f"{int(float(value) * 64)}"
-        if key in _FD_INT_KEYS:
-            return f"{int(round(float(value)))}"
-        if factor == 100.0:
-            return f"{float(value):.2f}"
-        return f"{float(value):.1f}"
+        text = f"{float(value):.{digits}f}"
     except (TypeError, ValueError):
         return str(value)
+    # 20.00 -> '20', 0.40 -> '0.40'
+    return text[:-3] if text.endswith(".00") else text
 
 
-def _build_fd_slider(default, factor: float, is_step_64: bool) -> ft.Slider:
-    """스펙 한 항목을 Flet 슬라이더로 만든다 (Qt 배율 환산 되돌리기)."""
-    if is_step_64:
-        # 원본: 0~16 정수 슬라이더, 실제값 = 값 * 64
-        return ft.Slider(min=0, max=16, value=float(default) // 64,
-                         divisions=16, label="{value} × 64")
-    if factor == 100.0:
-        # 원본: 0~100 정수 슬라이더, 실제값 = 값 / 100 (0~1 실수)
-        return ft.Slider(min=0.0, max=1.0, value=float(default),
-                         divisions=100, label="{value}")
-    return ft.Slider(min=0.0, max=float(default) * 2, value=float(default),
-                     divisions=20, label="{value}")
+def _build_fd_slider(widget_name: str) -> ft.Slider:
+    """원본 Qt 슬라이더와 같은 범위/기본값으로 Flet 슬라이더를 만든다.
 
+    Qt 는 정수 슬라이더였고, 실제 값은 배율로 환산했다. 화면에는 Qt 값
+    (정수)을 그대로 보여주고 to_request() 에서 환산하므로 스냅샷 복원도
+    같은 경로를 탄다. 배량을 여기서 되돌리면 범위가 어긋나
+    'value must be less than or equal to max' 로 죽는다.
+    """
+    qt_min, qt_max, qt_default, _factor, _digits = FD_SLIDER_RANGES[widget_name]
+    return ft.Slider(
+        min=qt_min, max=qt_max,
+        value=float(max(qt_min, qt_default)),
+        divisions=max(1, qt_max - qt_min),
+        label="{value}")
+
+
+def _fd_to_real_value(key: str, qt_value) -> object:
+    """Qt 슬라이더 값을 실제 설정값으로 환산한다."""
+    name = _fd_attr_name(key)
+    widget = _FD_SPEC_BY_KEY.get(key, (0, 1.0, False, ""))[3]
+    try:
+        raw = float(qt_value)
+    except (TypeError, ValueError):
+        return _FD_SPEC_BY_KEY.get(key, (0, 1.0, False, ""))[0]
+    if widget in FD_SLIDER_RANGES:
+        _qmin, _qmax, _qdef, factor, _d = FD_SLIDER_RANGES[widget]
+        if is_step_64(widget):
+            value: object = int(round(raw * 64))
+        elif name in _FD_INT_KEYS:
+            value = int(round(raw))
+        else:
+            value = round(raw / factor, 6)
+        return value
+    if name in _FD_INT_KEYS:
+        return int(round(raw))
+    return raw
+
+
+def _fd_to_qt_value(key: str, real_value) -> float:
+    """실제 설정값을 Qt 슬라이더 값으로 되돌린다 (스냅샷 복원용)."""
+    widget = _FD_SPEC_BY_KEY.get(key, (0, 1.0, False, ""))[3]
+    if widget not in FD_SLIDER_RANGES:
+        return 0.0
+    qt_min, qt_max, _qdef, factor, _d = FD_SLIDER_RANGES[widget]
+    try:
+        raw = float(real_value)
+    except (TypeError, ValueError):
+        return float(qt_min)
+    if is_step_64(widget):
+        qt_value = raw / 64.0
+    else:
+        qt_value = raw * factor
+    # 슬라이더가 값을 받는 순간 예외를 던지므로 범위를 여기서 지킨다.
+    return min(float(qt_max), max(float(qt_min), qt_value))
 
 
 def parse_resolution(text: str, fallback: tuple = (1152, 896)) -> tuple:
@@ -181,12 +222,12 @@ class OptionsPanel:
                           for key, _name, default, factor, is64
                           in FACEDETAILER_SLIDER_SPECS}
 
-        for key, _name, default, factor, is64 in FACEDETAILER_SLIDER_SPECS:
-            slider = _build_fd_slider(default, factor, is64)
+        for key, widget_name, default, factor, is64 in FACEDETAILER_SLIDER_SPECS:
+            slider = _build_fd_slider(widget_name)
             slider.on_change = self._make_fd_label_updater(key)
             self._fd_sliders[key] = slider
             self._fd_value_labels[key] = ft.Text(
-                _format_fd_value(key, default),
+                _format_fd_value(key, _fd_to_real_value(key, slider.value)),
                 size=TOKENS.size_caption, color=TOKENS.on_surface_variant,
                 width=64, text_align=ft.TextAlign.RIGHT)
 
@@ -229,11 +270,12 @@ class OptionsPanel:
             spacing=TOKENS.space_sm, tight=True, visible=False)
 
     def _make_fd_label_updater(self, key: str):
-        """슬라이더를 움직이면 옆 값 라벨을 갱신하는 콜백을 만든다."""
+        """슬라이더를 움직이면 옆 값 라벨을 실제 값으로 갱신하는 콜백."""
         def handle(_event: ft.Event) -> None:
             label = self._fd_value_labels.get(key)
             if label is not None:
-                label.value = _format_fd_value(key, self._fd_sliders[key].value)
+                real = _fd_to_real_value(key, self._fd_sliders[key].value)
+                label.value = _format_fd_value(key, real)
                 safe_update(label)
         return handle
 
@@ -337,19 +379,9 @@ class OptionsPanel:
 
         # FaceDetailer: 스펙 15종을 빠짐없이 요청에 반영한다.
         # 하드코딩으로 몇 개만 넣으면 화면의 값이 조용히 버려진다.
-        for key, _widget, default, _factor, is64 in FACEDETAILER_SLIDER_SPECS:
-            name = _fd_attr_name(key)
-            raw = self._fd_sliders[key].value
-            try:
-                if is64:
-                    value: object = int(float(raw) * 64)
-                elif name in _FD_INT_KEYS:
-                    value = int(round(float(raw)))
-                else:
-                    value = float(raw)
-            except (TypeError, ValueError):
-                value = _default
-            setattr(self._facedetailer, name, value)
+        for key, _widget, default, _factor, _is64 in FACEDETAILER_SLIDER_SPECS:
+            setattr(self._facedetailer, _fd_attr_name(key),
+                    _fd_to_real_value(key, self._fd_sliders[key].value))
 
         self._facedetailer.enabled = bool(self._fd_switch.value)
         self._facedetailer.sam_detection_hint = str(
@@ -397,18 +429,18 @@ class OptionsPanel:
         self._fd_options.visible = self._facedetailer.enabled
 
         # 스냅샷의 15종 값을 슬라이더와 표시 라벨에 되돌린다.
-        for key, _widget, _default, _factor, is64 in FACEDETAILER_SLIDER_SPECS:
+        # 실제값 -> Qt 슬라이더 값으로 환산한 뒤 넣는다. 그냥 넣으면
+        # guide_size=256 처럼 max(16) 를 넘겨 Flet 이 예외를 던진다.
+        for key, _widget, _default, _factor, _is64 in FACEDETAILER_SLIDER_SPECS:
             saved = getattr(self._facedetailer, _fd_attr_name(key), None)
             if saved is None:
                 continue
             slider = self._fd_sliders.get(key)
             if slider is not None:
-                slider.value = (float(saved) / 64.0) if is64 else float(saved)
+                slider.value = _fd_to_qt_value(key, saved)
             label = self._fd_value_labels.get(key)
             if label is not None:
-                # 라벨은 슬라이더 값(표시 단위)을 받는다.
-                # 실제값을 다시 넣으면 64단위 항목이 이중으로 곱해진다.
-                label.value = _format_fd_value(key, slider.value)
+                label.value = _format_fd_value(key, saved)
         self._fd_sam_hint.value = self._facedetailer.sam_detection_hint or "bbox"
         self._fd_sam_negative.value = bool(
             self._facedetailer.sam_mask_hint_use_negative)
