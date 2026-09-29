@@ -19,7 +19,14 @@ from app.ui.flet.components.common import (
     option_row,
     safe_update,
 )
-from app.ui.flet.pages.fd_sliders import FD_SLIDER_RANGES, is_step_64
+from app.ui.flet.pages.fd_sliders import (
+    FD_SLIDER_RANGES,
+    GRID_DIVIDER,
+    GRID_DIVIDER_GAP,
+    GRID_DIVIDER_TOTAL,
+    build_grid,
+    is_step_64,
+)
 from app.ui.flet.theme.tokens import TOKENS, radius
 
 SAMPLER_OPTIONS = [(label, value) for label, value in SAMPLER_NAMES.items()]
@@ -37,25 +44,17 @@ PANEL_WIDTH = 420          # 패널 전체 폭
 PANEL_PADDING = 24         # 패널 안쪽 여백 (TOKENS.space_lg)
 CONTENT_WIDTH = PANEL_WIDTH - PANEL_PADDING * 2   # 실제 본문 폭(372)
 FIELD_WIDTH = CONTENT_WIDTH            # 1열로 쓸 때 (드롭다운/텍스트 필드)
-# 두 열 사이에 세로 구분선을 세운다. 구분선은 굵기 1px + 좌우 5px 여백.
-#   172 + 5 + 1 + 5 + 172 = 355 <= 356  (여유 1px)
-# 구분선이 없으면 '왼쪽 칸 값인지 오른쪽 칸 값인지' 헷갈리는데,
-# 특히 값 라벨이 오른쪽 정렬이라 왼쪽 칸의 값이 오른쪽에 붙어 보인다.
-GRID_DIVIDER = 1                        # 구분선 두께(px)
-GRID_DIVIDER_GAP = 5                    # 구분선 좌우 여백(px)
-GRID_ROW_SPACING = TOKENS.space_md      # 줄(세로) 사이 간격
 # 2열 그리드. 두 곳에서 쓰이는데, 들어갈 공간이 서로 다르다.
 #   * 패널 본문 직속(_grid)          : CONTENT_WIDTH (372)
 #   * collapsible 안쪽(들여쓰기 16) : 372 - 16 = 356
 # 두 곳 중 좁은 쪽에 맞춰야, 안쪽에서 2열이 조용히 1줄로 접히지 않는다.
-# (줄은 _grid() 가 두 개씩 묶어 직접 만들므로 자동 줄바꿈에 의존하지 않는다)
+# (줄은 build_grid() 가 두 개씩 묶어 직접 만들므로 자동 줄바꿈에 의존하지 않는다)
 _COLLAPSE_INDENT = TOKENS.space_lg
 GRID_AVAILABLE = CONTENT_WIDTH - _COLLAPSE_INDENT        # 356
-# 한 줄 폭 = 칸 + 구분선(+좌우 여백) + 칸 이므로, 구분선 자리를 빼고
-# 두 칸에 나눠야 한다. 이걸 빠뜨리면 한 줄이 GRID_AVAILABLE 를 1px 넘겨
-# collapsible 안쪽에서 칸이 1px 잘린다.
-_GRID_DIVIDER_TOTAL = GRID_DIVIDER + GRID_DIVIDER_GAP * 2  # 11
-GRID_COLUMN_WIDTH = (GRID_AVAILABLE - _GRID_DIVIDER_TOTAL) // 2   # 172
+# 한 줄 폭 = 칸 + (왼쪽 여백 + 구분선 + 칸) 이므로 구분선 자리를 빼고
+# 두 칸에 나눠야 한다. 이걸 빠뜨리면 한 줄이 GRID_AVAILABLE 를 넘겨
+# collapsible 안쪽에서 칸이 잘린다.
+GRID_COLUMN_WIDTH = (GRID_AVAILABLE - GRID_DIVIDER_TOTAL) // 2   # 175
 # 2열로 배치한 입력 필드도 한 칸 폭에 맞춘다.
 GRID_FIELD_WIDTH = GRID_COLUMN_WIDTH
 # option_row 는 [라벨][컨트롤] 2조각이라 컨트롤 폭을 줄여야 라벨까지 들어간다.
@@ -381,35 +380,10 @@ class OptionsPanel:
     def _grid(cells: List[ft.Control]) -> ft.Control:
         """제목+컨트롤 묶음을 2열로 배치하고 열 사이에 구분선을 세운다.
 
-        자동 줄바꿈(Row(wrap=True)) 대신 '두 개씩 묶어 줄을 직접 만든다'.
-        줄마다 구분선을 정확히 같은 자리에 세우려면 Flet 이 알아서 줄을
-        나누게 하면 안 된다 — 어느 칸 뒤에 줄이 접힐지 알 수 없어
-        구분선이 칸 사이에 있지 않게 되기 때문이다.
-
-        항목 수가 홀수면 마지막 줄은 한 칸만 두고 구분선을 넣지 않는다.
-        (빈 칸에 구분선을 그리면 '항목이 하나 빠졌다'고 오해하게 된다)
+        실제 줄 만들기/구분선은 fd_sliders.build_grid() 가 담당한다.
+        여길 지우면 2열이 조용히 1열로 접힌다.
         """
-        rows: List[ft.Control] = []
-        for start in range(0, len(cells), 2):
-            pair = cells[start:start + 2]
-            if len(pair) == 1:                      # 홀수: 마지막 한 칸
-                rows.append(ft.Row(controls=pair, spacing=0))
-                continue
-            rows.append(ft.Row(
-                controls=[
-                    pair[0],
-                    ft.Container(
-                        # 세로선: 폭 1px, 높이(세로)는 아래 Row 높이를
-                        # 따라 늘어나게 STRETCH 로 맞춰 한 줄 전체를 잇는다.
-                        width=GRID_DIVIDER,
-                        margin=ft.Padding.symmetric(
-                            horizontal=GRID_DIVIDER_GAP),
-                        bgcolor=TOKENS.outline_variant),
-                    pair[1],
-                ],
-                spacing=0,
-                vertical_alignment=ft.CrossAxisAlignment.STRETCH))
-        return ft.Column(controls=rows, spacing=GRID_ROW_SPACING, tight=True)
+        return build_grid(cells, GRID_COLUMN_WIDTH)
 
     def _section(self, title: str, controls: List[ft.Control]) -> ft.Control:
         return ft.Container(
