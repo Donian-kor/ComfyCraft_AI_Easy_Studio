@@ -40,11 +40,12 @@ def main(page: ft.Page) -> None:
     state.shell.attach_page(page)
 
     page.add(state.shell.build())
-    state.navigate("/")
-    # start() 안에서 AI 환영 인사를 *채팅 말풍선*으로 남긴다.
-    # (예전처럼 set_status 로 상태 표시줄에만 보내면 사용자가 AI 대화인
-    #  줄 몰라 '무엇을 그려드릴까요?' 를 오른쪽 아래 작은 글씨로 본다)
+    # 순서가 중요하다: 환영 인사를 *먼저* 넣고 화면을 그려야 한다.
+    # (navigate() 가 page.build() 로 이미 만든 트리를 나중에 갱신하려 하면
+    #  컨트롤이 아직 page 에 붙지 않아 safe_update 가 RuntimeError 를 삼키고
+    #  인사가 화면에 반영되지 않는다. 그래서 start() 를 navigate() 보다 먼저.)
     state.start()
+    state.navigate("/")
 
     page.on_disconnect = state.jobs.cancel_active
     page.on_route_change = _make_route_handler(state)
