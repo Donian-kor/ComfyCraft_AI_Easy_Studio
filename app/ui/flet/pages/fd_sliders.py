@@ -11,8 +11,8 @@ from typing import Dict, List, Tuple
 
 import flet as ft
 
+from app.constants import FACEDETAILER_SLIDER_SPECS
 from app.ui.flet.theme.tokens import TOKENS
-
 # 두 열 사이에 세로 구분선을 세운다.
 #   칸 175 + 여백 5 + 선 1 + 칸 175 = 356  (사용 가능 폭과 정확히 일치)
 # 구분선이 없으면 '왼쪽 칸 값인지 오른쪽 칸 값인지' 헷갈리는데,
@@ -71,7 +71,6 @@ def build_grid(cells: List[ft.Control],
             spacing=0))
     return ft.Column(controls=rows, spacing=GRID_ROW_SPACING, tight=True)
 
-
 # ---------------------------------------------------------------------------
 # FaceDetailer 슬라이더의 실제 범위 (원본 Qt 슬라이더에서 추출)
 # ---------------------------------------------------------------------------
@@ -113,3 +112,73 @@ _STEP_64_WIDGETS = {"facedetailerGuideSizeSlider", "facedetailerMaxSizeSlider"}
 
 def is_step_64(widget_name: str) -> bool:
     return widget_name in _STEP_64_WIDGETS
+
+# --- Qt 슬라이더 값 <-> 실제 설정값 변환 (원본 배율 규칙) ---
+#
+# Qt 는 정수 슬라이더였고 실제 값은 배율/64단위로 환산했다. 화면에는
+# Qt 값(정수)을 그대로 보여주고 to_request() 에서 여기서 되돌린다. 배량을
+# 화면에서 되돌리면 슬라이더가 max 범위를 벗어나 죽는다.
+SPEC_BY_KEY: Dict[str, tuple] = {
+    key: (default, factor, is64, widget_name)
+    for key, widget_name, default, factor, is64 in FACEDETAILER_SLIDER_SPECS
+}
+
+# 정수처럼 보여줄 항목 (소수점은 슬라이더 값만 보이면 되므로 생략)
+INT_KEYS = {
+    "facedetailer_steps", "facedetailer_guide_size", "facedetailer_max_size",
+    "facedetailer_feather", "facedetailer_bbox_dilation",
+    "facedetailer_sam_dilation", "facedetailer_sam_bbox_expansion",
+    "facedetailer_cycle", "facedetailer_drop_size",
+}
+
+def attr_name(key: str) -> str:
+    """'facedetailer_denoise' -> 'denoise' (FaceDetailerSettings 필드명)."""
+    return key[len("facedetailer_"):]
+
+def to_real_value(key: str, qt_value) -> object:
+    """Qt 슬라이더 값을 실제 설정값으로 환산한다."""
+    name = attr_name(key)
+    widget = SPEC_BY_KEY.get(key, (0, 1.0, False, ""))[3]
+    try:
+        raw = float(qt_value)
+    except (TypeError, ValueError):
+        return SPEC_BY_KEY.get(key, (0, 1.0, False, ""))[0]
+    if widget in FD_SLIDER_RANGES:
+        _qmin, _qmax, _qdef, factor, _d = FD_SLIDER_RANGES[widget]
+        if is_step_64(widget):
+            value: object = int(round(raw * 64))
+        elif name in INT_KEYS:
+            value = int(round(raw))
+        else:
+            value = round(raw / factor, 6)
+        return value
+    if name in INT_KEYS:
+        return int(round(raw))
+    return raw
+
+def to_qt_value(key: str, real_value) -> float:
+    """실제 설정값을 Qt 슬라이더 값으로 되돌린다 (스냅샷 복원용)."""
+    widget = SPEC_BY_KEY.get(key, (0, 1.0, False, ""))[3]
+    if widget not in FD_SLIDER_RANGES:
+        return 0.0
+    qt_min, qt_max, _qdef, factor, _d = FD_SLIDER_RANGES[widget]
+    try:
+        raw = float(real_value)
+    except (TypeError, ValueError):
+        return float(qt_min)
+    qt_value = raw / 64.0 if is_step_64(widget) else raw * factor
+    # 슬라이더가 값을 받는 순간 예외를 던지므로 범위를 여기서 지킨다.
+    return min(float(qt_max), max(float(qt_min), qt_value))
+
+def format_value(key: str, value) -> str:
+    """슬라이더 옆에 표시할 실제 값 (Qt 배율/64단위를 되돌린 값)."""
+    digits = 2
+    if key in SPEC_BY_KEY:
+        widget = SPEC_BY_KEY[key][3]
+        digits = FD_SLIDER_RANGES.get(widget, (0, 100, 0, 1.0, 2))[4]
+    try:
+        text = f"{float(value):.{digits}f}"
+    except (TypeError, ValueError):
+        return str(value)
+    # 20.00 -> 20, 0.40 은 그대로
+    return text[:-3] if text.endswith(".00") else text

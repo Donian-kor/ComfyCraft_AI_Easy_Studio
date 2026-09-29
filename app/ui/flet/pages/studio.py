@@ -31,10 +31,12 @@ class StudioPage:
     """챗봇 작업 화면: 좌측 옵션 + 우측 대화 + 하단 입력."""
 
     def __init__(self, *, on_send: Optional[Callable[[str], None]] = None,
-                 on_stop: Optional[Callable[[], None]] = None) -> None:
+                 on_stop: Optional[Callable[[], None]] = None,
+                 model_registry=None) -> None:
         self._on_send = on_send
         self._on_stop = on_stop
-        self.options = OptionsPanel()
+        # 모델 프로필 검색기를 넘겨야 모델 변경 시 최적값을 적용할 수 있다.
+        self.options = OptionsPanel(model_registry=model_registry)
         self.chat = ChatPanel()
 
         self._prompt = ft.TextField(

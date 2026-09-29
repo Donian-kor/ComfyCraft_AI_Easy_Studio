@@ -25,7 +25,17 @@ from app.ui.flet.pages.fd_sliders import (
     GRID_DIVIDER_GAP,
     GRID_DIVIDER_TOTAL,
     build_grid,
-    is_step_64,
+    attr_name as _fd_attr_name,
+    format_value as _format_fd_value,
+    to_qt_value as _fd_to_qt_value,
+    to_real_value as _fd_to_real_value,
+)
+from app.ui.flet.pages.model_defaults import (
+    format_notice,
+    resolve_cfg,
+    resolve_sampler,
+    resolve_scheduler,
+    resolve_steps,
 )
 from app.ui.flet.theme.tokens import TOKENS, radius
 
@@ -121,39 +131,6 @@ SAM_HINT_OPTIONS = [("bbox", "bbox"), ("rect-positive", "rect-positive"),
                     ("point", "point"), ("point-bbox", "point-bbox")]
 
 
-def _fd_attr_name(key: str) -> str:
-    """'facedetailer_denoise' -> 'denoise' (FaceDetailerSettings 필드명)."""
-    return key[len("facedetailer_"):]
-
-
-# 값 표시/역변환이 범위 정보를 바로 참조하므로 키를 앞에 만든다.
-_FD_SPEC_BY_KEY = {key: (default, factor, is64, widget_name)
-                   for key, widget_name, default, factor, is64
-                   in FACEDETAILER_SLIDER_SPECS}
-
-# 정수처럼 보여줄 항목 (소수점은 슬라이더 값만 보이면 되므로 생략)
-_FD_INT_KEYS = {
-    "facedetailer_steps", "facedetailer_guide_size", "facedetailer_max_size",
-    "facedetailer_feather", "facedetailer_bbox_dilation",
-    "facedetailer_sam_dilation", "facedetailer_sam_bbox_expansion",
-    "facedetailer_cycle", "facedetailer_drop_size",
-}
-
-
-def _format_fd_value(key: str, value) -> str:
-    """슬라이더 옆에 표시할 실제 값 (Qt 배율/64단위를 되돌린 값)."""
-    digits = 2
-    if key in _FD_SPEC_BY_KEY:
-        widget = _FD_SPEC_BY_KEY[key][3]
-        digits = FD_SLIDER_RANGES.get(widget, (0, 100, 0, 1.0, 2))[4]
-    try:
-        text = f"{float(value):.{digits}f}"
-    except (TypeError, ValueError):
-        return str(value)
-    # 20.00 -> '20', 0.40 -> '0.40'
-    return text[:-3] if text.endswith(".00") else text
-
-
 def _build_fd_slider(widget_name: str) -> ft.Slider:
     """원본 Qt 슬라이더와 같은 범위/기본값으로 Flet 슬라이더를 만든다.
 
@@ -171,45 +148,6 @@ def _build_fd_slider(widget_name: str) -> ft.Slider:
         label="{value}")
 
 
-def _fd_to_real_value(key: str, qt_value) -> object:
-    """Qt 슬라이더 값을 실제 설정값으로 환산한다."""
-    name = _fd_attr_name(key)
-    widget = _FD_SPEC_BY_KEY.get(key, (0, 1.0, False, ""))[3]
-    try:
-        raw = float(qt_value)
-    except (TypeError, ValueError):
-        return _FD_SPEC_BY_KEY.get(key, (0, 1.0, False, ""))[0]
-    if widget in FD_SLIDER_RANGES:
-        _qmin, _qmax, _qdef, factor, _d = FD_SLIDER_RANGES[widget]
-        if is_step_64(widget):
-            value: object = int(round(raw * 64))
-        elif name in _FD_INT_KEYS:
-            value = int(round(raw))
-        else:
-            value = round(raw / factor, 6)
-        return value
-    if name in _FD_INT_KEYS:
-        return int(round(raw))
-    return raw
-
-
-def _fd_to_qt_value(key: str, real_value) -> float:
-    """실제 설정값을 Qt 슬라이더 값으로 되돌린다 (스냅샷 복원용)."""
-    widget = _FD_SPEC_BY_KEY.get(key, (0, 1.0, False, ""))[3]
-    if widget not in FD_SLIDER_RANGES:
-        return 0.0
-    qt_min, qt_max, _qdef, factor, _d = FD_SLIDER_RANGES[widget]
-    try:
-        raw = float(real_value)
-    except (TypeError, ValueError):
-        return float(qt_min)
-    if is_step_64(widget):
-        qt_value = raw / 64.0
-    else:
-        qt_value = raw * factor
-    # 슬라이더가 값을 받는 순간 예외를 던지므로 범위를 여기서 지킨다.
-    return min(float(qt_max), max(float(qt_min), qt_value))
-
 
 def parse_resolution(text: str, fallback: tuple = (1152, 896)) -> tuple:
     """'1152x896' 같은 해상도 문자열을 (w, h) 로 바꾼다."""
@@ -223,8 +161,12 @@ def parse_resolution(text: str, fallback: tuple = (1152, 896)) -> tuple:
 class OptionsPanel:
     """생성 옵션 (모델 / 해상도 / Steps / CFG / Seed / FaceDetailer)."""
 
-    def __init__(self, *, model_names: Optional[List[str]] = None) -> None:
+    def __init__(self, *, model_names: Optional[List[str]] = None,
+                 model_registry=None) -> None:
         self._model_names = list(model_names or [])
+        # 모델 프로필 검색기. 모델을 바꾸면 최적값을 적용하는 데 쓴다.
+        # (원본 Qt 의 MainController.model_registry 와 같은 역할)
+        self._registry = model_registry
         self._facedetailer = FaceDetailerSettings()
 
         # Dropdown 의 label 속성에는 라벨을 두지 않는다.
@@ -476,6 +418,37 @@ class OptionsPanel:
 
 
     # --- 값 읽기/쓰기 ----------------------------------------------------
+    def apply_model_defaults(self, model_name: str) -> Optional[str]:
+        """선택한 모델의 최적 생성 설정값을 옵션에 적용한다.
+
+        원본(Qt) 의 MainController.apply_model_defaults() 와 같은 역할:
+        Steps / CFG / Sampler / Scheduler / Denoise 를 모델 프로필 값으로
+        덮어쓴다.
+
+        회귀 근거: 이 기능이 Flet 전환에서 통째로 빠졌다. 모델을 바꿔도
+        아무 반응이 없어 '자동 최적 설정이 고장났다'는 인상을 준다.
+        반환값은 배지에 쓸 한 줄 안내(또는 None).
+        """
+        name = str(model_name or "").strip()
+        if not name or name == "로드된 모델 없음":
+            return None
+        profile = self._registry.detect(name) if self._registry else None
+        if profile is None:
+            return None
+
+        steps, cfg = resolve_steps(profile), resolve_cfg(profile)
+        if steps:
+            self._steps_slider.value = float(steps)
+        if cfg:
+            self._cfg_slider.value = cfg
+        # 프로필은 내부 값(euler), 드롭다운은 표시명(Euler)이라 변환이 필요하다.
+        self._sampler_dropdown.value = resolve_sampler(profile)
+        self._scheduler_dropdown.value = resolve_scheduler(profile)
+
+        safe_update(self._steps_slider, self._cfg_slider,
+                    self._sampler_dropdown, self._scheduler_dropdown)
+        return format_notice(profile, cfg, steps or 0)
+
     def to_request(self, base: Optional[GenerationRequest] = None) -> GenerationRequest:
         """현재 옵션을 GenerationRequest 로 만든다.
 
@@ -515,7 +488,13 @@ class OptionsPanel:
         request.facedetailer = self._facedetailer
         return request
 
-    def set_model_options(self, model_names: List[str]) -> None:
+    def set_model_options(self, model_names: List[str],
+                          on_change: Optional[Callable] = None) -> None:
+        """모델 목록을 채우고, 선택이 바뀌면 on_change 로 알린다.
+
+        회귀 근거: 예전엔 on_change 가 아예 없어 모델을 바꿔도 아무
+        반응이 없었다(최적값 자동 적용 + 채팅 안내가 통째로 빠진 상태).
+        """
         self._model_names = list(model_names or [])
         # DropdownOption 에 문자열을 직접 주면 key/text 가 빈칸이 되어
         # 화면에 아무것도 안 보인다. 반드시 key 와 text 를 함께 준다.
@@ -523,6 +502,7 @@ class OptionsPanel:
             ft.DropdownOption(key=name, text=name) for name in self._model_names]
         if self._model_names:
             self._model_dropdown.value = self._model_names[0]
+        self._model_dropdown.on_change = on_change
         safe_update(self._model_dropdown)
 
     def set_lm_model_options(self, model_names: List[str]) -> None:

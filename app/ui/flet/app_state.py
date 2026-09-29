@@ -23,6 +23,8 @@ import time
 from pathlib import Path
 from typing import Dict, List, Optional
 
+import flet as ft
+
 from app.application.job_manager import JobManager, JobState
 from app.application.services import AppServices, build_services
 from app.models.chat import (
@@ -34,6 +36,7 @@ from app.models.chat import (
 from app.models.generation import GenerationRequest
 from app.ui.flet.pages.help import HelpPage
 from app.ui.flet.pages.history import HistoryPage
+from app.ui.flet.pages.model_desc import describe_model
 from app.ui.flet.pages.models import ModelsPage
 from app.ui.flet.pages.settings import SettingsPage
 from app.ui.flet.pages.studio import StudioPage
@@ -44,6 +47,9 @@ _ui_loop: Optional[asyncio.AbstractEventLoop] = None
 # AI 환영 인사. 원본 Qt 의 TEMPLATES["welcome"] 과 같은 문장을 쓴다.
 # 톤: "만들다"보다 "그리다" — 사용자가 아티스트와 대화하는 느낌.
 WELCOME_TEXT = "안녕하세요? 무엇을 그려드릴까요?"
+
+# 모델 변경 안내. 원본 Qt 의 TEMPLATES["model_changed"] 와 같은 문장.
+SAY_MODEL_CHANGED = "{model}에 맞춰 이미지 그릴 준비를 마쳤어요. ({feature})"
 
 
 def set_ui_loop(loop: Optional[asyncio.AbstractEventLoop]) -> None:
@@ -106,6 +112,8 @@ class AppState:
         self.studio = StudioPage(
             on_send=self.handle_prompt,
             on_stop=self.stop_generation,
+            # 모델을 바꾸면 최적값을 적용하므로 레지스트리가 필요하다.
+            model_registry=self.services.model_registry,
         )
         self.studio.chat.set_card_actions(
             on_save=self._save_image,
@@ -367,6 +375,43 @@ class AppState:
         self.navigate("/")
 
     # --- 모델 -------------------------------------------------------------
+    def on_comfy_model_changed(self, event: ft.Event) -> None:
+        """ComfyUI 모델이 바뀌면 최적 설정값을 적용하고 AI 가 말한다.
+
+        원본(Qt) 의 _on_comfy_model_changed() 와 같은 역할:
+            로그 + apply_model_defaults() + AI 채팅 메시지
+
+        회귀 근거: 이 기능이 Flet 전환에서 통째로 빠졌다. 모델을 바꿔도
+        Steps/CFG 가 그대로여서 '자동 최적 설정이 고장났다'는 인상이 들고,
+        AI 도 아무 말을 하지 않았다.
+        """
+        if self.studio is None:
+            return
+        options = self.studio.options
+        name = str(options.to_request().comfy_model or "").strip()
+        if not name or name == "로드된 모델 없음":
+            return
+
+        # 1) 최적값 자동 적용
+        try:
+            notice = options.apply_model_defaults(name)
+        except Exception as exc:   # 프로필이 틀려도 앱은 계속 돌아야 한다
+            self._set_status(f"최적 설정 적용 실패: {exc}", "error")
+            return
+
+        # 2) AI 채팅 안내
+        try:
+            profile = self.services.model_registry.detect(name)
+            short, feature, _tooltip = describe_model(profile, name)
+            self.studio.chat.append_message(ChatMessageData(
+                role="ai", kind="text",
+                text=SAY_MODEL_CHANGED.format(model=short, feature=feature)))
+        except Exception:
+            pass
+
+        if self.shell is not None and notice:
+            self.shell.set_status(notice, "done")
+
     def refresh_models(self, *, lm: bool = True) -> None:
         """ComfyUI / LM Studio 서버에서 모델 목록을 읽어 화면에 반영한다.
 
@@ -391,7 +436,8 @@ class AppState:
                 names = []
 
         if self.studio is not None:
-            self.studio.options.set_model_options(names)
+            self.studio.options.set_model_options(
+                names, on_change=self.on_comfy_model_changed)
         models_page = self.pages.get("/models")
         if isinstance(models_page, ModelsPage):
             models_page.set_models(names)
