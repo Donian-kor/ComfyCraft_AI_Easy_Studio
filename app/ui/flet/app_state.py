@@ -38,14 +38,6 @@ from app.ui.flet.pages.models import ModelsPage
 from app.ui.flet.pages.settings import SettingsPage
 from app.ui.flet.pages.studio import StudioPage
 
-# 좌측 레일 라벨 → 라우트
-RAIL_ROUTES = {
-    "이력": "/history",
-    "도움말": "/help",
-    "설정": "/settings",
-    "옵션": "/options",
-}
-
 
 def _run_on_ui(fn) -> None:
     """백그라운드 스레드의 갱신을 UI 스레드로 넘긴다.
@@ -91,7 +83,6 @@ class AppState:
         self.studio = StudioPage(
             on_send=self.handle_prompt,
             on_stop=self.stop_generation,
-            on_rail=self._on_rail,
         )
         self.studio.chat.set_card_actions(
             on_save=self._save_image,
@@ -106,11 +97,6 @@ class AppState:
             "/settings": SettingsPage(self.services, on_saved=self._notify_saved),
             "/help": HelpPage(),
         }
-
-    def _on_rail(self, label: str) -> None:
-        route = RAIL_ROUTES.get(label)
-        if route:
-            self.navigate(route)
 
     def _notify_saved(self, message: str) -> None:
         if self.shell is not None:
