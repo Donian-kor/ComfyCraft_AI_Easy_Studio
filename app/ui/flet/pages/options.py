@@ -54,7 +54,7 @@ GRID_AVAILABLE = CONTENT_WIDTH - _COLLAPSE_INDENT        # 356
 # 한 줄 폭 = 칸 + (왼쪽 여백 + 구분선 + 칸) 이므로 구분선 자리를 빼고
 # 두 칸에 나눠야 한다. 이걸 빠뜨리면 한 줄이 GRID_AVAILABLE 를 넘겨
 # collapsible 안쪽에서 칸이 잘린다.
-GRID_COLUMN_WIDTH = (GRID_AVAILABLE - GRID_DIVIDER_TOTAL) // 2   # 175
+GRID_COLUMN_WIDTH = (GRID_AVAILABLE - GRID_DIVIDER_TOTAL) // 2   # 165
 # 2열로 배치한 입력 필드도 한 칸 폭에 맞춘다.
 GRID_FIELD_WIDTH = GRID_COLUMN_WIDTH
 # option_row 는 [라벨][컨트롤] 2조각이라 컨트롤 폭을 줄여야 라벨까지 들어간다.
@@ -328,13 +328,18 @@ class OptionsPanel:
         self._fd_groups: List[ft.Control] = [
             collapsible(
                 title,
-                # _grid() 가 '칸 + 구분선 + 칸' 을 한 줄로 만들어
-                # Column(줄들) 로 돌려준다. 여기서 다시 감싸지 않는다.
+                # _grid() 가 '칸 + 여백 + 구분선 + 여백 + 칸' 을 한 줄로
+                # 만들어 Column(줄들) 로 돌려준다. 여기서 다시 감싸지 않는다.
                 self._grid([_fd_cell(key) for key in keys
                             if key in self._fd_sliders]),
-                subtitle=f"{len(keys)}項",
-                expanded=(index == 0))
-            for index, (title, keys) in enumerate(_FD_GROUPS)
+                # '4項' 은 한자를 섞은 표기라 한국어로 '4개' 로 쓴다.
+                # (원본 Qt UI 의 zh-hans 번역이 새面板에 그대로 새어 들어온 것)
+                subtitle=f"{len(keys)}개",
+                # 3개 그룹을 전부 펼친다. 예전처럼 '첫 그룹만 열고 나머지는
+                # 접어두면' FaceDetailer 15종 중 11종이 숨겨져 '기능이 없는
+                # 것 같다'고 보인다. 접기는 헤더를 누를 때만 쓴다.
+                expanded=True)
+            for _index, (title, keys) in enumerate(_FD_GROUPS)
         ]
 
         self._fd_options = ft.Column(

@@ -18,11 +18,14 @@ from app.ui.flet.theme.tokens import TOKENS
 # 구분선이 없으면 '왼쪽 칸 값인지 오른쪽 칸 값인지' 헷갈리는데,
 # 특히 값 라벨이 오른쪽 정렬이라 왼쪽 칸의 값이 오른쪽에 붙어 보인다.
 GRID_DIVIDER = 1                        # 구분선 두께(px)
-GRID_DIVIDER_GAP = 5                    # 구분선 왼쪽 여백(px)
+# 여백을 5 -> 12 로 넓힌 이유: 값 라벨(0.40, 4.0)이 오른쪽 정렬이라
+# 구분선 바로 옆까지 차오른다. 5px 였을 때 숫자가 선에 달라붙어
+# '4.0|Steps' 처럼 보여 어느 칸 값인지 읽기 어려웠다.
+GRID_DIVIDER_GAP = 12                   # 구분선 좌우 여백(px)
 GRID_ROW_SPACING = TOKENS.space_md      # 줄(세로) 사이 간격
 # 한 줄 폭 = 칸 + (여백 + 구분선 + 칸) 이므로 구분선 자리를 빼고 나눈다.
 # 이걸 빠뜨리면 한 줄이 GRID_AVAILABLE 를 넘겨 collapsible 안쪽에서 잘린다.
-GRID_DIVIDER_TOTAL = GRID_DIVIDER + GRID_DIVIDER_GAP      # 6
+GRID_DIVIDER_TOTAL = GRID_DIVIDER + GRID_DIVIDER_GAP * 2   # 25
 
 
 def build_grid(cells: List[ft.Control],
@@ -50,7 +53,11 @@ def build_grid(cells: List[ft.Control],
             continue
         rows.append(ft.Row(
             controls=[
-                pair[0],
+                # 왼쪽 칸: 오른쪽에 여백을 두어 값 라벨이 구분선에 붙지 않게
+                ft.Container(
+                    content=pair[0],
+                    padding=ft.Padding.only(right=GRID_DIVIDER_GAP),
+                    width=column_width + GRID_DIVIDER_GAP),
                 ft.Container(
                     content=pair[1],
                     # 왼쪽 테두리가 곧 구분선이다. 내용 높이를 그대로
