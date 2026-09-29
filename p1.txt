@@ -1,0 +1,5 @@
+Container margin? True | bgcolor? True | width? True
+Padding.symmetric? True
+CrossAxisAlignment: ['BASELINE', 'CENTER', 'END', 'START', 'STRETCH']
+Row vertical_alignment? True
+STRETCH ok: CrossAxisAlignment.STRETCH
