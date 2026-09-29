@@ -53,7 +53,7 @@ GRID_FIELD_WIDTH = GRID_COLUMN_WIDTH
 ROW_CONTROL_WIDTH = CONTENT_WIDTH - 88   # 라벨(최장 "Scheduler") + 여백
 # FaceDetailer 행은 [라벨][값][슬라이더] 3조각이라 한 줄에 두면 너무 좁아진다.
 # 라벨과 값을 한 줄 위쪽에 두고 슬라이더를 아래에 온전히 넓힌다.
-FD_SLIDER_WIDTH = GRID_COLUMN_WIDTH - 8             # 2열 칸 안에 맞추되 살짝 여유
+FD_SLIDER_WIDTH = GRID_COLUMN_WIDTH   # 2열 칸을 정확히 채운다(양옆 여백 0)
 
 
 # --- FaceDetailer ----------------------------------------------------------
@@ -267,9 +267,10 @@ class OptionsPanel:
             self._fd_value_labels[key] = ft.Text(
                 _format_fd_value(key, _fd_to_real_value(key, slider.value)),
                 size=TOKENS.size_caption, color=TOKENS.on_surface_variant,
-                # 2열이라 값 라벨이 칸을 많이 먹는다. 가장 긴 값
-                # ('123.45' 같은 6자) 기준으로 42px 면 충분하다.
-                width=42, no_wrap=True, text_align=ft.TextAlign.RIGHT)
+                # 라벨 바로 옆에 붙여 쓰므로 고정 폭을 두지 않는다.
+                # 폭을 주고 오른쪽 정렬을 하면 라벨과의 거리가 생겨
+                # '이 값이 어느 항목 것인지' 구분하기 어렵다.
+                no_wrap=True)
 
         # 원본의 SAM 탐지 방식 ComboBox + 네거티브 마스크 체크
         self._fd_sam_hint = ft.Dropdown(
@@ -280,32 +281,40 @@ class OptionsPanel:
             label="네거티브 마스크 사용", value=False)
 
 
-        # 15종을 2열로 올린다. 한 칸 폭이 좁으니 슬라이더 위에
-        # [라벨 ..... 값] 을 두고, 그 아래에 슬라이더를 온전히 놓는다.
+        # 15종을 2열로 올린다. 한 칸이 좁으니 슬라이더 위에
+        # [라벨][값] 을 붙여 놓고, 그 아래에 슬라이더를 온전히 놓는다.
+        # 라벨과 값 사이는 Container(expand=True) 로 벌리지 않는다 —
+        # 172px 안에서 벌리면 둘이 멀리 떨어져 '이게 어느 항목 값인지'
+        # 알 수 없기 때문이다. 라벨과 값을 서로 붙이고, 남는 여백은
+        # 값 오른쪽의 빈 컨테이너가 차지한다.
+        def _fd_cell(key: str) -> ft.Control:
+            return ft.Column(
+                controls=[
+                    ft.Row(
+                        controls=[
+                            ft.Text(_FD_LABELS.get(key, key),
+                                    size=TOKENS.size_caption,
+                                    color=TOKENS.on_surface_variant,
+                                    no_wrap=True,
+                                    overflow=ft.TextOverflow.ELLIPSIS),
+                            self._fd_value_labels[key],
+                            # 라벨+값이 왼쪽에 붙어 있고, 남는 폭만 채운다
+                            ft.Container(expand=True),
+                        ],
+                        spacing=TOKENS.space_sm, tight=True),
+                    self._fd_sliders[key],
+                ],
+                spacing=2, tight=True, width=GRID_COLUMN_WIDTH)
+
         self._fd_groups: List[ft.Control] = [
             collapsible(
                 title,
-                ft.Column(
-                    controls=self._grid([
-                        ft.Column(
-                            controls=[
-                                ft.Row(
-                                    controls=[
-                                        ft.Text(_FD_LABELS.get(key, key),
-                                                size=TOKENS.size_caption,
-                                                color=TOKENS.on_surface_variant,
-                                                no_wrap=True,
-                                                overflow=ft.TextOverflow.ELLIPSIS),
-                                        ft.Container(expand=True),
-                                        self._fd_value_labels[key],
-                                    ],
-                                    spacing=TOKENS.space_xs, tight=True),
-                                self._fd_sliders[key],
-                            ],
-                            spacing=2, tight=True, width=GRID_COLUMN_WIDTH)
-                        for key in keys if key in self._fd_sliders
-                    ]),
-                    spacing=TOKENS.space_md, tight=True),
+                # 그리드 Row 를 Column 로 한 번 더 감싸지 않는다.
+                # Row(wrap=True) 를 Column(controls=[Row]) 에 넣으면
+                # Column 이 자식 대신 정렬(alignment) 속성을 물려받아
+                # Row 의 controls 가 가려진다. Row 를 그대로 넘긴다.
+                self._grid([_fd_cell(key) for key in keys
+                            if key in self._fd_sliders]),
                 subtitle=f"{len(keys)}項",
                 expanded=(index == 0))
             for index, (title, keys) in enumerate(_FD_GROUPS)
