@@ -81,7 +81,7 @@ def resolve_live_url(service: str, preferred_url: Optional[str] = None, candidat
 def check_connection_status(service: str, url: str, candidates: Optional[Iterable[str]] = None) -> ConnectionStatus:
     """Validate a remote service connection using a live server probe."""
     resolved_url = resolve_live_url(service, url, candidates)
-    status = ConnectionStatus(service=service, url=resolved_url, ok=False, message="未確認")
+    status = ConnectionStatus(service=service, url=resolved_url, ok=False, message="미확인")
     if not resolved_url:
         status.message = "URL이 비어 있습니다."
         return status
