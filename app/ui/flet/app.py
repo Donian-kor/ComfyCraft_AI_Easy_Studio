@@ -12,7 +12,7 @@ import flet as ft
 
 from app.logging_config import setup_logging
 from app.paths import BASE_DIR
-from app.ui.flet.app_state import AppState
+from app.ui.flet.app_state import AppState, set_ui_loop
 from app.ui.flet.shell import AppShell
 from app.ui.flet.theme.tokens import build_theme
 
@@ -23,6 +23,9 @@ WINDOW_HEIGHT = 900
 def main(page: ft.Page) -> None:
     """Flet 이 호출하는 앱 초기화 함수."""
     setup_logging()
+    # 생성 Job 은 백그라운드 스레드에서 도므로, UI 갱신을 이 루프로 넘긴다.
+    # (page.run_task 도 내부적으로 같은 루프를 쓴다)
+    set_ui_loop(page.loop)
     page.title = "ComfyCraft AI Easy Studio"
     page.theme_mode = ft.ThemeMode.DARK
     page.theme = build_theme()

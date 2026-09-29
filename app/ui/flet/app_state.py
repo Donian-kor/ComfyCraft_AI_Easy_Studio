@@ -39,16 +39,35 @@ from app.ui.flet.pages.settings import SettingsPage
 from app.ui.flet.pages.studio import StudioPage
 
 
+_ui_loop: Optional[asyncio.AbstractEventLoop] = None
+
+
+def set_ui_loop(loop: Optional[asyncio.AbstractEventLoop]) -> None:
+    """Flet 이 만든 이벤트 루프를 기억한다 (앱 시작 시 1회 호출).
+
+    JobManager 는 threading.Thread 에서 돌기 때문에 그 스레드 안에는
+    asyncio 루프가 돌고 있지 않다. 그래서 asyncio.get_running_loop() 로는
+    UI 스레드를 찾을 수 없고, 진행률이 화면에 반영되지 않는다.
+    Flet 의 page.run_task 도 내부적으로 run_coroutine_threadsafe 로
+    이 루프에 작업을 넘기므로, 같은 방식으로 안전하게 넘긴다.
+    """
+    global _ui_loop
+    _ui_loop = loop
+
+
 def _run_on_ui(fn) -> None:
     """백그라운드 스레드의 갱신을 UI 스레드로 넘긴다.
 
-    이벤트 루프가 없는 상황(테스트/초기화)에서는 조용히 건너뛴다.
+    이벤트 루프가 아직 없으면(테스트/초기화) 조용히 건너뛴다.
     """
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
+    loop = _ui_loop
+    if loop is None or loop.is_closed():
         return
-    loop.create_task(_call(fn))
+    try:
+        asyncio.run_coroutine_threadsafe(_call(fn), loop)
+    except RuntimeError:
+        # 루프가 종료되는 타이밍에 겹친 경우. 앱 종료를 막지 않는다.
+        pass
 
 
 async def _call(fn) -> None:

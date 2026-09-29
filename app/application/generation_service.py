@@ -157,6 +157,14 @@ class GenerationService:
         log: Optional[LogFn],
         started: float,
     ) -> GenerationResult:
+        # UI 는 "Seed = -1"을 '랜덤'이라는 뜻으로 쓰지만, 아래 build_workflow 는
+        # request.seed 를 그대로 KSampler 에 넘긴다. KSampler 의 seed 범위는
+        # min=0 이라 -1 을 받으면 서버가 400(value_smaller_than_min) 으로 거절해
+        # 이미지가 전혀 만들어지지 않는다. 연결 확인보다 먼저 확정해 두면
+        # 어느 경로로 실패하든 스냅샷에 실제 시드가 남는다.
+        seed = request.seed if request.seed >= 0 else random.randint(1, 2**31 - 1)
+        request.seed = seed
+
         # 1) ComfyUI 연결 확인
         self._progress(on_progress, status=STATUS_CONNECTING, progress=0,
                        message="ComfyUI 연결 확인 중...")
@@ -171,7 +179,6 @@ class GenerationService:
             raise RuntimeError("ComfyUI 모델을 선택해주세요.")
 
         profile = self.services.model_registry.detect(model_name)
-        seed = request.seed if request.seed >= 0 else random.randint(1, 2**31 - 1)
 
         # 2) 프롬프트 결정 (enhance 입력이 있으면 LM Studio 호출을 건너뛴다)
         prompt = self._resolve_prompt(request, profile, on_progress, log)
