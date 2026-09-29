@@ -38,6 +38,7 @@ def main(page: ft.Page) -> None:
 
     page.add(state.shell.build())
     state.navigate("/")
+    state.start()
     state.shell.set_status("무엇을 그려드릴까요?", "idle")
 
     page.on_disconnect = state.jobs.cancel_active

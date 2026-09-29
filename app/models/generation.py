@@ -148,10 +148,16 @@ class GenerationRequest:
                 raw[new] = raw.pop(old)
             raw.pop(old, None)
 
-        facedetailer = FaceDetailerSettings.from_dict(raw)
-        for key in list(raw):
-            if key.startswith("facedetailer_") or key == "facedetailer":
-                raw.pop(key)
+        # 중첩 dict("facedetailer": {...}) 와 레거시 평면 키(facedetailer_*)를
+        # 둘 다 읽는다. 중첩 dict 를 무시하면 '이 설정으로' 되돌리기가
+        # FaceDetailer 값을 전부 초기화해 버린다.
+        if isinstance(raw.get("facedetailer"), dict):
+            facedetailer = FaceDetailerSettings.from_dict(raw.pop("facedetailer"))
+        else:
+            facedetailer = FaceDetailerSettings.from_dict(raw)
+            for key in list(raw):
+                if key.startswith("facedetailer_"):
+                    raw.pop(key)
 
         base = cls()
         fields = {k: v for k, v in raw.items() if k in base.to_dict()}

@@ -116,6 +116,19 @@ class AppState:
         self.shell.set_content(page.build())
         self._sync_job_state()
 
+        # 모델 화면에 들어오면 서버에서 목록을 다시 읽는다.
+        # (한 번만 읽으면 서버가 늦게 켜졌을 때 목록이 비어 보일 수 있다)
+        if route == "/models":
+            self.refresh_models()
+
+    def start(self) -> None:
+        """앱이 뜨자마자 서버 모델을 한 번 읽어 둔다.
+
+        비동기로 처리해 서버가 꺼져 있어도 창이 늦게 뜨지 않게 한다.
+        """
+        import threading
+
+        threading.Thread(target=self.refresh_models, daemon=True).start()
 
     # --- 챗봇 흐름 -------------------------------------------------------
     def handle_prompt(self, text: str) -> None:
@@ -304,15 +317,49 @@ class AppState:
         self.navigate("/")
 
     # --- 모델 -------------------------------------------------------------
-    def refresh_models(self) -> None:
-        """ComfyUI 에서 모델 목록을 읽어 옵션 패널을 갱신한다."""
-        from app.features.connection.service import scan_comfyui_model_names
+    def refresh_models(self, *, lm: bool = True) -> None:
+        """ComfyUI / LM Studio 서버에서 모델 목록을 읽어 화면에 반영한다.
 
-        names = scan_comfyui_model_names()
+        로컬 파일 스캔(scan_comfyui_model_names)은 서버가 꺼져 있으면 빈
+        목록을 준다. 그래서 사용자가 볼 모델 combobox 는 반드시 서버 조회
+        (ModelFetcher) 로 채운다.
+        """
+        fetcher = self.services.model_fetcher
+
+        names: List[str] = []
+        try:
+            names = list(fetcher.get_comfyui_models() or [])
+        except Exception as exc:      # 서버가 꺼져 있어도 앱은 계속 뜨게 둔다
+            self._set_status(f"ComfyUI 모델 조회 실패: {exc}", "error")
+        if not names:
+            # 서버 조회가 비면 로컬 스캔으로 최소한 무엇이 있는지는 보여준다
+            try:
+                from app.features.connection.service import scan_comfyui_model_names
+
+                names = list(scan_comfyui_model_names() or [])
+            except Exception:
+                names = []
+
         if self.studio is not None:
             self.studio.options.set_model_options(names)
         models_page = self.pages.get("/models")
         if isinstance(models_page, ModelsPage):
             models_page.set_models(names)
+
+        if lm:
+            self.refresh_lm_models()
+
+    def refresh_lm_models(self) -> None:
+        """LM Studio 모델 목록을 읽어 옵션 패널에 넣는다."""
+        try:
+            names = list(self.services.model_fetcher.get_lmstudio_models() or [])
+        except Exception:
+            names = []
+        if self.studio is not None:
+            self.studio.options.set_lm_model_options(names)
+
+    def _set_status(self, message: str, kind: str) -> None:
+        if self.shell is not None:
+            self.shell.set_status(message, kind)
 
         pass
