@@ -172,7 +172,7 @@ def save_manual_profile(data: dict, folder: Path | str):
                        ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
-        return True, f"저장됨: {path.name} (앱 재시작 없이 즉시 적용)"
+        return True, f"저장됨: {path.name} (목록 즉시 갱신됨)"
     except Exception as exc:
         return False, f"저장 실패: {exc}"
 
@@ -690,6 +690,20 @@ def _setup_model_tab(dlg, controller) -> None:
         except RuntimeError:
             pass
 
+    def _refresh_model_list() -> None:
+        """수동 프로필 저장/삭제 후 메인 모델 콤보까지 즉시 갱신.
+
+        refresh_models() 는 _io_pool 로 네트워크 조회를 스레드에 넘기고
+        model_list_ready 시그널로 되돌아오므로 UI 가 멈추지 않는다.
+        캐시 무효화는 TTL(기본 10초) 우연 배제용이다.
+        """
+        try:
+            controller.model_fetcher.invalidate_cache(
+                "comfy", controller.config.comfyui.url or "")
+            controller.refresh_models()
+        except (AttributeError, RuntimeError):
+            pass
+
     refresh_file_combo()
 
     save_btn = _child(QPushButton, "profileSaveBtn")
@@ -735,6 +749,8 @@ def _setup_model_tab(dlg, controller) -> None:
                     ))
                 except Exception:
                     pass
+                # 저장과 동시에 메인 화면 모델 콤보도 갱신 (재시작 불필요).
+                _refresh_model_list()
                 refresh_file_combo()
                 # 자동 목록도 갱신
                 _setup_model_tab_refresh_only(dlg, controller)
@@ -757,8 +773,14 @@ def _setup_model_tab(dlg, controller) -> None:
                 target = model_profiles_json_dir() / filename
                 if target.exists():
                     target.unlink()
-                    show_status(f"삭제됨: {filename} (재시작 후 반영)", True)
+                    # 실행 중인 레지스트리에서도 빼야 목록에 즉시 반영된다.
+                    # (JSON 파일명의 stem 이 곧 프로필명이다)
+                    removed = controller.model_registry.unregister(target.stem)
+                    _refresh_model_list()
+                    detail = f" (레지스트리 {removed}개 제거)" if removed else ""
+                    show_status(f"삭제됨: {filename}{detail}", True)
                     refresh_file_combo()
+                    _setup_model_tab_refresh_only(dlg, controller)
                 else:
                     show_status("파일이 없어요.", False)
             except Exception as exc:

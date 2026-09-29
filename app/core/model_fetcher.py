@@ -219,14 +219,16 @@ class ModelFetcher:
         if not is_online:
             return []
 
+        # GGUF 계열(Flux/ZImage)은 CheckpointLoaderSimple 에 절대 안 뜨고
+        # UnetLoaderGGUF 에만 뜬다. 첫 노드에서 찾았다고 여기서 return 하면
+        # GGUF 모델이 통째로 누락돼 모델 선택 목록이 워크플로우 목록과 어긋난다.
+        # 3종 노드 결과를 모두 모아 합집합으로 돌려준다.
         for node_name in ("CheckpointLoaderSimple", "UnetLoaderGGUF", "UNETLoader"):
             try:
                 resp = requests.get(f"{base_url}/object_info/{node_name}", timeout=(0.2, 0.3))
                 if resp.status_code == 200:
                     node_data = resp.json().get(node_name, {}).get("input", {}).get("required", {})
                     models.extend(self._collect_model_names_from_object_info(node_data, ("ckpt_name", "unet_name")))
-                    if models:  # 모델을 찾으면 바로 반환
-                        return models
             except Exception:
                 pass
 

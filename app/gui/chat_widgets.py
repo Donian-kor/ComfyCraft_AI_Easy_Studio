@@ -28,31 +28,57 @@ from PySide6.QtWidgets import (
 
 # P4: family/프로필 → 짧은 표시명 + 한 줄 특징 (UI층 딕셔너리, 코어 변경 없음).
 # 표시명은 목록에만 쓰고, 내부 로직은 항상 정확한 파일명을 사용한다.
+#
+# 키는 "ModelRegistry.detect() 가 돌려주는 profile.name" 이다.
+# workflows/default_profiles.json 이 있으면 이름이 JSON 키(flux1-krea-dev 등)라서
+# 내장 폴백 이름(flux_gguf 등)만 적어두면 조회가 실패해 family 로 폴백하고,
+# 같은 family 계열이 전부 같은 이름으로 뭉개진다 (FLUX 2종이 구분 안 되던 문제).
+# 그래서 JSON 프로필 이름을 우선 등록하고, 내장 이름은 폴백용으로 뒤에 둔다.
 PROFILE_SHORT = {
+    # -- workflows/default_profiles.json (실사용 경로, 이름 우선) --
+    "flux1-krea-dev": "FLUX Krea",
+    "flux1-schnell": "FLUX Schnell",
+    "z_image_turbo": "ZImage",
+    "z-anime-base-aio": "Z-Anime",
+    "realvisxl_v5": "RealVisXL",
+    "juggernautxl_ragnarok": "JuggernautXL",
+    "ernie-aio-base": "ERNIE Base",
+    "ernie-aio-turbo": "ERNIE Turbo",
+    # -- 내장 프로필 (default_profiles.json 이 없을 때의 폴백) --
     "flux_gguf": "FLUX",
     "zimage_turbo": "ZImage",
     "zanime_aio": "Z-Anime",
-    "ernie-aio-base": "ERNIE Base",
-    "ernie-aio-turbo": "ERNIE Turbo",
 }
 FAMILY_SHORT = {
     "flux": "FLUX",
     "zimage": "ZImage",
     "zanime": "Z-Anime",
     "ernie": "ERNIE",
+    "realvisxl": "RealVisXL",
+    "juggernautxl": "JuggernautXL",
 }
 PROFILE_FEATURE = {
+    # -- workflows/default_profiles.json --
+    "flux1-krea-dev": "사실적·고품질",
+    "flux1-schnell": "초고속·4스텝",
+    "z_image_turbo": "빠른 생성",
+    "z-anime-base-aio": "애니·웹툰",
+    "realvisxl_v5": "사실적·고품질",
+    "juggernautxl_ragnarok": "사실적·고품질",
+    "ernie-aio-base": "정밀·네거티브 강함",
+    "ernie-aio-turbo": "초고속·8스텝",
+    # -- 내장 프로필 --
     "flux_gguf": "사실적·고품질",
     "zimage_turbo": "빠른 생성",
     "zanime_aio": "애니·웹툰",
-    "ernie-aio-base": "정밀·네거티브 강함",
-    "ernie-aio-turbo": "초고속·8스텝",
 }
 FAMILY_FEATURE = {
     "flux": "사실적·고품질",
     "zimage": "빠른 생성",
     "zanime": "애니·웹툰",
     "ernie": "포스터·타이포",
+    "realvisxl": "사실적·고품질",
+    "juggernautxl": "사실적·고품질",
 }
 
 

@@ -145,9 +145,18 @@ class ModelRegistry:
         return "workflow_type" in data or "default_steps" in data
 
     def register(self, profile: ModelProfile) -> None:
-        if profile not in self.profiles:
-            self.profiles.append(profile)
+        # 같은 이름은 교체한다 (수동 프로필 재저장 시 값이 갈리는 것을 막는다).
+        # 기존엔 dataclass 값 동등성으로 판단해서, 이름이 같아도 스텝 등이
+        # 다르면 2개로 쌓였다 (detect 는 하나만 고르므로 목록에 중복이 보인다).
+        self.profiles = [p for p in self.profiles if p.name != profile.name]
+        self.profiles.append(profile)
         self.profiles.sort(key=lambda p: p.priority)
+
+    def unregister(self, name: str) -> int:
+        """이름 기준 프로필 제거 (수동 프로필 삭제용). 제거된 개수 반환."""
+        before = len(self.profiles)
+        self.profiles = [p for p in self.profiles if p.name != name]
+        return before - len(self.profiles)
 
     def detect(self, model_name: str) -> ModelProfile:
         if not model_name:
