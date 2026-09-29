@@ -54,6 +54,12 @@ ROW_CONTROL_WIDTH = CONTENT_WIDTH - 88   # 라벨(최장 "Scheduler") + 여백
 # FaceDetailer 행은 [라벨][값][슬라이더] 3조각이라 한 줄에 두면 너무 좁아진다.
 # 라벨과 값을 한 줄 위쪽에 두고 슬라이더를 아래에 온전히 넓힌다.
 FD_SLIDER_WIDTH = GRID_COLUMN_WIDTH   # 2열 칸을 정확히 채운다(양옆 여백 0)
+# 라벨/값 두 열을 2열 칸 안에 정확히 맞춰 위아래 줄이 어긋나지 않게 한다.
+#   라벨 열 + 간격(space_sm) + 값 열 = GRID_COLUMN_WIDTH
+# 값 라벨 폭은 "0.36" ~ "1024" 가 모두 들어가게 잡는다(오른쪽 정렬).
+# 라벨은 고정폭 + 말줄임표라 칸을 뚫고 다음 열로 넘어가지 않는다.
+FD_VALUE_WIDTH = 34
+FD_LABEL_WIDTH = GRID_COLUMN_WIDTH - FD_VALUE_WIDTH - TOKENS.space_sm
 
 
 # --- FaceDetailer ----------------------------------------------------------
@@ -267,10 +273,12 @@ class OptionsPanel:
             self._fd_value_labels[key] = ft.Text(
                 _format_fd_value(key, _fd_to_real_value(key, slider.value)),
                 size=TOKENS.size_caption, color=TOKENS.on_surface_variant,
-                # 라벨 바로 옆에 붙여 쓰므로 고정 폭을 두지 않는다.
-                # 폭을 주고 오른쪽 정렬을 하면 라벨과의 거리가 생겨
-                # '이 값이 어느 항목 것인지' 구분하기 어렵다.
-                no_wrap=True)
+                # 라벨과 함께 칸 가운데에 묶이므로 폭을 고정하고
+                # 오른쪽 정렬한다. 고정폭이 있어야 값이 '0.36' 에서
+                # '1024' 로 바뀔 때 라벨이 좌우로 흔들리지 않는다.
+                # (이전처럼 폭을 주지 않으면 묶음의 가운데가 매번 달라진다)
+                no_wrap=True, width=FD_VALUE_WIDTH,
+                text_align=ft.TextAlign.RIGHT)
 
         # 원본의 SAM 탐지 방식 ComboBox + 네거티브 마스크 체크
         self._fd_sam_hint = ft.Dropdown(
@@ -282,11 +290,9 @@ class OptionsPanel:
 
 
         # 15종을 2열로 올린다. 한 칸이 좁으니 슬라이더 위에
-        # [라벨][값] 을 붙여 놓고, 그 아래에 슬라이더를 온전히 놓는다.
-        # 라벨과 값 사이는 Container(expand=True) 로 벌리지 않는다 —
-        # 172px 안에서 벌리면 둘이 멀리 떨어져 '이게 어느 항목 값인지'
-        # 알 수 없기 때문이다. 라벨과 값을 서로 붙이고, 남는 여백은
-        # 값 오른쪽의 빈 컨테이너가 차지한다.
+        # [라벨][값] 을 올리고, 그 아래에 슬라이더를 온전히 놓는다.
+        # 라벨과 값은 각각 고정폭이라 칸을 정확히 채우고, 줄 전체는
+        # 가운데 정렬로 두 열(왼쪽/오른쪽)이 같은 위치에 선다.
         def _fd_cell(key: str) -> ft.Control:
             return ft.Column(
                 controls=[
@@ -296,12 +302,17 @@ class OptionsPanel:
                                     size=TOKENS.size_caption,
                                     color=TOKENS.on_surface_variant,
                                     no_wrap=True,
+                                    # 고정폭이라 'Denoise' 와 'Steps' 가
+                                    # 같은 자리에서 시작하고, 긴 라벨은
+                                    # 말줄임표로 끊겨 다음 열을 침범하지 않는다.
+                                    width=FD_LABEL_WIDTH,
                                     overflow=ft.TextOverflow.ELLIPSIS),
+                            # 값 라벨도 고정폭이라 값이 '0.36' -> '1024' 로
+                            # 바뀌어도 라벨이 좌우로 흔들리지 않는다.
                             self._fd_value_labels[key],
-                            # 라벨+값이 왼쪽에 붙어 있고, 남는 폭만 채운다
-                            ft.Container(expand=True),
                         ],
-                        spacing=TOKENS.space_sm, tight=True),
+                        spacing=TOKENS.space_sm, tight=True,
+                        alignment=ft.MainAxisAlignment.CENTER),
                     self._fd_sliders[key],
                 ],
                 spacing=2, tight=True, width=GRID_COLUMN_WIDTH)
