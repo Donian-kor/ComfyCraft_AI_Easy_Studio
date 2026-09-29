@@ -28,6 +28,23 @@ SCHEDULER_OPTIONS = [(name, name) for name in SCHEDULER_NAMES]
 RESOLUTION_PRESETS = ["1152x896", "1024x1024", "896x1152",
                       "832x1216", "768x1344", "512x512"]
 
+# --- 좌측 옵션 패널 폭 ------------------------------------------------------
+# 패널 폭을 늘려야 하는 이유:
+#   * FaceDetailer 행은 [라벨][값 라벨][슬라이더] 3조각이 나란히 있다.
+#   * 값 라벨(64) + 슬라이더만으로도 190 을 넘고, 라벨까지 더하면
+#     패널 280 - 여백 32 = 248 을 초과해 우측이 잘렸다.
+# 그래서 패널/필드/슬라이더 폭을 여기 한곳에서 관리한다.
+PANEL_WIDTH = 430          # 패널 전체 폭
+PANEL_PADDING = 24         # 패널 안쪽 여백 (TOKENS.space_lg)
+CONTENT_WIDTH = PANEL_WIDTH - PANEL_PADDING * 2   # 실제 본문 폭(382)
+FIELD_WIDTH = CONTENT_WIDTH            # 드롭다운/텍스트 필드 (혼자 쓰는 것)
+# option_row 는 [라벨][컨트롤] 2조각이라 컨트롤 폭을 줄여야 라벨까지 들어간다.
+ROW_CONTROL_WIDTH = CONTENT_WIDTH - 96   # 라벨 약 90 + 여백
+# FaceDetailer 행은 [라벨][값][슬라이더] 3조각이라 한 줄에 두면 너무 좁아진다.
+# 라벨과 값을 한 줄 위쪽에 두고 슬라이더를 아래에 온전히 넓힌다.
+FD_SLIDER_WIDTH = CONTENT_WIDTH
+
+
 # --- FaceDetailer ----------------------------------------------------------
 # 원본 Qt UI 는 슬라이더마다 (Label + Slider + 값 Label) 3개 위젯을 .ui 에
 # 직접 적어 15종을 노출했다. 슬라이더를 하나라도 빼면 그 항목은 화면에서
@@ -123,6 +140,7 @@ def _build_fd_slider(widget_name: str) -> ft.Slider:
         min=qt_min, max=qt_max,
         value=float(max(qt_min, qt_default)),
         divisions=max(1, qt_max - qt_min),
+        width=FD_SLIDER_WIDTH,
         label="{value}")
 
 
@@ -185,31 +203,33 @@ class OptionsPanel:
         self._model_dropdown = ft.Dropdown(
             options=[ft.DropdownOption(key=n, text=n) for n in self._model_names],
             value=self._model_names[0] if self._model_names else None,
-            label="모델", width=240)
+            label="모델", width=FIELD_WIDTH)
         self._lm_model_dropdown = ft.Dropdown(
-            options=[], label="LM Studio 모델", width=240)
+            options=[], label="LM Studio 모델", width=FIELD_WIDTH)
         self._resolution_dropdown = ft.Dropdown(
             options=[ft.DropdownOption(key=r, text=r) for r in RESOLUTION_PRESETS],
-            value=RESOLUTION_PRESETS[0], label="해상도", width=240)
+            value=RESOLUTION_PRESETS[0], label="해상도", width=FIELD_WIDTH)
         self._seed_field = ft.TextField(
-            label="Seed", hint_text="-1 = 랜덤", value="-1", width=240, dense=True)
+            label="Seed", hint_text="-1 = 랜덤", value="-1",
+            width=FIELD_WIDTH, dense=True)
         self._negative_field = ft.TextField(
             label="네거티브 프롬프트", multiline=True, min_lines=2, max_lines=4)
 
         # --- 고급 옵션 (기본값은 접힘) ---
         self._steps_slider = ft.Slider(min=1, max=60, value=20, divisions=59,
-                                       label="{value}")
+                                       width=FIELD_WIDTH, label="{value}")
         self._cfg_slider = ft.Slider(min=0, max=20, value=4.5, divisions=80,
-                                     label="{value}")
+                                     width=FIELD_WIDTH, label="{value}")
         self._sampler_dropdown = ft.Dropdown(
             options=[ft.DropdownOption(key=value, text=label)
                      for label, value in SAMPLER_OPTIONS],
-            value="euler", width=190, dense=True)
+            value="euler", width=FIELD_WIDTH, dense=True)
         self._scheduler_dropdown = ft.Dropdown(
             options=[ft.DropdownOption(key=name, text=name) for name in SCHEDULER_OPTIONS],
-            value="normal", width=190, dense=True)
+            value="normal", width=FIELD_WIDTH, dense=True)
         self._denoise_slider = ft.Slider(min=0.0, max=1.0, value=1.0,
-                                         divisions=20, label="{value}")
+                                         divisions=20, width=FIELD_WIDTH,
+                                         label="{value}")
 
         # --- FaceDetailer ---
         # 스펙(15종)으로 슬라이더를 만든다. 하나라도 빠뜨려도 화면에서
@@ -235,7 +255,7 @@ class OptionsPanel:
         self._fd_sam_hint = ft.Dropdown(
             options=[ft.DropdownOption(key=value, text=label)
                      for label, value in SAM_HINT_OPTIONS],
-            value="bbox", label="SAM 탐지", width=190, dense=True)
+            value="bbox", label="SAM 탐지", width=FIELD_WIDTH, dense=True)
         self._fd_sam_negative = ft.Switch(
             label="네거티브 마스크 사용", value=False)
 
@@ -244,18 +264,23 @@ class OptionsPanel:
             collapsible(
                 title,
                 ft.Column(
-                    controls=[ft.Row(
+                    # 라벨/값은 위 한 줄, 슬라이더는 아래 온전히 넓게 둔다.
+                    controls=[ft.Column(
+                        controls=[
+                            ft.Row(
                                 controls=[
                                     ft.Text(_FD_LABELS.get(key, key),
                                             size=TOKENS.size_caption,
                                             color=TOKENS.on_surface_variant),
                                     ft.Container(expand=True),
                                     self._fd_value_labels[key],
-                                    self._fd_sliders[key],
                                 ],
-                                spacing=TOKENS.space_sm, tight=True)
+                                spacing=TOKENS.space_sm, tight=True),
+                            self._fd_sliders[key],
+                        ],
+                        spacing=2, tight=True)
                               for key in keys if key in self._fd_sliders],
-                    spacing=TOKENS.space_xs, tight=True),
+                    spacing=TOKENS.space_md, tight=True),
                 subtitle=f"{len(keys)}項",
                 expanded=(index == 0))
             for index, (title, keys) in enumerate(_FD_GROUPS)
@@ -306,11 +331,12 @@ class OptionsPanel:
     def _build_advanced(self) -> ft.Control:
         body = ft.Column(
             controls=[
-                option_row("Steps", self._steps_slider),
-                option_row("CFG", self._cfg_slider),
-                option_row("Sampler", self._sampler_dropdown),
-                option_row("Scheduler", self._scheduler_dropdown),
-                option_row("Denoise", self._denoise_slider),
+                option_row("Steps", self._steps_slider, width=ROW_CONTROL_WIDTH),
+                option_row("CFG", self._cfg_slider, width=ROW_CONTROL_WIDTH),
+                option_row("Sampler", self._sampler_dropdown, width=ROW_CONTROL_WIDTH),
+                option_row("Scheduler", self._scheduler_dropdown,
+                           width=ROW_CONTROL_WIDTH),
+                option_row("Denoise", self._denoise_slider, width=ROW_CONTROL_WIDTH),
             ],
             spacing=TOKENS.space_sm, tight=True)
         return collapsible("고급 옵션", body,
@@ -345,9 +371,9 @@ class OptionsPanel:
                 ],
                 spacing=TOKENS.space_md,
                 scroll=ft.ScrollMode.AUTO),
-            width=280,
+            width=PANEL_WIDTH,
             bgcolor=TOKENS.surface,
-            padding=ft.Padding.all(TOKENS.space_lg),
+            padding=ft.Padding.all(PANEL_PADDING),
         )
 
 
