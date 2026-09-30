@@ -50,6 +50,13 @@ class GenerationJob:
     result: Optional[GenerationResult] = None
     started_at: float = 0.0
     finished_at: float = 0.0
+    # LM Studio 가 향상해 준 프롬프트. 옵션창의 '포스티프 프롬프트' 칸이
+    # 이 값을 본다.
+    #
+    # 회귀 근거: GenerationProgress 에 enhanced_prompt 가 있는데 job 으로
+    # 옮기는 코드가 없어서 값이 여기서 조용히 사라졌다. 그 결과 포스티프
+    # 칸이 영영 비어 있어 '기능이 있나?' 싶었다.
+    enhanced_prompt: str = ""
 
     @property
     def is_running(self) -> bool:
@@ -155,6 +162,11 @@ class JobManager:
             with self._lock:
                 job.progress = progress.progress
                 job.message = progress.message or job.message
+                # 향상된 프롬프트가 오면 잡아둔다(화면 표시용).
+                # 결과로도 덮을 수 있지만, '향상은 됐는데 생성은
+                # 실패한' 경우 결과에 값이 없으므로 여기서 반드시 받아야 한다.
+                if progress.enhanced_prompt:
+                    job.enhanced_prompt = progress.enhanced_prompt
             self._notify(job)
 
         def on_log(message: str) -> None:
@@ -167,6 +179,8 @@ class JobManager:
                                       log=on_log)
             with self._lock:
                 job.result = result
+                if result.enhanced_prompt:
+                    job.enhanced_prompt = result.enhanced_prompt
                 job.finished_at = time.monotonic()
                 job.progress = 100 if result.status == STATUS_DONE else job.progress
                 if result.status == STATUS_DONE:

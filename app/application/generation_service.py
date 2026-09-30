@@ -27,7 +27,11 @@ from typing import Callable, List, Optional
 from app.application.comfy_transport import ComfyTransport
 from app.application.services import AppServices
 from app.features.generation.workflow_builder import build_workflow, validate_workflow
-from app.features.prompt.prompts import enhance_prompt_sync, load_external_prompts
+from app.features.prompt.prompts import (
+    enhance_prompt_sync,
+    load_external_prompts,
+    resolve_negative_prompt,
+)
 from app.features.prompt.system_prompt import select_system_prompt
 from app.models.generation import (
     STATUS_CANCELLED,
@@ -182,7 +186,15 @@ class GenerationService:
 
         # 2) 프롬프트 결정 (enhance 입력이 있으면 LM Studio 호출을 건너뛴다)
         prompt = self._resolve_prompt(request, profile, on_progress, log)
-        negative = request.negative_prompt or self.services.config.prompts.negative_default
+        # 네거티브 확정. 원본 Qt 는 빈칸이면 기본 문구를 강제했는데,
+        # 여기서는 설정값(비어 있음)만 보고 그대로 보내 네거티브가
+        # 통째로 빠졌다. 저품질/흐림/왜곡 억제가 사라져 결과물이 나빠졌다.
+        negative = resolve_negative_prompt(
+            request.negative_prompt,
+            self.services.config.prompts.negative_default,
+            profile=profile,
+            model_name=model_name,
+        )
 
         # 3) 워크플로우 조립 + 검증
         node_exists = self._transport.node_exists
@@ -211,6 +223,18 @@ class GenerationService:
         workflow_json = json.dumps(workflow, indent=2, ensure_ascii=False)
         # 전체 JSON은 파일 로그에만 남기고, 화면에는 노드 수 요약만 표시한다.
         logger.debug("워크플로우 JSON (전체):\n%s", workflow_json)
+        # 실제로 무엇이 ComfyUI 로 나갔는지 한 줄로 남긴다.
+        #
+        # 회귀 근거: app.log 에 '생성' 관련 줄이 0개였다(Flet 디버그뿐).
+        # 그래서 옵션이 잘 못 갔어도 추적이 불가능했다. 이상 징후가 보일 때
+        # 이 줄 하나로 값이 제대로 나갔는지 바로 확인한다.
+        logger.info("[전송요약] model=%s steps=%s cfg=%s sampler=%s sched=%s "
+                    "denoise=%s size=%sx%s seed=%s fd=%s", model_name,
+                    request.steps, request.cfg, request.sampler,
+                    request.scheduler, request.denoise, request.width,
+                    request.height, seed, request.facedetailer.enabled)
+        logger.info("[전송요약] positive=%r negative=%r", prompt[:300],
+                    negative[:300])
         self._emit_log(f"워크플로우 준비: 노드 {len(workflow)}개", log)
 
         # 5) 큐 등록

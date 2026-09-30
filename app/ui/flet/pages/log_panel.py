@@ -117,15 +117,16 @@ class LogPanel:
         self._set_status(f"저장했습니다: {target.name}")
 
     def copy(self, _event: Optional[ft.Event] = None) -> None:
-        """클립보드에 복사한다."""
-        page = getattr(self._text, "page", None)
-        if page is None:
-            self._set_status("아직 화면에 붙지 않아 복사할 수 없습니다.")
-            return
-        try:
-            page.set_clipboard(self._text.value or "")
-        except Exception as exc:
-            self._set_status(f"복사 실패: {exc}")
+        """클립보드에 복사한다.
+
+        회귀 근거: 예전에는 page.set_clipboard() 를 썼는데 Flet 1.0 에 그
+        메서드가 없어 예외로 빠졌다(버튼이 '복사 실패'로만 끝났다).
+        지금은 앱 시작 시 등록한 Clipboard 서비스를 쓴다.
+        """
+        from app.ui.flet.clipboard import copy_text
+
+        if not copy_text(self._text.value or ""):
+            self._set_status("클립보드를 사용할 수 없습니다.")
             return
         self._set_status("클립보드에 복사했습니다.")
 

@@ -8,12 +8,25 @@ options.py 가 600줄 제한에 걸리지 않도록, '프로필 → 슬라이더
 
 from __future__ import annotations
 
-from typing import Dict, Optional
+from typing import Optional
 
 from app.features.prompt.prompts import SCHEDULER_NAMES, SAMPLER_NAMES
 
-# 프로필의 내부 값(euler) → 화면 표기(Euler)
-_SAMPLER_LABELS: Dict[str, str] = {v: k for k, v in SAMPLER_NAMES.items()}
+# Flet Dropdown 의 value 는 반드시 옵션의 'key' 여야 화면에 표시된다.
+# Sampler 드롭다운은 key=value(내부값 euler) / text=label(표시명)로 만들어져
+# 있으므로, 여기서도 라벨이 아닌 내부값을 돌려줘야 한다.
+# 라벨("Euler·선명함")을 주면 어떤 key 와도 매칭되지 않아 박스가 빈칸이 되고,
+# to_request() 가 그 라벨을 sampler 이름으로 그대로 실어 보내게 된다.
+_SAMPLER_VALUES = set(SAMPLER_NAMES.values())
+
+# 네거티브 프롬프트 지원 판정은 app/features/prompt/prompts.py 가 소유한다.
+# GenerationService(application 계층)도 같은 판정이 필요하기 때문이다.
+# 여기서 로컬 사본을 두면 두 벌이 갈라져 판정이 어긋난다.
+# 여기서는 UI 표시용으로 재노출만 한다.
+from app.features.prompt.prompts import (  # noqa: E402
+    model_supports_negative,
+    resolve_negative_prompt,
+)
 
 
 def resolve_steps(profile) -> Optional[int]:
@@ -29,13 +42,13 @@ def resolve_cfg(profile) -> Optional[float]:
 
 
 def resolve_sampler(profile) -> str:
-    """프로필의 샘플러 내부 값을 화면 표기로 바꾼다.
+    """프로필의 샘플러 내부 값(euler 등)을 그대로 돌려준다.
 
-    프로필은 'euler'(내부값), 드롭다운은 'Euler'(표기)를 쓴다.
-    표에 없는 값이면 내부값을 그대로 준다(드롭다운에서 걸러낼 수 있다).
+    드롭다운의 key 와 같은 '내부값'을 줘야 박스에 정상 표시된다.
+    목록에 없는 값이면 기본값 'euler' 로 떨어뜨린다(빈칸 방지).
     """
     sampler = str(getattr(profile, "sampler_name", "") or "")
-    return _SAMPLER_LABELS.get(sampler, sampler)
+    return sampler if sampler in _SAMPLER_VALUES else "euler"
 
 
 def resolve_scheduler(profile) -> str:

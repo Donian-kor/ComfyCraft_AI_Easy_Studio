@@ -86,6 +86,11 @@ def prompt_card(message: ChatMessageData, *,
     if show_revert:
         actions.append(ft.TextButton(
             "원문으로", on_click=lambda _e: on_revert()))
+    # 향상된 프롬프트를 그대로 복사한다 (원본 _copy_enhanced_prompt).
+    # 수정 반영 전 현재 입력값을 복사하므로 on_edit 유무와 무관하게 둔다.
+    actions.append(ft.TextButton(
+        "복사", icon=ft.Icons.CONTENT_COPY,
+        on_click=lambda _e, f=field: _copy_text(f.value or "")))
 
     return _card([
         ft.Row(
@@ -135,7 +140,10 @@ def _card(controls: List[ft.Control]) -> ft.Container:
 def image_card(message: ChatMessageData, *,
                on_save: Optional[Callable[[str], None]] = None,
                on_reuse: Optional[Callable[[ChatMessageData], None]] = None,
-               on_open: Optional[Callable[[ChatMessageData], None]] = None) -> ft.Container:
+               on_open_folder: Optional[Callable[[], None]] = None,
+               on_open: Optional[Callable[[ChatMessageData], None]] = None,
+               on_rewrite: Optional[Callable[[ChatMessageData], None]] = None,
+               on_regenerate: Optional[Callable[[ChatMessageData], None]] = None) -> ft.Container:
     """완성 이미지 카드. 이미지 + 메타 + 프롬프트 접기 + 저장/복사/재사용."""
     meta = str(message.metadata.get("meta", "") or "")
     prompt = str(message.metadata.get("prompt", "") or "")
@@ -157,14 +165,32 @@ def image_card(message: ChatMessageData, *,
     actions.append(ft.TextButton(
         "경로 복사", icon=ft.Icons.COPY,
         on_click=lambda _e, p=image_path: _copy_text(p)))
+    if on_open_folder is not None:
+        # 원본 openOutputFolderButton. 이미지가 어디로 갔는지 바로 확인한다.
+        actions.append(ft.TextButton(
+            "폴더 열기", icon=ft.Icons.FOLDER_OPEN,
+            on_click=lambda _e: on_open_folder()))
     if on_reuse is not None:
         actions.append(ft.TextButton(
             "이 설정으로", icon=ft.Icons.REPLAY,
             on_click=lambda _e, m=message: on_reuse(m)))
+    if on_rewrite is not None:
+        actions.append(ft.TextButton(
+            "프롬프트 재작성", icon=ft.Icons.EDIT,
+            on_click=lambda _e, m=message: on_rewrite(m)))
+    if on_regenerate is not None:
+        actions.append(ft.TextButton(
+            "다시 만들기", icon=ft.Icons.REFRESH,
+            on_click=lambda _e, m=message: on_regenerate(m)))
     if on_open is not None:
         actions.append(ft.TextButton(
             "크게", icon=ft.Icons.ZOOM_OUT_MAP,
             on_click=lambda _e, m=message: on_open(m)))
+    if prompt:
+        # 사용한 프롬프트를 그대로 복사한다 (원본 _copy_enhanced_prompt).
+        actions.append(ft.TextButton(
+            "프롬프트 복사", icon=ft.Icons.CONTENT_COPY,
+            on_click=lambda _e, t=prompt: _copy_text(t)))
 
     body: List[ft.Control] = [
         ft.Row(
@@ -218,12 +244,14 @@ def render_message(message: ChatMessageData, **kwargs) -> ft.Control:
 
 
 def _copy_text(text: str) -> None:
-    """텍스트를 클립보드에 복사한다 (실패해도 흐름을 막지 않는다)."""
-    try:
-        import flet
+    """텍스트를 클립보드에 복사한다 (실패해도 흐름을 막지 않는다).
 
-        flet.Clipboard.set_data(text)
-    except Exception:
-        pass
+    회귀 근거: 예전 구현은 flet.Clipboard.set_data() 를 썼는데 Flet 1.0 에
+    그런 메서드가 없어 예외가 조용히 삼켜졌다. 화면에는 아무 일도 일어나지
+    않았고 '경로 복사' 버튼이 죽어 있었다.
+    """
+    from app.ui.flet.clipboard import copy_text
+
+    copy_text(text)
 
     return text_bubble(ChatMessageData(role="ai", text=message.say))

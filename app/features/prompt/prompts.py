@@ -40,6 +40,77 @@ def build_negative_prompt(default_text: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# 네거티브 프롬프트 지원 여부 (모델 판정)
+# ---------------------------------------------------------------------------
+# 여기 있는 이유: GenerationService(application 계층)도 이 판정이 필요하다.
+# UI(app/ui/flet) 에 두면 application -> ui 역참조가 되어
+# tests/test_layering.py 의 test_layers_do_not_import_ui_layer 가 실패한다.
+# 순수 로직이므로 features 계층이 rightful place 다.
+
+# 네거티브 프롬프트를 쓰지 않는 모델 계열.
+# FLUX 계열과 Z-ANIME/ZImage 계열은 네거티브 입력을 받지 않는 구조라
+# 입력창을 띄워도 값이 조용히 버려진다. 원본 Qt UI 도 같은 기준으로
+# 숨겼다(도움말 '네거티브 프롬프트 자동 제어').
+#
+# 주의: ERNIE 계열은 'checkpoint' 워크플로우(네거티브 노드가 실제로 연결됨)
+# 이므로 여기 넣지 않는다. 모델 카드에 최소 워크플로우가 포스트만 있더라도,
+# 이 프로젝트의 워크플로우는 네거티브를 KSampler 에 물리고 있고 실제로도
+# 쓰는 편이 낫다.
+_NO_NEGATIVE_TYPES = {
+    "flux_gguf", "unet_dualclploadergguf", "unet_clploadergguf", "zimage",
+}
+_NO_NEGATIVE_FAMILIES = {"flux", "zimage", "z-anime", "zanime"}
+
+# 파일명에 들어가는 표식. 프로필 판별이 generic 으로 떨어져도
+# '이 계열이다'를 알아볼 수 있게 한다.
+#
+# 회귀 근거: 'z-image-turbo.safetensors' 는 ModelRegistry.detect() 가
+# workflow_type=checkpoint / family=generic 으로 떨어뜨린다. 그래서
+# 프로필 값만 보면 네거티브 창이 숨겨지지 않아 그대로 보였다.
+_NO_NEGATIVE_NAME_MARKS = ("flux", "z-image", "zimage", "z-anime", "zanime")
+
+
+def model_supports_negative(profile, model_name: str = "") -> bool:
+    """이 모델이 네거티브 프롬프트를 받는가.
+
+    판별 순서: 프로필(workflow_type/family) -> 파일명 표식.
+    프로필만 보면 generic 으로 떨어지는 모델이 있어서 파일명도 본다.
+
+    아무것도 몰라도 True(기본 표시)를 돌려준다. '숨기는 쪽'이 아니라
+    '보이는 쪽' 이 안전한 기본값이라, 판별 실패로 입력을 놓치지 않는다.
+    """
+    if profile is not None:
+        workflow_type = str(getattr(profile, "workflow_type", "") or "")
+        family = str(getattr(profile, "family", "") or "").lower()
+        if workflow_type in _NO_NEGATIVE_TYPES:
+            return False
+        if family in _NO_NEGATIVE_FAMILIES:
+            return False
+    name = str(model_name or "").lower()
+    if any(mark in name for mark in _NO_NEGATIVE_NAME_MARKS):
+        return False
+    return True
+
+
+def resolve_negative_prompt(user_text: str, default_text: str = "",
+                            profile=None, model_name: str = "") -> str:
+    """실제로 ComfyUI 로 보낼 네거티브 프롬프트를 확정한다.
+
+    우선순위: 사용자 입력 > 설정 기본값 > Qt 기본 문구.
+    네거티브를 쓰지 않는 모델이면 빈 문자열(전송하지 않음).
+
+    회귀 근거(画质 회귀의 원인): 원본 Qt 는 스냅샷을 만들 때
+    build_negative_prompt() 로 '비어 있으면 기본 문구' 를 강제했다.
+    Flet 이식에서는 config.prompts.negative_default(비어 있음) 만 보고
+    그대로 보내, 네거티브가 완전히 빠진 채 생성됐다. 저품질/흐림/왜곡이
+    억제되지 않아 Qt 시절보다 결과물이 나빠졌다.
+    """
+    if not model_supports_negative(profile, model_name):
+        return ""
+    return build_negative_prompt(user_text or default_text)
+
+
+# ---------------------------------------------------------------------------
 # External prompts.json loader
 # ---------------------------------------------------------------------------
 

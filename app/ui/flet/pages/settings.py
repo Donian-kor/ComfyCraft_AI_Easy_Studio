@@ -16,11 +16,12 @@ from typing import Any, Callable, List, Optional
 import flet as ft
 
 from app.application.services import AppServices
+from app.core.config_manager import AppConfig
 from app.paths import BASE_DIR
 from app.ui.flet.components.common import safe_update, section_card
 from app.ui.flet.pages.log_panel import LogPanel
 from app.ui.flet.pages.profiles import ProfileEditor
-from app.ui.flet.theme.tokens import TOKENS
+from app.ui.flet.theme.tokens import TOKENS, theme_mode
 
 
 
@@ -56,9 +57,12 @@ class SettingsPage:
     """
 
     def __init__(self, services: AppServices, *,
-                 on_saved: Optional[Callable[[str], None]] = None) -> None:
+                 on_saved: Optional[Callable[[str], None]] = None,
+                 on_theme_change: Optional[Callable[[str], None]] = None) -> None:
         self._services = services
         self._on_saved = on_saved
+        # 테마 적용은 app_state 가 한다(페이지를 아는 쪽이 거기뿐이다).
+        self._on_theme_change = on_theme_change
         config = services.config
 
         # --- 탭1: AI 서버 ---
@@ -90,6 +94,18 @@ class SettingsPage:
         self._poll_interval = ft.TextField(label="폴링 간격(초)", width=220,
                                            value=str(config.comfyui.poll_interval_seconds))
         self._status = ft.Text("", size=TOKENS.size_caption, color=TOKENS.success)
+
+        # --- 테마 ---
+        # 원본 Qt 의 available_themes()/apply_theme() 대체물.
+        # 상단바 토글 버튼이 주 경로이고, 여기는 '지금 어떤 모드인가'를
+        # 확인하고 지정하는 자리다.
+        # Flet 1.0 의 Dropdown 은 콜백 이름이 on_select 이다(on_change 없음).
+        self._theme_mode = ft.Dropdown(
+            label="화면 테마", width=220,
+            options=[ft.DropdownOption(key="dark", text="다크"),
+                     ft.DropdownOption(key="light", text="라이트")],
+            value=theme_mode(),
+            on_select=self._change_theme)
 
         # --- 탭2 / 탭3 ---
         self._profiles = ProfileEditor(services.model_registry)
@@ -127,6 +143,14 @@ class SettingsPage:
                             ], spacing=TOKENS.space_md, tight=True),
                             self._lm_status,
                             self._lm_model,
+                        ],
+                        spacing=TOKENS.space_sm, tight=True), expand=False),
+                    section_card("화면 테마", ft.Column(
+                        controls=[
+                            self._theme_mode,
+                            ft.Text("위쪽 막대의 아이콘 버튼으로도 바로 바꿀 수 있습니다.",
+                                    size=TOKENS.size_caption,
+                                    color=TOKENS.on_surface_variant),
                         ],
                         spacing=TOKENS.space_sm, tight=True), expand=False),
                     section_card("생성 · 출력", ft.Column(
@@ -191,6 +215,57 @@ class SettingsPage:
             self._lm_status.color = TOKENS.error
         safe_update(self._lm_status, self._lm_model)
 
+    # --- 불러오기 / 기본값 복원 -------------------------------------------
+    def _set_status(self, message: str, color: str = TOKENS.on_surface_variant) -> None:
+        self._status.value = message
+        self._status.color = color
+        safe_update(self._status)
+
+    def _apply_config(self, config: Any) -> None:
+        """config 값을 폼에 옮긴다 ('불러오기' 와 '기본값 복원' 이 함께쓴다)."""
+        self._comfy_url.value = config.comfyui.url
+        self._lm_url.value = config.lmstudio.url
+        # 드롭다운은 옵션에 없는 값을 주면 화면이 빈칸이 된다. 목록에 없으면
+        # 첫 항목을 준다 (생성 시 __init__ 과 같은 규칙).
+        lm = str(config.lmstudio.model or "")
+        keys = [opt.key for opt in self._lm_model.options]
+        self._lm_model.value = lm if lm in keys else (keys[0] if keys else None)
+        self._output_dir.value = config.output.directory
+        self._filename_prefix.value = config.output.filename_prefix
+        self._max_wait.value = str(config.comfyui.max_wait_seconds)
+        self._poll_interval.value = str(config.comfyui.poll_interval_seconds)
+        self._model_base_paths.value = _join_paths(_model_base_paths(config))
+        safe_update(self._comfy_url, self._lm_url, self._lm_model,
+                    self._output_dir, self._filename_prefix, self._max_wait,
+                    self._poll_interval, self._model_base_paths)
+
+    def reload_config(self, _event: Optional[ft.Event] = None) -> None:
+        """저장된 설정 파일을 다시 읽어 폼에 반영한다 (원본 dlgLoadConfigBtn).
+
+        회귀 근거: 원본엔 '설정 불러오기' 버튼이 있었으나 Flet 로 빠졌다.
+        손으로 고친 값을 파일에서 다시 되돌려 올 수 없었다.
+        """
+        try:
+            config = self._services.config_manager.load()
+        except Exception as exc:
+            self._set_status(f"설정 불러오기 실패: {exc}", TOKENS.error)
+            return
+        self._apply_config(config)
+        self._set_status("저장된 설정을 불러왔습니다.", TOKENS.success)
+
+    def reset_defaults(self, _event: Optional[ft.Event] = None) -> None:
+        """입력칸을 기본값으로 되돌린다 (원본 dlgResetDefaultsBtn).
+
+        아직 저장하지 않는다 — 사용자가 '저장' 을 눌러야 반영된다
+        (원본 restore_defaults 도 위젯만 바꾸고 저장은 따로 했다).
+        """
+        try:
+            self._apply_config(AppConfig())
+            self._set_status("기본값으로 되돌렸습니다. 저장하면 적용됩니다.",
+                              TOKENS.success)
+        except Exception as exc:
+            self._set_status(f"기본값 복원 실패: {exc}", TOKENS.error)
+
     def _open_model_path(self, _event: Optional[ft.Event] = None) -> None:
         """모델 경로 폴더를 파일 탐색기로 연다 (원본 dlgBrowseBtn)."""
         import os
@@ -225,6 +300,17 @@ class SettingsPage:
             self._model_path_status.color = TOKENS.error
         safe_update(self._model_path_status)
 
+
+    # --- 테마 -------------------------------------------------------------
+    def _change_theme(self, event: ft.Event) -> None:
+        """설정 화면의 테마 드롭다운. 화면을 칠하고 설정에 저장한다.
+
+        실제로 칠하는 일은 AppState.toggle/set 이 한다(화면을 아는 쪽은
+        app_state 뿐이므로 콜백으로 받는다). 여기서는 값만 넘긴다.
+        """
+        mode = getattr(event.control, "value", None) or "dark"
+        if self._on_theme_change is not None:
+            self._on_theme_change(mode)
 
     # --- 저장 ------------------------------------------------------------
     def save(self, _event: Optional[ft.Event] = None) -> None:
@@ -302,6 +388,11 @@ class SettingsPage:
                 ft.Container(
                     content=ft.Row(
                         controls=[
+                            ft.OutlinedButton("불러오기", icon=ft.Icons.DOWNLOAD,
+                                              on_click=self.reload_config),
+                            ft.OutlinedButton("기본값 복원",
+                                              icon=ft.Icons.RESTART_ALT,
+                                              on_click=self.reset_defaults),
                             ft.FilledButton("저장", icon=ft.Icons.SAVE,
                                             on_click=self.save),
                             self._status,

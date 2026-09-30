@@ -86,6 +86,9 @@ class ThemeConfig:
     success_color: str = "#34d399"
     warning_color: str = "#fbbf24"
     error_color: str = "#f87171"
+    # Flet 화면 테마(다크/라이트). 색상표와 별개로 '어느 테마를 쓸까'만
+    # 저장한다. (QSS 유산 필드 위로는 Flet 이 색을 읽지 않는다)
+    mode: str = "dark"
 
 
 @dataclass
@@ -94,6 +97,10 @@ class UIConfig:
     window_height: int = 780
     window_min_width: int = 840
     window_min_height: int = 640
+    # 창 위치 기억 (P3-7). None 이면 '저장된 위치 없음' 이고,
+    # OS 기본(대체로 가운데) 위치로 띄운다.
+    window_left: Optional[int] = None
+    window_top: Optional[int] = None
     startup_window_width: int = 540
     startup_window_height: int = 360
     font_family: str = "NanumGothic"
@@ -292,6 +299,7 @@ class ConfigManager:
             success_color=theme_raw.get("success_color", "#34d399"),
             warning_color=theme_raw.get("warning_color", "#fbbf24"),
             error_color=theme_raw.get("error_color", "#f87171"),
+            mode=theme_raw.get("mode", "dark"),
         )
         
         presets_raw = ui_raw.get("resolution_presets", [])
@@ -307,6 +315,9 @@ class ConfigManager:
         ]
         
         ui = UIConfig(
+            # 창 위치/크기 기억 (P3-7). 이전 설정 파일엔 없어서 기본값 None.
+            window_left=ui_raw.get("window_left"),
+            window_top=ui_raw.get("window_top"),
             window_width=ui_raw.get("window_width", 960),
             window_height=ui_raw.get("window_height", 780),
             window_min_width=ui_raw.get("window_min_width", 840),
@@ -451,6 +462,10 @@ class ConfigManager:
                 "filename_prefix": config.output.filename_prefix,
             },
             "ui": {
+                # 창 위치/크기 기억 (P3-7). 이게 없으면 저장만 하고
+                # 다시 읽어오지 못해 '기억한다'는 기능이 조용히 죽는다.
+                "window_left": config.ui.window_left,
+                "window_top": config.ui.window_top,
                 "window_width": config.ui.window_width,
                 "window_height": config.ui.window_height,
                 "window_min_width": config.ui.window_min_width,
@@ -470,6 +485,7 @@ class ConfigManager:
                     "success_color": config.ui.theme.success_color,
                     "warning_color": config.ui.theme.warning_color,
                     "error_color": config.ui.theme.error_color,
+                    "mode": config.ui.theme.mode,
                 },
                 "resolution_presets": config.ui.resolution_presets,
             },

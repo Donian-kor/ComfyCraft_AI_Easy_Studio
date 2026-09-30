@@ -17,6 +17,8 @@ from typing import Callable, List, Optional
 import flet as ft
 
 from app.ui.flet.theme.tokens import TOKENS, status_color
+from app.ui.flet.components.facedetailer_guide import show_facedetailer_guide
+from app.ui.flet.components.image_preview import ImagePreviewModal
 
 
 @dataclass(frozen=True)
@@ -60,9 +62,30 @@ class AppShell:
     (전체 rebuild 는 진행 표시가 깜빡이게 만든다).
     """
 
-    def __init__(self, on_navigate: Callable[[str], None]) -> None:
+    def __init__(self, on_navigate: Callable[[str], None],
+                 on_new_chat: Optional[Callable[[], None]] = None,
+                 on_open_help: Optional[Callable[[], None]] = None,
+                 on_toggle_theme: Optional[Callable[[], str]] = None) -> None:
         self._on_navigate = on_navigate
+        # 새 대화 버튼. 원본 Qt 의 newChatBtn 에 해당한다.
+        # 콜백이 없으면(테스트 등) 버튼을 숨겨 죽은 버튼을 남기지 않는다.
+        self._on_new_chat = on_new_chat
+        # 가이드 다이얼로그에서 '도움말에서 보기' 를 눌렀을 때 쓸 경로.
+        self._on_open_help = on_open_help
+        # 다크/라이트 토글. None 이면 버튼을 숨긴다(테스트 등).
+        self._on_toggle_theme = on_toggle_theme
+        self._theme_button = ft.IconButton(
+            icon=ft.Icons.LIGHT_MODE_OUTLINED,
+            tooltip="밝게 보기",
+            visible=on_toggle_theme is not None,
+            on_click=self._handle_toggle_theme)
+        self._new_chat_button = ft.FilledTonalButton(
+            "새 대화", icon=ft.Icons.ADD_COMMENT_OUTLINED,
+            on_click=self._handle_new_chat,
+            visible=on_new_chat is not None,
+            tooltip="지금 대화를 저장하고 새로 시작합니다")
         self._page = None
+        self._root = None
         self._content_area = ft.Container(expand=True)
         self._status_text = ft.Text("", size=TOKENS.size_caption,
                                     color=TOKENS.on_surface_variant)
@@ -132,6 +155,24 @@ class AppShell:
         index = getattr(event.control, "selected_index", 0)
         self._on_navigate(index_route(index))
 
+    def _handle_new_chat(self, _event: Optional[ft.Event] = None) -> None:
+        """'새 대화' 버튼. 실제 처리는 AppState.new_chat() 이 한다."""
+        if self._on_new_chat is not None:
+            self._on_new_chat()
+
+    def _handle_toggle_theme(self, _event: Optional[ft.Event] = None) -> None:
+        """'밝게/어둡게' 버튼. 실제로 칠하는 쪽은 AppState.toggle_theme()."""
+        if self._on_toggle_theme is None:
+            return
+        mode = self._on_toggle_theme()
+        if mode == "light":
+            self._theme_button.icon = ft.Icons.DARK_MODE_OUTLINED
+            self._theme_button.tooltip = "어둡게 보기"
+        else:
+            self._theme_button.icon = ft.Icons.LIGHT_MODE_OUTLINED
+            self._theme_button.tooltip = "밝게 보기"
+        self._safe_update(self._theme_button)
+
     def _build_topbar(self) -> ft.Container:
         return ft.Container(
             content=ft.Row(
@@ -139,7 +180,11 @@ class AppShell:
                     self._title,
                     ft.Text("AI Easy Studio", size=TOKENS.size_caption,
                             color=TOKENS.on_surface_variant),
+                    ft.Container(width=TOKENS.space_lg),
+                    self._new_chat_button,
                     ft.Container(expand=True),
+                    self._theme_button,
+                    ft.Container(width=TOKENS.space_sm),
                     self._comfy_indicator,
                     ft.Container(width=TOKENS.space_md),
                     self._lm_indicator,
@@ -176,7 +221,7 @@ class AppShell:
 
     def build(self) -> ft.Row:
         """전체 셸 컨트롤 트리를 만든다."""
-        return ft.Row(
+        root = ft.Row(
             controls=[
                 self._rail,
                 ft.VerticalDivider(width=1, color=TOKENS.outline),
@@ -196,6 +241,19 @@ class AppShell:
             spacing=0,
             tight=True,
         )
+        # 테마 전환 시 이 트리를 통째로 다시 칠한다(재빌드 아님).
+        self._root = root
+        return root
+
+    @property
+    def root(self):
+        """테마 적용 대상인 셸 루트 컨트롤 (build() 전이면 None)."""
+        return self._root
+
+    @property
+    def page(self):
+        """페이지 참조 (테마 적용 시 page.theme 을 갱신하는 데 쓴다)."""
+        return self._page
 
     @staticmethod
     def _build_hairline() -> ft.Container:
@@ -281,3 +339,72 @@ class AppShell:
         except Exception:
             # 헤드리스 환경에서는 열지 못해도 흐름을 막지 않는다
             pass
+
+    def show_save_dialog(self, file_name: str, initial_directory: str,
+                         callback: Callable[[Optional[str]], None]) -> None:
+        """파일 저장 다이얼로그를 열고 사용자 선택 경로를 콜백으로 돌려준다.
+
+        Flet FilePicker.save_file 은 비동기다. 결과는 on_result 로 오는데,
+        여기서는 단일 사용이므로 래퍼로 감싼다.
+        """
+        page = self._page
+        if page is None:
+            callback(None)
+            return
+
+        def on_result(e: ft.FilePickerResultEvent) -> None:
+            # 사용자가 취소하면 e.path 가 None
+            callback(e.path)
+
+        picker = ft.FilePicker(on_result=on_result)
+        page.overlay.append(picker)
+        page.update()
+
+        # save_file 은 코루틴이므로 UI 루프에서 실행
+        async def _run() -> None:
+            await picker.save_file(
+                dialog_title="이미지 저장",
+                file_name=file_name,
+                initial_directory=initial_directory,
+                file_type=ft.FilePickerFileType.CUSTOM,
+                allowed_extensions=["png", "jpg", "jpeg", "webp"],
+            )
+        import asyncio
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(_run())
+        except RuntimeError:
+            # 루프가 없으면 동기로 돌림 (테스트 환경 등)
+            asyncio.run(_run())
+
+    def show_facedetailer_guide(self) -> None:
+        """안면 보정 가이드 다이얼로그를 연다 (P3-3).
+
+        다이얼로그 구성은 components/facedetailer_guide.py 가 맡는다.
+        셸은 page 접근과 '도움말에서 보기' 라우트만 넘긴다.
+        """
+        show_facedetailer_guide(
+            self._page, on_open_help=self._on_open_help)
+
+    def show_image_preview_modal(
+        self,
+        paths: List[str],
+        index: int = 0,
+        return_focus_widget: Optional[ft.Control] = None,
+        on_save: Optional[Callable[[str], None]] = None,
+    ) -> None:
+        """이미지 미리보기 모달을 연다 (줌/팬/회전/이전·다음).
+
+        - paths: 이미지 경로 리스트
+        - index: 처음 보여줄 인덱스
+        - return_focus_widget: 닫을 때 포커스를 돌려줄 위젯
+        - on_save: 저장 버튼 콜백 (선택한 이미지 경로 전달)
+        """
+        if not paths:
+            return
+        modal = ImagePreviewModal(
+            self._page,
+            on_save=on_save,
+            on_open_folder=self._open_output_folder if hasattr(self, '_open_output_folder') else None,
+        )
+        modal.open_with(paths, index, return_focus_widget)

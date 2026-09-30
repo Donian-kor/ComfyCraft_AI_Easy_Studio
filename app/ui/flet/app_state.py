@@ -40,6 +40,8 @@ from app.ui.flet.pages.model_desc import describe_model
 from app.ui.flet.pages.models import ModelsPage
 from app.ui.flet.pages.settings import SettingsPage
 from app.ui.flet.pages.studio import StudioPage
+from app.ui.flet.theme.switcher import save_theme_mode
+from app.ui.flet.theme.tokens import apply_theme, set_theme_mode, toggle_theme_mode
 
 
 _ui_loop: Optional[asyncio.AbstractEventLoop] = None
@@ -47,6 +49,13 @@ _ui_loop: Optional[asyncio.AbstractEventLoop] = None
 # AI 환영 인사. 원본 Qt 의 TEMPLATES["welcome"] 과 같은 문장을 쓴다.
 # 톤: "만들다"보다 "그리다" — 사용자가 아티스트와 대화하는 느낌.
 WELCOME_TEXT = "안녕하세요? 무엇을 그려드릴까요?"
+
+# 세션이 아직 제목을 못 받은 상태의 기본값.
+# SessionManager.new_session() 의 기본 제목과 같아야 "제목 미정" 판별이 된다.
+DEFAULT_SESSION_TITLE = "새 대화"
+
+# 첫 사용자 발화에서 잘라 쓸 제목 길이 (원본 _begin_send 와 같은 규칙)
+SESSION_TITLE_LENGTH = 20
 
 # 모델 변경 안내. 원본 Qt 의 TEMPLATES["model_changed"] 와 같은 문장.
 SAY_MODEL_CHANGED = "{model}에 맞춰 이미지 그릴 준비를 마쳤어요. ({feature})"
@@ -72,11 +81,26 @@ class AppState:
         # 현재 생성과 연결된 generation 메시지 (카드 전환에 쓴다)
         self._active_message_id: Optional[str] = None
 
+        # 지금 이어 쓰고 있는 세션 ID. None 이면 아직 세션이 없다.
+        # 회귀 근거: 예전에는 이 값이 없어서 _save_session() 이 매번
+        # new_session() 으로 새 세션을 만들었다 (이력이 "대화"로만 쌓임).
+        self._current_session_id: Optional[str] = None
+
         self._build_pages()
         self.jobs.add_listener(self._on_job_update)
+        # 포스티프 프롬프트 표시도 옵션창이 job 을 직접 듣는다.
+        self.jobs.add_listener(self.studio.options.on_job_update)
 
     # --- 페이지 ---------------------------------------------------------
     def _build_pages(self) -> None:
+        from app.ui.flet.actions import (
+            make_save_image_action,
+            make_reuse_settings_action,
+            make_open_image_action,
+            make_open_output_folder_action,
+            make_rewrite_action,
+            make_regenerate_action,
+        )
         self.studio = StudioPage(
             on_send=self.handle_prompt,
             on_stop=self.stop_generation,
@@ -84,16 +108,27 @@ class AppState:
             model_registry=self.services.model_registry,
         )
         self.studio.chat.set_card_actions(
-            on_save=self._save_image,
-            on_reuse=self._reuse_settings,
-            on_open=self._open_image,
+            on_save=make_save_image_action(self.services, lambda: self.shell),
+            on_reuse=make_reuse_settings_action(
+                lambda: self.studio, lambda: self.shell),
+            on_open=make_open_image_action(
+                lambda: self.shell,
+                lambda: self.studio.chat.messages,
+            ),
+            on_open_folder=make_open_output_folder_action(
+                self.services, lambda: self.shell),
+            on_rewrite=make_rewrite_action(
+                lambda: self.studio, lambda: self.shell),
+            on_regenerate=make_regenerate_action(
+                lambda: self.studio, lambda: self.shell, lambda: self),
         )
         self.pages = {
             "/": self.studio,
             "/options": self.studio,
             "/models": ModelsPage(self.services, on_refresh=self.refresh_models),
             "/history": HistoryPage(self.services, on_open=self._open_session),
-            "/settings": SettingsPage(self.services, on_saved=self._notify_saved),
+            "/settings": SettingsPage(self.services, on_saved=self._notify_saved,
+                                      on_theme_change=self.set_theme),
             "/help": HelpPage(),
         }
 
@@ -197,6 +232,8 @@ class AppState:
 
         self.studio.chat.set_messages(
             messages_from_raw(session.get("messages", [])))
+        # 이어서 대화하면 이 세션에 덮어써야 한다 (새 세션을 만들면 안 됨)
+        self._current_session_id = session_id
         return True
     def maybe_greet(self) -> None:
         """저장된 대화가 없을 때만 AI 환영 인사를 채팅에 남긴다.
@@ -240,19 +277,115 @@ class AppState:
         self.start_generation(prompt)
 
     def _save_session(self) -> None:
-        """현재 대화를 세션으로 남긴다 (원본처럼 대화가 이어진다)."""
+        """현재 대화를 '진행 중인 세션 하나'에 계속 덮어쓴다.
+
+        회귀 근거: 예전 구현은 부를 때마다 new_session() 으로 **새 세션을
+        만들어** 저장했다. 그래서 프롬프트를 보낼 때마다 이력이 "대화"
+        한 줄씩 늘었고(실제 저장소에 제목이 모두 "대화"인 세션 6개),
+        직전 대화가 아니라 최근 1회분만 남아 대화가 이어지지 않았다.
+        원본은 _current_session 하나를 _flush_session() 으로 덮어썼다.
+
+        세션 파일은 첫 프롬프트 때 만든다. '새 대화'를 누를 때마다 만들면
+        아무것도 안 한 빈 세션이 이력에 쌓인다.
+        """
         if self.studio is None:
             return
+        messages = self.studio.chat.messages
+        # 새 세션은 사용자가 실제로 무언가 보낸 뒤에만 만든다.
+        # 환영 인사만 있는 상태를 저장하면 이력이 빈 세션으로 채워진다
+        # ('새 대화'를 연속으로 눌러도 세션이 쌓이지 않아야 한다).
+        if self._current_session_id is None:
+            if not any(m.role == "user" for m in messages):
+                return
         try:
             from app.models.chat import messages_to_raw
 
             manager = self.services.session_manager
-            session = manager.new_session(title="대화", model="")
+            session = (manager.load_session(self._current_session_id)
+                       if self._current_session_id else None)
+            if session is None:
+                session = manager.new_session(model=self._current_model())
+                self._current_session_id = str(session.get("session_id", ""))
+            else:
+                session["model"] = self._current_model()
+
+            # 제목은 사용자가 아직 안 바꿨을 때만 첫 발화로 채운다.
+            # (P2-1 이름 변경을 나중에 붙여도 덮어쓰지 않는다)
+            if str(session.get("title", "") or "").strip() in (
+                    "", DEFAULT_SESSION_TITLE):
+                first = self._first_user_text()
+                if first:
+                    session["title"] = first[:SESSION_TITLE_LENGTH]
+
             session["messages"] = messages_to_raw(self.studio.chat.messages)
             manager.save_session(session)
         except Exception:
             # 저장은 부가 기능이므로 대화 흐름을 막지 않는다
             pass
+
+    def _current_model(self) -> str:
+        """지금 선택된 ComfyUI 모델 파일명 (세션에 남겨 이력에 보여준다)."""
+        if self.studio is None:
+            return ""
+        try:
+            return str(self.studio.options.to_request().comfy_model or "")
+        except Exception:
+            return ""
+
+    def _first_user_text(self) -> str:
+        """세션 제목으로 쓸 첫 사용자 발화 (없으면 빈 문자열)."""
+        if self.studio is None:
+            return ""
+        for message in self.studio.chat.messages:
+            if message.role == "user" and message.text.strip():
+                return message.text.strip()
+        return ""
+
+    def new_chat(self) -> bool:
+        """새 대화를 시작한다. 생성 중이면 거부하고 False 를 준다.
+
+        회귀 근거: Flet 전환에서 이 기능이 통째로 빠졌다. 원본
+        _on_new_chat_clicked() 는 진행 중이던 세션을 저장하고 채팅을 비운
+        뒤 새 세션으로 갈아탔다.
+
+        저장된 대화는 지우지 않는다 — 이력에 남고 화면만 새로 시작한다.
+        세션 파일은 다음 프롬프트에서 만들어지므로, 연속으로 눌러도
+        빈 세션이 이력에 쌓이지 않는다.
+        """
+        if self.studio is None:
+            return False
+        if self.jobs.is_busy:
+            self._set_status("생성 중에는 새 대화를 시작할 수 없어요.", "error")
+            return False
+
+        self._save_session()            # 지금까지의 대화를 이력에 남긴다
+        self.studio.chat.clear()
+        self._active_message_id = None
+        self._current_session_id = None  # 다음 프롬프트에서 새 세션이 열린다
+        self.maybe_greet()
+        if self.shell is not None:
+            self.shell.set_status("새 대화를 시작했습니다.", "done")
+        return True
+
+    def toggle_theme(self) -> str:
+        """다크 ↔ 라이트를 바꿔 화면 전체에 적용한다. 바뀐 모드를 돌려준다.
+
+        원본 Qt 의 available_themes()/apply_theme() 에 해당한다.
+        QSS 8종을 옮기는 대신, 다크/라이트 두 벌의 토큰만 정의했다.
+        """
+        return self.set_theme(toggle_theme_mode())
+
+    def set_theme(self, mode: str) -> str:
+        """지정된 모드로 화면을 다시 칠한다. 적용된 모드를 돌려준다."""
+        mode = set_theme_mode(mode)
+        if self.shell is not None:
+            apply_theme(self.shell.page, mode, self.shell.root)
+        save_theme_mode(self.services, mode)
+        if self.shell is not None:
+            self.shell.set_status(
+                "밝은 테마로 전환했습니다." if mode == "light"
+                else "어두운 테마로 전환했습니다.", "done")
+        return mode
 
     def start_generation(self, prompt: str = "") -> Optional[object]:
         """Job 을 시작한다. 이미 돌고 있으면 예외 대신 상태로 알린다."""
@@ -269,6 +402,7 @@ class AppState:
         if prompt:
             request.prompt = prompt
             request.enhanced_prompt = ""   # 새 입력은 다시 enhancement 를 탄다
+            _run_on_ui(self.studio.options.clear_enhanced_prompt)
 
         try:
             return self.jobs.start(request)
@@ -311,6 +445,9 @@ class AppState:
             message.say = error
         self.studio.chat.replace_message(message)
         self._active_message_id = None
+        # 카드가 이미지로 바뀐 '뒤'에 저장한다. handle_prompt() 시점에
+        # 저장하면 결과물이 만들어지기 전이라 이력에 이미지가 남지 않는다.
+        self._save_session()
 
 
     # --- Job 연동 -------------------------------------------------------
@@ -351,42 +488,6 @@ class AppState:
         self.studio.set_busy(bool(job and job.is_running))
 
 
-    # --- 카드 액션 -------------------------------------------------------
-    def _save_image(self, image_path: str) -> None:
-        """이미지를 새 이름으로 복사한다 (경로만 알리면 사용자가 옮긴다)."""
-        if not image_path or self.shell is None:
-            return
-        try:
-            from app.features.generation.output_files import copy_image
-
-            output_dir = self.services.output_dir
-            stamp = time.strftime("%Y%m%d_%H%M%S")
-            target = output_dir / f"copy_{stamp}_{Path(image_path).name}"
-            saved = copy_image(image_path, str(target))
-            self.shell.set_status(
-                f"복사했습니다: {saved}" if saved else "복사에 실패했습니다.",
-                "done" if saved else "error")
-        except Exception as exc:
-            self.shell.set_status(f"복사 실패: {exc}", "error")
-
-    def _reuse_settings(self, message: ChatMessageData) -> None:
-        """이미지 카드의 '이 설정으로' — 지난 옵션을 좌측 패널에 되돌린다."""
-        if self.studio is None:
-            return
-        snapshot = message.metadata.get("snapshot") or {}
-        if not snapshot:
-            return
-        self.studio.options.apply_snapshot(snapshot)
-        if self.shell is not None:
-            self.shell.set_status("지난 생성 설정을 불러왔습니다.", "done")
-
-    def _open_image(self, message: ChatMessageData) -> None:
-        """이미지를 크게 보는 Dialog 을 연다."""
-        path = str(message.metadata.get("image_path", "") or "")
-        if not path or self.shell is None:
-            return
-        self.shell.show_image_dialog(path, str(message.metadata.get("meta", "")))
-
     def _open_session(self, session_id: str) -> None:
         """이력에서 세션을 열면 대화로 복원한다."""
         session = self.services.session_manager.load_session(session_id)
@@ -395,6 +496,9 @@ class AppState:
         from app.models.chat import messages_from_raw
 
         self.studio.chat.set_messages(messages_from_raw(session.get("messages", [])))
+        # 이 세션을 이어 쓰는 상태로 만든다 (새 세션 난립 방지)
+        self._current_session_id = session_id
+        self._active_message_id = None
         self.navigate("/")
 
     # --- 모델 -------------------------------------------------------------
@@ -481,4 +585,14 @@ class AppState:
         if self.shell is not None:
             self.shell.set_status(message, kind)
 
-        pass
+    # --- 기존 테스트 호환용 델리게이트 ---------------------------------------
+    def _reuse_settings(self, message: ChatMessageData) -> None:
+        """이미지 카드의 '이 설정으로' — 지난 옵션을 좌측 패널에 되돌린다."""
+        if self.studio is None:
+            return
+        snapshot = message.metadata.get("snapshot") or {}
+        if not snapshot:
+            return
+        self.studio.options.apply_snapshot(snapshot)
+        if self.shell is not None:
+            self.shell.set_status("지난 생성 설정을 불러왔습니다.", "done")
