@@ -55,8 +55,8 @@ class BaseApiClient:
 
 
 class LMStudioApiClient(BaseApiClient):
-    def __init__(self, base_url: str):
-        super().__init__(base_url)
+    def __init__(self, base_url: str, max_retries: int = 3):
+        super().__init__(base_url, max_retries)
 
     def get_models(self, timeout: Any = (0.5, 1.0)) -> requests.Response:
         return self.get('/v1/models', timeout=timeout)
@@ -66,8 +66,8 @@ class LMStudioApiClient(BaseApiClient):
 
 
 class ComfyUIApiClient(BaseApiClient):
-    def __init__(self, base_url: str):
-        super().__init__(base_url)
+    def __init__(self, base_url: str, max_retries: int = 3):
+        super().__init__(base_url, max_retries)
 
     def get_system_stats(self, timeout: Any = (0.5, 0.8)) -> requests.Response:
         return self.get('/system_stats', timeout=timeout)

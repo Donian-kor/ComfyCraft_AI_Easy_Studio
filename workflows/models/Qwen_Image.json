@@ -1,0 +1,868 @@
+{
+  "id": "71762696-9310-43fa-b6d4-2d7385077615",
+  "revision": 0,
+  "last_node_id": 16,
+  "last_link_id": 19,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "UNETLoader",
+      "pos": [
+        639.9679744408561,
+        -328.62881855437655
+      ],
+      "size": [
+        300,
+        330
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "showAdvanced": true,
+      "inputs": [
+        {
+          "label": "unet_name",
+          "name": "unet_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "unet_name"
+          },
+          "link": null
+        },
+        {
+          "label": "weight_dtype",
+          "name": "weight_dtype",
+          "type": "COMBO",
+          "widget": {
+            "name": "weight_dtype"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "label": "MODEL",
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            18
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "qwen-image-2.1-UC-NVFP4.safetensors",
+        "default"
+      ],
+      "widgets_values_named": {
+        "unet_name": "qwen-image-2.1-UC-NVFP4.safetensors",
+        "weight_dtype": "default"
+      }
+    },
+    {
+      "id": 2,
+      "type": "CLIPLoader",
+      "pos": [
+        320.70527735908945,
+        -330.56421174955034
+      ],
+      "size": [
+        300,
+        330
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "clip_name",
+          "name": "clip_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "clip_name"
+          },
+          "link": null
+        },
+        {
+          "label": "type",
+          "name": "type",
+          "type": "COMBO",
+          "widget": {
+            "name": "type"
+          },
+          "link": null
+        },
+        {
+          "label": "device",
+          "name": "device",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "device"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "label": "CLIP",
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            1
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPLoader"
+      },
+      "widgets_values": [
+        "qwen3vl_8b_int8_convrot.safetensors",
+        "qwen_image",
+        "default"
+      ],
+      "widgets_values_named": {
+        "clip_name": "qwen3vl_8b_int8_convrot.safetensors",
+        "type": "qwen_image",
+        "device": "default"
+      }
+    },
+    {
+      "id": 3,
+      "type": "VAELoader",
+      "pos": [
+        1300.4420833240465,
+        -317.9626208674307
+      ],
+      "size": [
+        300,
+        330
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "vae_name",
+          "name": "vae_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "vae_name"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "label": "VAE",
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            7
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "qwen_image_2.1_vae_bf16.safetensors"
+      ],
+      "widgets_values_named": {
+        "vae_name": "qwen_image_2.1_vae_bf16.safetensors"
+      }
+    },
+    {
+      "id": 4,
+      "type": "TextEncodeQwenImage21",
+      "pos": [
+        405.66652103267336,
+        57.19422908308027
+      ],
+      "size": [
+        543.4633835626079,
+        340.71979427249227
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "clip",
+          "name": "clip",
+          "type": "CLIP",
+          "link": 1
+        },
+        {
+          "label": "images.image_1",
+          "name": "images.image_1",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "label": "vae",
+          "name": "vae",
+          "shape": 7,
+          "type": "VAE",
+          "link": null
+        },
+        {
+          "label": "prompt",
+          "name": "prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "prompt"
+          },
+          "link": 16
+        },
+        {
+          "label": "negative_prompt",
+          "name": "negative_prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "negative_prompt"
+          },
+          "link": null
+        },
+        {
+          "label": "resolution",
+          "name": "resolution",
+          "type": "INT",
+          "widget": {
+            "name": "resolution"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "label": "positive",
+          "name": "positive",
+          "type": "CONDITIONING",
+          "links": [
+            3
+          ]
+        },
+        {
+          "label": "negative",
+          "name": "negative",
+          "type": "CONDITIONING",
+          "links": [
+            4
+          ]
+        },
+        {
+          "label": "latent",
+          "name": "latent",
+          "type": "LATENT",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "TextEncodeQwenImage21"
+      },
+      "widgets_values": [
+        "고양이",
+        "artifacts, washed-out colors, low quality, low resolution, blurry, indistinct, missing fingers, badly drawn hands, wrong number of fingers",
+        1024
+      ],
+      "widgets_values_named": {
+        "prompt": "고양이",
+        "negative_prompt": "artifacts, washed-out colors, low quality, low resolution, blurry, indistinct, missing fingers, badly drawn hands, wrong number of fingers",
+        "resolution": 1024
+      }
+    },
+    {
+      "id": 5,
+      "type": "EmptyLatentImage",
+      "pos": [
+        1635.7017815071354,
+        77.95727963585827
+      ],
+      "size": [
+        300,
+        330
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "width",
+          "name": "width",
+          "type": "INT",
+          "widget": {
+            "name": "width"
+          },
+          "link": null
+        },
+        {
+          "label": "height",
+          "name": "height",
+          "type": "INT",
+          "widget": {
+            "name": "height"
+          },
+          "link": null
+        },
+        {
+          "label": "batch_size",
+          "name": "batch_size",
+          "type": "INT",
+          "widget": {
+            "name": "batch_size"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "label": "LATENT",
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            5
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EmptyLatentImage"
+      },
+      "widgets_values": [
+        704,
+        1024,
+        1
+      ],
+      "widgets_values_named": {
+        "width": 704,
+        "height": 1024,
+        "batch_size": 1
+      }
+    },
+    {
+      "id": 6,
+      "type": "KSampler",
+      "pos": [
+        981.0910953499136,
+        63.56042217424624
+      ],
+      "size": [
+        300,
+        330
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 19
+        },
+        {
+          "label": "positive",
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 3
+        },
+        {
+          "label": "negative",
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 4
+        },
+        {
+          "label": "latent_image",
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 5
+        },
+        {
+          "label": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": null
+        },
+        {
+          "label": "steps",
+          "name": "steps",
+          "type": "INT",
+          "widget": {
+            "name": "steps"
+          },
+          "link": null
+        },
+        {
+          "label": "cfg",
+          "name": "cfg",
+          "type": "FLOAT",
+          "widget": {
+            "name": "cfg"
+          },
+          "link": null
+        },
+        {
+          "label": "sampler_name",
+          "name": "sampler_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "sampler_name"
+          },
+          "link": null
+        },
+        {
+          "label": "scheduler",
+          "name": "scheduler",
+          "type": "COMBO",
+          "widget": {
+            "name": "scheduler"
+          },
+          "link": null
+        },
+        {
+          "label": "denoise",
+          "name": "denoise",
+          "type": "FLOAT",
+          "widget": {
+            "name": "denoise"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "label": "LATENT",
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            6
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KSampler"
+      },
+      "widgets_values": [
+        137011622967013,
+        "randomize",
+        40,
+        3,
+        "euler",
+        "simple",
+        1
+      ],
+      "widgets_values_named": {
+        "seed": 137011622967013,
+        "control_after_generate": "randomize",
+        "steps": 40,
+        "cfg": 3,
+        "sampler_name": "euler",
+        "scheduler": "simple",
+        "denoise": 1
+      }
+    },
+    {
+      "id": 7,
+      "type": "VAEDecode",
+      "pos": [
+        1304.6661509983405,
+        65.40039273030271
+      ],
+      "size": [
+        300,
+        330
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "samples",
+          "name": "samples",
+          "type": "LATENT",
+          "link": 6
+        },
+        {
+          "label": "vae",
+          "name": "vae",
+          "type": "VAE",
+          "link": 7
+        }
+      ],
+      "outputs": [
+        {
+          "label": "IMAGE",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            8
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEDecode"
+      }
+    },
+    {
+      "id": 8,
+      "type": "SaveImage",
+      "pos": [
+        1327.249452689988,
+        459.9035676496562
+      ],
+      "size": [
+        748.0371048385349,
+        818.6524157276681
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 8
+        },
+        {
+          "label": "filename_prefix",
+          "name": "filename_prefix",
+          "type": "STRING",
+          "widget": {
+            "name": "filename_prefix"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "label": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "Qwen21_NVFP4/01_Text_to_Image"
+      ],
+      "widgets_values_named": {
+        "filename_prefix": "Qwen21_NVFP4/01_Text_to_Image"
+      }
+    },
+    {
+      "id": 14,
+      "type": "QwenImage21PromptEnhancerT8",
+      "pos": [
+        417.6429906929303,
+        465.05810821106917
+      ],
+      "size": [
+        400,
+        796
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "showAdvanced": false,
+      "inputs": [
+        {
+          "name": "reference_images.reference_image_0",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "api_key",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "provider_config",
+          "shape": 7,
+          "type": "T8_LLM_PROVIDER_CONFIG",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "rewritten_prompt",
+          "type": "STRING",
+          "links": [
+            16,
+            17
+          ]
+        },
+        {
+          "name": "wh_ratio",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "name": "qwen_image_request_json",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "name": "enhancement_report_json",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "QwenImage21PromptEnhancerT8",
+        "t8_completion_recovery_slot": "t8-0f21629d-5145-49df-af41-1b9a3cdc1514"
+      },
+      "widgets_values": [
+        "수영장에서 수영하는 한국여성의 비키니 브라자가 벗겨져 옷으로 가리지만, 흘러내리는 가슴이 너무 커 꼭지가 살짝 보인다. \n",
+        "텍스트-이미지 생성 / Text-to-image",
+        0,
+        "9:16",
+        false,
+        "로컬 GGUF (llama.cpp / Qwen, 프라인)",
+        "gemini-3.5-flash",
+        "",
+        "",
+        607952190216878,
+        "randomize",
+        "qwen_pe_t2i_heretic-Q4_K_M.gguf",
+        "AUTO（自动匹配）",
+        8192,
+        4352,
+        "끄기 (추천, 속도 우선)",
+        "medium",
+        2,
+        "실행 후 언로드 (추천)",
+        "AUTO (VRAM 부족 시 해제)",
+        "t8-0f21629d-5145-49df-af41-1b9a3cdc1514",
+        "normal"
+      ],
+      "widgets_values_named": {
+        "prompt": "수영장에서 수영하는 한국여성의 비키니 브라자가 벗겨져 옷으로 가리지만, 흘러내리는 가슴이 너무 커 꼭지가 살짝 보인다. \n",
+        "input_mode": "텍스트-이미지 생성 / Text-to-image",
+        "max_output_chars": 0,
+        "wh_ratio": "9:16",
+        "transparent_alpha": false,
+        "api_mode": "로컬 GGUF (llama.cpp / Qwen, 프라인)",
+        "ai_workshop_model": "gemini-3.5-flash",
+        "custom_model": "",
+        "openai_base_url": "",
+        "seed": 607952190216878,
+        "control_after_generate": "randomize",
+        "local_model": "qwen_pe_t2i_heretic-Q4_K_M.gguf",
+        "local_mmproj": "AUTO（自动匹配）",
+        "local_context_size": 8192,
+        "local_max_tokens": 4352,
+        "local_think_mode": "끄기 (추천, 속도 우선)",
+        "local_reasoning_effort": "medium",
+        "local_video_sample_fps": 2,
+        "local_unload_policy": "실행 후 언로드 (추천)",
+        "local_comfy_memory_policy": "AUTO (VRAM 부족 시 해제)",
+        "recovery_slot": "t8-0f21629d-5145-49df-af41-1b9a3cdc1514",
+        "recovery_action": "normal",
+        "🧭 채널 능력 사전 점검": "查看当前渠道的已知与未知能力边界",
+        "🩺 민감 정보 제거된 진단 보기/복사": "不包含 Key、提示词、图片或响应正文",
+        "🔄 恢复上次云端结果（不重新生成）": "只读取当前 ComfyUI 进程中的完整检查点；不会发送新的付费请求",
+        "▶ Qwen Image 프롬프트 최적화 실행": "提交当前节点",
+        "🔑 정정 API Key 받기": "打开当前渠道注册页面",
+        "🧩 检查本地 Qwen 安装 / 扫描 GGUF": "重新扫描 models/LLM 并检查本地运行时",
+        "🛞 llama-cpp-python 사전 컴파일된 Wheel 받기": "打开预编译 Wheel 下载页面",
+        "📁 모델 경로: ComfyUI/models/LLM (클릭하여 복사)": "复制本地 GGUF 主模型与 mmproj 目录",
+        "📖 Qwen Image 2.1 사용 설명": "打开此节点的使用说明"
+      }
+    },
+    {
+      "id": 15,
+      "type": "T8ShowText",
+      "pos": [
+        850.7689783005674,
+        479.22595923860723
+      ],
+      "size": [
+        468.5528663187213,
+        597.7489676767318
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 17
+        }
+      ],
+      "outputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "T8ShowText"
+      },
+      "widgets_values": [
+        ""
+      ],
+      "widgets_values_named": {
+        "t8_show_text_preview": ""
+      }
+    },
+    {
+      "id": 16,
+      "type": "LoraLoaderModelOnly",
+      "pos": [
+        994.181049271795,
+        -81.12321000285021
+      ],
+      "size": [
+        270,
+        82
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 18
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            19
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoraLoaderModelOnly"
+      },
+      "widgets_values": [
+        "qwen-image-2.1-uncensored-lora.safetensors",
+        1
+      ],
+      "widgets_values_named": {
+        "lora_name": "qwen-image-2.1-uncensored-lora.safetensors",
+        "strength_model": 1
+      }
+    }
+  ],
+  "links": [
+    [
+      1,
+      2,
+      0,
+      4,
+      0,
+      "CLIP"
+    ],
+    [
+      3,
+      4,
+      0,
+      6,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      4,
+      4,
+      1,
+      6,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      5,
+      5,
+      0,
+      6,
+      3,
+      "LATENT"
+    ],
+    [
+      6,
+      6,
+      0,
+      7,
+      0,
+      "LATENT"
+    ],
+    [
+      7,
+      3,
+      0,
+      7,
+      1,
+      "VAE"
+    ],
+    [
+      8,
+      7,
+      0,
+      8,
+      0,
+      "IMAGE"
+    ],
+    [
+      16,
+      14,
+      0,
+      4,
+      3,
+      "STRING"
+    ],
+    [
+      17,
+      14,
+      0,
+      15,
+      0,
+      "STRING"
+    ],
+    [
+      18,
+      1,
+      0,
+      16,
+      0,
+      "MODEL"
+    ],
+    [
+      19,
+      16,
+      0,
+      6,
+      0,
+      "MODEL"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.7125247633722255,
+      "offset": [
+        -385.5311542405612,
+        223.42897245223267
+      ]
+    },
+    "frontendVersion": "1.53.6"
+  },
+  "version": 0.4
+}

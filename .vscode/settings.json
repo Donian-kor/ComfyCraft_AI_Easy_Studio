@@ -12,5 +12,6 @@
             "approve": true,
             "matchCommandLine": true
         }
-    }
+    },
+    "qtForPython.designer.path": "C:/Users/donian/AppData/Local/Python/pythoncore-3.14-64/Lib/site-packages/PySide6/designer.exe"
 }
