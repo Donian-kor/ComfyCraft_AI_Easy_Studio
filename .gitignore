@@ -46,13 +46,5 @@ workflows/app_config.json.bak
 !.github/workflows/
 .github/workflows/*
 !.github/workflows/*.yml
-refactoring_plan_v2.md
-uiux디자인기획.md
-REFACTORING_PLAN.md
-IMG2IMG_PLAN.md
-통합기획서.html
-uiux디자인기획.html
-ui_designer_plan.md
-두프로젝트_코드_기능_UI_전수분석서.html
-CODE_REVIEW.md
-REFACTOR_PLAN.md
+
+
