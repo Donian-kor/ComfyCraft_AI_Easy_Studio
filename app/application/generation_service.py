@@ -25,6 +25,7 @@ import time
 from typing import Callable, List, Optional
 
 from app.application.comfy_transport import ComfyTransport
+from app.application.internal_transport import InternalTransport
 from app.application.services import AppServices
 from app.features.generation.workflow_builder import build_workflow, validate_workflow
 from app.features.prompt.prompts import (
@@ -146,6 +147,63 @@ class GenerationService:
             )
         finally:
             self._cleanup()
+
+    def generate_internal(
+        self,
+        request: GenerationRequest,
+        on_progress: Optional[ProgressFn] = None,
+        log: Optional[LogFn] = None,
+    ) -> GenerationResult:
+        """내부 엔진(ComfyUI 없이)으로 이미지를 생성한다.
+
+        ComfyUI 없이 로컬에서 직접 이미지를 생성한다.
+        모델 파일이 필요하다.
+        """
+        from app.application.internal_transport import InternalTransport
+
+        self._stop.reset()
+        self._logs = []
+        started = time.monotonic()
+
+        try:
+            # 내부 전송 계층 생성
+            transport = InternalTransport(
+                self.services.output_dir,
+                log=lambda m: self._emit_log(m, log))
+
+            # 프롬프트 결정 (LMStudio 향상 건너뛰고 원본 사용)
+            prompt = request.prompt
+            negative = request.negative_prompt or ""
+
+            # 시드 처리
+            seed = request.seed if request.seed >= 0 else random.randint(1, 2**31 - 1)
+            request.seed = seed
+
+            self._emit_log("내부 생성 엔진 시작 (ComfyUI 없이)", log)
+
+            # 내부 엔진으로 생성
+            result = transport.generate_image(
+                request,
+                on_progress=on_progress,
+                log=lambda m: self._emit_log(m, log))
+
+            return result
+
+        except Exception as exc:
+            logger.exception("내부 생성 실패")
+            self._emit_log(f"[ERROR] {exc}", log)
+            return GenerationResult(
+                status=STATUS_FAILED,
+                prompt=request.prompt,
+                model=request.comfy_model,
+                width=request.width,
+                height=request.height,
+                seed=request.seed,
+                snapshot=request.to_dict(),
+                logs=list(self._logs),
+                error=str(exc),
+                elapsed=time.monotonic() - started,
+            )
 
     def _cleanup(self) -> None:
         if self._transport is not None:

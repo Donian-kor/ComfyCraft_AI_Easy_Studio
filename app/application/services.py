@@ -18,6 +18,7 @@ from app.core.model_registry import ModelRegistry, get_model_registry
 from app.core.workflow_manager import WorkflowManager, get_workflow_manager
 from app.features.session.store import SessionManager
 from app.paths import BASE_DIR
+from app.application.internal_transport import InternalTransport
 
 
 @dataclass
@@ -42,6 +43,10 @@ class AppServices:
         if not path.is_absolute():
             path = BASE_DIR / path
         return path
+
+    def internal_transport(self) -> InternalTransport:
+        """내부 생성 엔진(ComfyUI 없이 직접 생성)을 위한 전송 계층."""
+        return InternalTransport(self.output_dir)
 
     def comfy_client(self, url: Optional[str] = None, max_retries: int = 0) -> ComfyUIApiClient:
         """ComfyUI 클라이언트.

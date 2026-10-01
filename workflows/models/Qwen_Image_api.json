@@ -1,0 +1,175 @@
+{
+  "1": {
+    "inputs": {
+      "unet_name": "qwen-image-2.1-UC-NVFP4.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "확산 모델 로드"
+    }
+  },
+  "2": {
+    "inputs": {
+      "clip_name": "qwen3vl_8b_int8_convrot.safetensors",
+      "type": "qwen_image",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "CLIP 로드"
+    }
+  },
+  "3": {
+    "inputs": {
+      "vae_name": "qwen_image_2.1_vae_bf16.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "VAE 로드"
+    }
+  },
+  "4": {
+    "inputs": {
+      "prompt": [
+        "14",
+        0
+      ],
+      "negative_prompt": "artifacts, washed-out colors, low quality, low resolution, blurry, indistinct, missing fingers, badly drawn hands, wrong number of fingers",
+      "resolution": 1024,
+      "clip": [
+        "2",
+        0
+      ]
+    },
+    "class_type": "TextEncodeQwenImage21",
+    "_meta": {
+      "title": "Text Encode Qwen Image 2.1"
+    }
+  },
+  "5": {
+    "inputs": {
+      "width": 704,
+      "height": 1024,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "빈 잠재 이미지"
+    }
+  },
+  "6": {
+    "inputs": {
+      "seed": 137011622967013,
+      "steps": 40,
+      "cfg": 3,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "16",
+        0
+      ],
+      "positive": [
+        "4",
+        0
+      ],
+      "negative": [
+        "4",
+        1
+      ],
+      "latent_image": [
+        "5",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "7": {
+    "inputs": {
+      "samples": [
+        "6",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE 디코드"
+    }
+  },
+  "8": {
+    "inputs": {
+      "filename_prefix": "Qwen21_NVFP4/01_Text_to_Image",
+      "images": [
+        "7",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "이미지 저장"
+    }
+  },
+  "14": {
+    "inputs": {
+      "prompt": "수영장에서 수영하는 한국여성의 비키니 브라자가 벗겨져 옷으로 가리지만, 흘러내리는 가슴이 너무 커 꼭지가 살짝 보인다. \n",
+      "input_mode": "텍스트-이미지 생성 / Text-to-image",
+      "max_output_chars": 0,
+      "wh_ratio": "9:16",
+      "transparent_alpha": false,
+      "api_mode": "로컬 GGUF (llama.cpp / Qwen, 프라인)",
+      "ai_workshop_model": "gemini-3.5-flash",
+      "custom_model": "",
+      "openai_base_url": "",
+      "seed": 607952190216878,
+      "local_model": "qwen_pe_t2i_heretic-Q4_K_M.gguf",
+      "local_mmproj": "AUTO（自动匹配）",
+      "local_context_size": 8192,
+      "local_max_tokens": 4352,
+      "local_think_mode": "끄기 (추천, 속도 우선)",
+      "local_reasoning_effort": "medium",
+      "local_video_sample_fps": 2,
+      "local_unload_policy": "실행 후 언로드 (추천)",
+      "local_comfy_memory_policy": "AUTO (VRAM 부족 시 해제)",
+      "recovery_slot": "t8-0f21629d-5145-49df-af41-1b9a3cdc1514",
+      "recovery_action": "normal"
+    },
+    "class_type": "QwenImage21PromptEnhancerT8",
+    "_meta": {
+      "title": "Qwen Image 2.1 프롬프트 인핸서"
+    }
+  },
+  "15": {
+    "inputs": {
+      "text": [
+        "14",
+        0
+      ]
+    },
+    "class_type": "T8ShowText",
+    "_meta": {
+      "title": "T8 텍스트 표시"
+    }
+  },
+  "16": {
+    "inputs": {
+      "lora_name": "qwen-image-2.1-uncensored-lora.safetensors",
+      "strength_model": 1,
+      "model": [
+        "1",
+        0
+      ]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": {
+      "title": "LoRA 로드 (모델 전용)"
+    }
+  }
+}
